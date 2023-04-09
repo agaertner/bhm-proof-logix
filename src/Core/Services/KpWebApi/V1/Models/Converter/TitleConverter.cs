@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 public class TitleConverter : JsonConverter<Title> {
     public override Title ReadJson(JsonReader reader, Type objectType, Title existingValue, bool hasExistingValue, JsonSerializer serializer) {
-        var obj         = JObject.Load(reader);
+        var obj = JObject.Load(reader);
         var displayName = obj.Properties().FirstOrDefault()?.Name;
 
         if (string.IsNullOrEmpty(displayName)) {
@@ -17,7 +17,7 @@ public class TitleConverter : JsonConverter<Title> {
 
         return new Title {
             Name = displayName,
-            Origin      = Enum.TryParse<Title.TitleOrigin>(originStr, true, out var result) ? result : Title.TitleOrigin.Unknown
+            Origin = Enum.TryParse<Title.TitleOrigin>(originStr, true, out var result) ? result : Title.TitleOrigin.Unknown
         };
     }
 

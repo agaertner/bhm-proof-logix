@@ -18,7 +18,7 @@ namespace Nekres.ProofLogix.Core.Utils {
             return success;
         }
 
-        public static async Task<(bool, T)> RetryAsync<T>(string url, int retries = 2, int delayMs = 10000) {
+        public static async Task<T> RetryAsync<T>(string url, int retries = 2, int delayMs = 10000) {
 
             var logger = Logger.GetLogger(typeof(TaskUtil));
 
@@ -27,7 +27,7 @@ namespace Nekres.ProofLogix.Core.Utils {
             try {
                 var response = await request.GetAsync();
                 var json = await response.Content.ReadAsStringAsync();
-                return (TryParseJson<T>(json, out var result), result);
+                return TryParseJson<T>(json, out var result) ? result : default;
             } catch (Exception e) {
 
                 if (retries > 0) {
@@ -35,7 +35,8 @@ namespace Nekres.ProofLogix.Core.Utils {
                     await Task.Delay(delayMs);
                     return await RetryAsync<T>(url, retries - 1, delayMs);
                 }
-
+                
+                //TODO: Consider adjusting exception behaviour and log levels.
                 switch (e) {
                     case FlurlHttpTimeoutException:
                         logger.Warn(e, e.Message);
@@ -52,7 +53,7 @@ namespace Nekres.ProofLogix.Core.Utils {
                 }
             }
 
-            return (false, default);
+            return default;
         }
     }
 }

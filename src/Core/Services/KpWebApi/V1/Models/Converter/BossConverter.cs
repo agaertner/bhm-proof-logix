@@ -22,7 +22,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
 
             return new Boss {
                 Name = property.Name,
-                Clears = property.Value.Value<int>()
+                Cleared = Convert.ToBoolean(property.Value.Value<int>())
             };
         }
 

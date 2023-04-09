@@ -27,7 +27,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
                 Name = displayName,
                 Encounters = bosses.Select(boss =>
                                                serializer.Deserialize<Boss>(boss.CreateReader())
-                                          ).ToArray()
+                                          ).ToList()
             };
 
             return raid;
