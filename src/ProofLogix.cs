@@ -6,12 +6,12 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-namespace Nekres.TemplateModule {
+namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
-    public class TemplateModule : Module {
-        internal static readonly Logger Logger = Logger.GetLogger<TemplateModule>();
+    public class ProofLogix : Module {
+        internal static readonly Logger Logger = Logger.GetLogger<ProofLogix>();
 
-        internal static TemplateModule Instance { get; private set; }
+        internal static ProofLogix Instance { get; private set; }
 
         #region Service Managers
         internal SettingsManager SettingsManager => this.ModuleParameters.SettingsManager;
@@ -21,7 +21,7 @@ namespace Nekres.TemplateModule {
         #endregion
 
         [ImportingConstructor]
-        public TemplateModule([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) => Instance = this;
+        public ProofLogix([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) => Instance = this;
 
         protected override void DefineSettings(SettingCollection settings) {
         }
