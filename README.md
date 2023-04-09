@@ -1,4 +1,2 @@
-# bhm-module-template
-A template repository for Blish-HUD modules.
-
-See the [wiki](https://github.com/agaertner/bhm-module-template/wiki) for more information.
+# bhm-proof-logix
+A module for Blish-HUD which provides a systematic approach to progress verification with support for [www.killproof.me](https://www.killproof.me/).
