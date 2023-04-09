@@ -240,6 +240,7 @@
     <Reference Include="System.Xml.ReaderWriter" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Services\KpWebApiService.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Account.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\BossConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\RaidConverter.cs" />
