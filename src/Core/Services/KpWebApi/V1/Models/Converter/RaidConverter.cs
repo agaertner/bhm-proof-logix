@@ -24,7 +24,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
             var bosses = firstPath.Values();
 
             var raid = new Raid {
-                DisplayName = displayName,
+                Name = displayName,
                 Encounters = bosses.Select(boss =>
                                                serializer.Deserialize<Boss>(boss.CreateReader())
                                           ).ToArray()

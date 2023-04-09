@@ -21,7 +21,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
             var property = jObject.Properties().First();
 
             return new Boss {
-                DisplayName = property.Name,
+                Name = property.Name,
                 Clears      = property.Value.Value<int>()
             };
         }

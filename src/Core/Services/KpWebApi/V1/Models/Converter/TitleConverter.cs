@@ -16,7 +16,7 @@ public class TitleConverter : JsonConverter<Title> {
         var originStr   = (string)obj[displayName];
 
         return new Title {
-            DisplayName = displayName,
+            Name = displayName,
             Origin      = Enum.TryParse<Title.TitleOrigin>(originStr, true, out var result) ? result : Title.TitleOrigin.Unknown
         };
     }
@@ -24,7 +24,7 @@ public class TitleConverter : JsonConverter<Title> {
     public override void WriteJson(JsonWriter writer, Title value, JsonSerializer serializer) {
         var obj = new JObject {
             {
-                value.DisplayName, value.Origin.ToString().ToLower()
+                value.Name, value.Origin.ToString().ToLower()
             }
         };
         obj.WriteTo(writer);

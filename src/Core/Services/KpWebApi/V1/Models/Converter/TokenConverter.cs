@@ -18,7 +18,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
             var quantity = (int)obj[displayName];
 
             return new Token {
-                DisplayName = displayName,
+                Name = displayName,
                 Quantity = quantity
             };
         }
