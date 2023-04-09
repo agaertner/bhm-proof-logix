@@ -9,12 +9,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
     [JsonConverter(typeof(RaidConverter))]
     public class Raid {
         public string Name { get; set; }
-        public Boss[] Encounters  { get; set; }
+        public Boss[] Encounters { get; set; }
     }
 
     [JsonConverter(typeof(BossConverter))]
     public class Boss {
         public string Name { get; set; }
-        public int    Clears      { get; set; }
+        public int Clears { get; set; }
     }
 }
