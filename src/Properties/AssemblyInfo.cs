@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TemplateModule")]
-[assembly: AssemblyDescription("A template module for Blish-HUD.")]
+[assembly: AssemblyTitle("ProofLogix")]
+[assembly: AssemblyDescription("A module for Blish-HUD which provides a systematic approach to progress verification with support for www.killproof.me.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TemplateModule")]
-[assembly: AssemblyCopyright("Copyright © A. Gärtner 2022")]
+[assembly: AssemblyProduct("ProofLogix")]
+[assembly: AssemblyCopyright("Copyright © A. Gärtner 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -7,8 +7,8 @@
     <ProjectGuid>{DC40358A-9FC9-471C-90CD-1CE642E2CC7D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Nekres.TemplateModule</RootNamespace>
-    <AssemblyName>TemplateModule</AssemblyName>
+    <RootNamespace>Nekres.ProofLogix</RootNamespace>
+    <AssemblyName>ProofLogix</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -232,7 +232,15 @@
     <Reference Include="System.Xml.ReaderWriter" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TemplateModule.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Account.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\BossConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\RaidConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TitleConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TokenConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Raid.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Title.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Token.cs" />
+    <Compile Include="ProofLogix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
