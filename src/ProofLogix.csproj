@@ -243,6 +243,7 @@
     <Compile Include="Core\Services\KpWebApiService.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Account.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\BossConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\DictionaryConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\RaidConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TitleConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TokenConverter.cs" />

@@ -5,6 +5,7 @@ using Blish_HUD.Settings;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.Services;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
@@ -23,14 +24,19 @@ namespace Nekres.ProofLogix {
         [ImportingConstructor]
         public ProofLogix([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) => Instance = this;
 
+        internal KpWebApiService KpWebApi;
+
         protected override void DefineSettings(SettingCollection settings) {
         }
 
         protected override void Initialize() {
+            KpWebApi = new KpWebApiService();
         }
 
         protected override async Task LoadAsync() {
-
+            var account = await KpWebApi.GetAccount("Nekres.1943");
+            
+            System.Console.WriteLine("cool");
         }
 
         protected override void OnModuleLoaded(EventArgs e) {

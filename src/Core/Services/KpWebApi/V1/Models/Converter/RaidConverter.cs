@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
     public class RaidConverter : JsonConverter {
+
+        public override bool CanRead  => true;
         public override bool CanWrite => false;
 
         public override bool CanConvert(Type objectType) {
@@ -12,7 +14,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-            var jObject     = JObject.Load(reader);
+            var jObject = JObject.Load(reader);
 
             var firstPath   = jObject.First;
 

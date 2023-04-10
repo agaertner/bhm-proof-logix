@@ -9,6 +9,9 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public async Task<Account> GetAccount(string id) {
             var account = await TaskUtil.RetryAsync<Account>($"{_uri}kp/{id}");
+
+            account.Clears = await TaskUtil.RetryAsync<Raid>($"{_uri}clear/{id}");
+
             return account;
         }
     }

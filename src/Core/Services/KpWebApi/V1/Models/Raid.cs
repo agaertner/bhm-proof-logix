@@ -10,6 +10,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
     [JsonConverter(typeof(RaidConverter))]
     public class Raid {
         public string Name { get; set; }
+
         public List<Boss> Encounters { get; set; }
     }
 

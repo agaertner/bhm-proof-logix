@@ -3,6 +3,7 @@ using Flurl.Http;
 using Newtonsoft.Json;
 using System;
 using System.Net;
+using System.Runtime;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Utils {
@@ -11,7 +12,10 @@ namespace Nekres.ProofLogix.Core.Utils {
         public static bool TryParseJson<T>(string json, out T result) {
             bool success = true;
             var settings = new JsonSerializerSettings {
-                Error                 = (_, args) => { success = false; args.ErrorContext.Handled = true; },
+                Error = (_, args) => {
+                    success = false; 
+                    args.ErrorContext.Handled = true;
+                },
                 MissingMemberHandling = MissingMemberHandling.Error
             };
             result = JsonConvert.DeserializeObject<T>(json, settings);
@@ -27,7 +31,7 @@ namespace Nekres.ProofLogix.Core.Utils {
             try {
                 var response = await request.GetAsync();
                 var json = await response.Content.ReadAsStringAsync();
-                return TryParseJson<T>(json, out var result) ? result : default;
+                return JsonConvert.DeserializeObject<T>(json);
             } catch (Exception e) {
 
                 if (retries > 0) {

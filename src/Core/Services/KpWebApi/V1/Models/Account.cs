@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -25,12 +26,18 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
         public string Id { get; set; }
 
         [JsonProperty("tokens")]
+        [JsonConverter(typeof(DictionaryConverter<Token>))]
         public List<Token> Tokens { get; set; }
 
         [JsonProperty("killproofs")]
+        [JsonConverter(typeof(DictionaryConverter<Token>))]
         public List<Token> Killproofs { get; set; }
 
         [JsonProperty("titles")]
-        public List<Token> Titles { get; set; }
+        [JsonConverter(typeof(DictionaryConverter<Title>))]
+        public List<Title> Titles { get; set; }
+
+        [JsonIgnore]
+        public Raid Clears { get; set; }
     }
 }

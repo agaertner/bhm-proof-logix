@@ -5,15 +5,33 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public class TitleConverter : JsonConverter<Title> {
+
+    public override bool CanWrite => false;
+    public override bool CanRead  => true;
+
     public override Title ReadJson(JsonReader reader, Type objectType, Title existingValue, bool hasExistingValue, JsonSerializer serializer) {
+        if (reader.TokenType == JsonToken.Null) {
+            return null;
+        }
+
         var obj = JObject.Load(reader);
-        var displayName = obj.Properties().FirstOrDefault()?.Name;
+        var prop = obj.Properties().FirstOrDefault();
+
+        if (prop == null) {
+            return null;
+        }
+
+        var displayName = prop.Name;
 
         if (string.IsNullOrEmpty(displayName)) {
             return null;
         }
 
-        var originStr   = (string)obj[displayName];
+        var originStr = prop.Value.Value<string>();
+
+        if (string.IsNullOrEmpty(originStr)) {
+            return null;
+        }
 
         return new Title {
             Name = displayName,
