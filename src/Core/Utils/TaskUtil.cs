@@ -3,7 +3,6 @@ using Flurl.Http;
 using Newtonsoft.Json;
 using System;
 using System.Net;
-using System.Runtime;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Utils {

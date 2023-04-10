@@ -38,6 +38,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
         public List<Title> Titles { get; set; }
 
         [JsonIgnore]
-        public Raid Clears { get; set; }
+        public List<Raid> Clears { get; set; }
     }
 }
