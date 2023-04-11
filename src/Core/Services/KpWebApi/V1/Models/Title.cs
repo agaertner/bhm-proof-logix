@@ -4,7 +4,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
     [JsonConverter(typeof(TitleConverter))]
     public class Title {
-        public enum TitleOrigin {
+        public enum TitleMode {
             Unknown,
             Raid,
             Fractal
@@ -12,7 +12,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
         public string Name { get; set; }
 
-        public TitleOrigin Origin { get; set; }
+        public TitleMode Mode { get; set; }
 
     }
 }

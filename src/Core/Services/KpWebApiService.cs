@@ -1,33 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
-using Nekres.ProofLogix.Core.Utils;
+﻿using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
 using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class KpWebApiService {
 
-        private string _uri = "https://killproof.me/api/";
+        private KpV2Client _client;
+
+        public KpWebApiService() {
+             _client = new KpV2Client();
+        }
 
         public async Task<Account> GetAccount(string id) {
-            var account = await TaskUtil.RetryAsync<Account>($"{_uri}kp/{id}");
-
-            if (account == null) {
-                return null;
-            }
-
-            var response = await TaskUtil.RetryAsync<JObject>($"{_uri}clear/{id}");
-
-            var clears = response.Properties()
-                                 .Select(property => new JObject { [property.Name] = property.Value }.ToObject<Raid>())
-                                 .ToList();
-
-            account.Clears = clears;
-
-            return account;
+            return await _client.GetAccount(id);
         }
     }
 }

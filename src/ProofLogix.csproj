@@ -241,6 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Services\KpWebApiService.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\KpV1Client.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Account.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\BossConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\DictionaryConverter.cs" />
@@ -250,7 +251,14 @@
     <Compile Include="Core\Services\KpWebApi\V1\Models\Raid.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Title.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Token.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\KpV2Client.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\Models\Account.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\Models\OriginalUce.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\Models\Title.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\Models\Token.cs" />
+    <Compile Include="Core\Services\PartySyncService.cs" />
     <Compile Include="Core\Utils\TaskUtil.cs" />
+    <Compile Include="Core\_Extensions\LocaleExtensions.cs" />
     <Compile Include="ProofLogix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

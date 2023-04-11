@@ -35,14 +35,14 @@ public class TitleConverter : JsonConverter<Title> {
 
         return new Title {
             Name = displayName,
-            Origin = Enum.TryParse<Title.TitleOrigin>(originStr, true, out var result) ? result : Title.TitleOrigin.Unknown
+            Mode = Enum.TryParse<Title.TitleMode>(originStr, true, out var result) ? result : Title.TitleMode.Unknown
         };
     }
 
     public override void WriteJson(JsonWriter writer, Title value, JsonSerializer serializer) {
         var obj = new JObject {
             {
-                value.Name, value.Origin.ToString().ToLower()
+                value.Name, value.Mode.ToString().ToLower()
             }
         };
         obj.WriteTo(writer);
