@@ -20,7 +20,11 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
 
         private CommonFields.Player _arcDpsPlayer;
 
-        public Player(string accountName) {
+        private Player() {
+            this.IsLoading = true;
+        }
+
+        public Player(string accountName) : this() {
             this.AccountName = accountName;
         }
 
