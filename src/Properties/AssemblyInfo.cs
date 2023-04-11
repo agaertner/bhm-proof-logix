@@ -18,3 +18,6 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
+[assembly: AssemblyVersion("2.1.3.15")]
+[assembly: AssemblyFileVersion("2.1.3.15")]
+[assembly: AssemblyInformationalVersion("2.1.3-dev.15+Branch.dev.Sha.7a343eb723ac104c7aa7ae8b1388f3332e955e60")]
