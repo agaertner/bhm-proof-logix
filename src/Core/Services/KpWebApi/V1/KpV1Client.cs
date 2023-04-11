@@ -76,7 +76,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
 
         }
 
-        public async Task<bool> AddKey(string apiKey, bool opener) {
+        public async Task<string> AddKey(string apiKey, bool opener) {
 
             var response = await HttpUtil.RetryAsync<AddKey>(() => _uri.AppendPathSegment("addkey")
                                                                        .PostJsonAsync(new JObject {
@@ -85,15 +85,15 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
                                                                         }));
 
             if (response == null) {
-                return false;
+                return string.Empty;
             }
 
             if (string.IsNullOrEmpty(response.Error)) {
-                return true;
+                return response.KpId;
             }
 
             ProofLogix.Logger.Trace(response.Error);
-            return false;
+            return string.Empty;
         }
     }
 }
