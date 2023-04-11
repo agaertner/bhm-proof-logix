@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2 {
     internal class KpV2Client {
 
-        private string _uri = "https://killproof.me/api/{0}/{1}?lang={2}";
+        private readonly string _uri = "https://killproof.me/api/{0}/{1}?lang={2}";
 
         public async Task<Profile> GetProfile(string id) {
 

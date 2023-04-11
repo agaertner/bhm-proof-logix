@@ -12,9 +12,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-            var jObject     = JObject.Load(reader);
+            var jObject = JObject.Load(reader);
 
-            var firstPath   = jObject.First;
+            var firstPath = jObject.First;
 
             if (firstPath == null) {
                 return null;

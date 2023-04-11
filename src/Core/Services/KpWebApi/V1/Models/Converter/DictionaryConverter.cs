@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
     public class DictionaryConverter<T> : JsonConverter {
@@ -15,7 +16,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
             if (reader.TokenType == JsonToken.Null) {
-                return null;
+                return Enumerable.Empty<T>().ToList();
             }
 
             var obj = JObject.Load(reader);
