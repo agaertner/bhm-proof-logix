@@ -10,6 +10,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Blish_HUD.ArcDps.Common.CommonFields;
+using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class PartySyncService : IDisposable {
@@ -39,7 +41,14 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task LoadAsync() {
+            await LoadResources();
 
+            foreach (var player in GameService.ArcDps.Common.PlayersInSquad.Values) {
+                await AddArcDpsAgent(player);
+            }
+        }
+
+        private async Task LoadResources() {
             var professions = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
 
             if (professions == null) {
@@ -54,29 +63,34 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var elites = specializations.Where(x => x.Elite).ToList();
 
-            ProfNames = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
+            ProfNames = professions.ToDictionary(x => (int) (ProfessionType) Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
 
-            ProfIcons = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
+            ProfIcons = professions.ToDictionary(x => (int) (ProfessionType) Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
 
             EliteNames = elites.ToDictionary(x => x.Id, x => x.Name);
 
             EliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
 
+        private async Task AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
+            if (_members.TryGetValue(arcDpsPlayer.AccountName, out var member)) {
+
+                member.AttachAgent(arcDpsPlayer); // Attach the new player agent.
+
+                return;
+            }
+
+            member = Player.FromArcDps(arcDpsPlayer);
+            _members.Add(arcDpsPlayer.AccountName, member);
+
+            await member.LoadAsync();
+        }
+
         #region ArcDps Player Events
         private async void OnPlayerAdded(CommonFields.Player player) {
             this.AcquireWriteLock();
             try {
-
-                if (_members.ContainsKey(player.AccountName)) {
-                    return;
-                }
-
-                var member = new Player(player, () => ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName));
-                _members.Add(player.AccountName, member);
-
-                await member.LoadAsync();
-
+                await this.AddArcDpsAgent(player);
             } finally {
                 this.ReleaseWriteLock();
             }
@@ -90,6 +104,25 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
         #endregion
+
+        public async Task<bool> TryAddManually(string accountName) {
+            try {
+
+                if (_members.ContainsKey(accountName)) {
+                    return false;
+                }
+
+                var member = new Player(accountName);
+                _members.Add(accountName, member);
+
+                await member.LoadAsync();
+
+                return true;
+
+            } finally {
+                this.ReleaseWriteLock();
+            }
+        }
 
         private void AcquireWriteLock() {
             try {
