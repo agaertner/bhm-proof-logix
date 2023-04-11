@@ -3,15 +3,13 @@ using Blish_HUD.ArcDps.Common;
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
-using Nekres.ProofLogix.Core.Services.PartySync.Models;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
-using static Blish_HUD.ArcDps.Common.CommonFields;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -111,8 +109,17 @@ namespace Nekres.ProofLogix.Core.Services {
 
                 member = Player.FromKpProfile(kpProfile);
                 _members.Add(key, member);
-                await member.LoadAsync();
+                await member.LoadAsync(); 
 
+            } finally {
+                this.ReleaseWriteLock();
+            }
+        }
+
+        public void RemovePlayer(string accountName) {
+            this.AcquireWriteLock();
+            try {
+                _members.Remove(accountName.ToLowerInvariant());
             } finally {
                 this.ReleaseWriteLock();
             }
@@ -124,11 +131,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnPlayerRemoved(CommonFields.Player player) {
-            try {
-                _members.Remove(player.AccountName.ToLowerInvariant());
-            } finally {
-                this.ReleaseWriteLock();
-            }
+            this.RemovePlayer(player.AccountName);
         }
         #endregion
 
