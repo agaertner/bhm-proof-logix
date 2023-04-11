@@ -248,6 +248,7 @@
   <ItemGroup>
     <Compile Include="Core\Services\KpWebApiService.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\KpV1Client.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\AddKey.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\HttpStatusCodeConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Opener.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Profile.cs" />

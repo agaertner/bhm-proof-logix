@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Flurl;
+using Flurl.Http;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
     internal class KpV1Client {
@@ -24,10 +25,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
         };
 
         public async Task<Profile> GetAccount(string id) {
-
-            var request = _uri.AppendPathSegments("kp", id);
-
-            var profile = await HttpUtil.RetryAsync<Profile>(request);
+            var profile = await HttpUtil.RetryAsync<Profile>(() => _uri.AppendPathSegments("kp", id).GetAsync());
 
             if (profile == null) {
                 return Profile.Empty;
@@ -39,10 +37,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
         }
 
         public async Task<List<Raid>> GetClears(string id) {
-
-            var request  = _uri.AppendPathSegments("clear", id);
-
-            var response = await HttpUtil.RetryAsync<JObject>(request);
+            var response = await HttpUtil.RetryAsync<JObject>(() => _uri.AppendPathSegments("clear", id).GetAsync());
 
             if (response == null) {
                 return Enumerable.Empty<Raid>().ToList();
@@ -58,9 +53,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
         }
 
         public async Task<bool> Refresh(string id) {
-            var request = $"https://killproof.me/proof/{id}/refresh";
-
-            var response = await HttpUtil.RetryAsync<Refresh>(request);
+            var response = await HttpUtil.RetryAsync<Refresh>(() => $"https://killproof.me/proof/{id}/refresh".GetAsync());
 
             return response is {Status: HttpStatusCode.OK};
         }
@@ -76,13 +69,31 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
                 return null;
             }
 
-            var request = _uri.AppendPathSegment("opener")
-                                  .SetQueryParams($"encounter={encounter}", $"region={region}");
-
-            var response = await HttpUtil.RetryAsync<Opener>(request);
+            var response = await HttpUtil.RetryAsync<Opener>(() => _uri.AppendPathSegment("opener")
+                                                                       .SetQueryParams($"encounter={encounter}", $"region={region}").GetAsync());
 
             return response ?? Opener.Empty;
 
+        }
+
+        public async Task<bool> AddKey(string apiKey, bool opener) {
+
+            var response = await HttpUtil.RetryAsync<AddKey>(() => _uri.AppendPathSegment("addkey")
+                                                                       .PostJsonAsync(new JObject {
+                                                                            ["key"]    = apiKey,
+                                                                            ["opener"] = Convert.ToInt32(opener)
+                                                                        }));
+
+            if (response == null) {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(response.Error)) {
+                return true;
+            }
+
+            ProofLogix.Logger.Trace(response.Error);
+            return false;
         }
     }
 }

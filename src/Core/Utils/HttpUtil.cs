@@ -3,6 +3,7 @@ using Flurl.Http;
 using Newtonsoft.Json;
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Utils {
@@ -21,14 +22,12 @@ namespace Nekres.ProofLogix.Core.Utils {
             return success;
         }
 
-        public static async Task<T> RetryAsync<T>(string url, int retries = 2, int delayMs = 10000, Logger logger = null) {
+        public static async Task<T> RetryAsync<T>(Func<Task<HttpResponseMessage>> request, int retries = 2, int delayMs = 10000, Logger logger = null) {
 
             logger ??= Logger.GetLogger(typeof(HttpUtil));
 
-            var request = url.AllowHttpStatus(HttpStatusCode.OK).WithTimeout(10);
-
             try {
-                var response = await request.GetAsync();
+                var response = await request();
                 var json = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(json);
             } catch (Exception e) {
@@ -36,7 +35,7 @@ namespace Nekres.ProofLogix.Core.Utils {
                 if (retries > 0) {
                     logger.Warn(e, $"Failed to request data. Retrying in {delayMs / 1000} second(s) (remaining retries: {retries}).");
                     await Task.Delay(delayMs);
-                    return await RetryAsync<T>(url, retries - 1, delayMs, logger);
+                    return await RetryAsync<T>(request, retries - 1, delayMs, logger);
                 }
                 
                 //TODO: Consider adjusting exception behaviour and log levels.
