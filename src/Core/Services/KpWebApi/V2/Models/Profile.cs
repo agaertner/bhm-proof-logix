@@ -8,7 +8,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     // 20230409220443
     // https://killproof.me/api/kp/Nekres.1943?lang=en
 
-    public class Account {
+    public class Profile {
 
         [JsonProperty("account_name")]
         public string Name { get; set; }
@@ -41,7 +41,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public List<Title> Titles { get; set; }
 
         [JsonProperty("linked")]
-        public List<Account> Linked { get; set; }
+        public List<Profile> Linked { get; set; }
 
         [JsonProperty("linked_totals")]
         public LinkedTotals LinkedTotals { get; set; }

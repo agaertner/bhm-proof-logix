@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Blish_HUD.ArcDps.Common;
 
 namespace Nekres.ProofLogix.Core.Services {
-    internal class PartySyncService {
+    internal class PartySyncService : IDisposable {
 
         public PartySyncService() {
             GameService.ArcDps.Common.Activate();
@@ -17,13 +17,18 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnPlayerAdded(CommonFields.Player player) {
-            player.AccountName
+            throw new NotImplementedException();
         }
 
         private void OnPlayerRemoved(CommonFields.Player player) {
             throw new NotImplementedException();
         }
 
+
+        public void Dispose() {
+            GameService.ArcDps.Common.PlayerAdded   -= OnPlayerAdded;
+            GameService.ArcDps.Common.PlayerRemoved -= OnPlayerRemoved;
+        }
 
     }
 }

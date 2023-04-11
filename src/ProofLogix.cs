@@ -34,7 +34,8 @@ namespace Nekres.ProofLogix {
         }
 
         protected override async Task LoadAsync() {
-
+            var account = await KpWebApi.GetProfile("Jaq");
+            System.Console.WriteLine("wip");
         }
 
         protected override void OnModuleLoaded(EventArgs e) {

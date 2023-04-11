@@ -6,7 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Utils {
-    internal static class TaskUtil {
+    internal static class HttpUtil {
 
         public static bool TryParseJson<T>(string json, out T result) {
             bool success = true;
@@ -21,9 +21,9 @@ namespace Nekres.ProofLogix.Core.Utils {
             return success;
         }
 
-        public static async Task<T> RetryAsync<T>(string url, int retries = 2, int delayMs = 10000) {
+        public static async Task<T> RetryAsync<T>(string url, int retries = 2, int delayMs = 10000, Logger logger = null) {
 
-            var logger = Logger.GetLogger(typeof(TaskUtil));
+            logger ??= Logger.GetLogger(typeof(HttpUtil));
 
             var request = url.AllowHttpStatus(HttpStatusCode.OK).WithTimeout(10);
 
@@ -36,7 +36,7 @@ namespace Nekres.ProofLogix.Core.Utils {
                 if (retries > 0) {
                     logger.Warn(e, $"Failed to request data. Retrying in {delayMs / 1000} second(s) (remaining retries: {retries}).");
                     await Task.Delay(delayMs);
-                    return await RetryAsync<T>(url, retries - 1, delayMs);
+                    return await RetryAsync<T>(url, retries - 1, delayMs, logger);
                 }
                 
                 //TODO: Consider adjusting exception behaviour and log levels.

@@ -8,7 +8,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
     // 20230409220443
     // https://killproof.me/api/kp/Nekres.1943
 
-    public class Account {
+    public class Profile {
 
         [JsonProperty("account_name")]
         public string Name { get; set; }
