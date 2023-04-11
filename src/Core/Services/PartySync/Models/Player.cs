@@ -25,7 +25,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         }
 
         public Player(string accountName) : this() {
-            this.AccountName = accountName;
+            this.AccountName = accountName ?? string.Empty;
         }
 
         public static Player FromArcDps(CommonFields.Player arcDpsPlayer) {
@@ -35,10 +35,6 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         }
 
         public bool AttachAgent(CommonFields.Player arcDpsPlayer) {
-            if (string.IsNullOrEmpty(this.AccountName)) {
-                return false;
-            }
-
             if (!this.AccountName.Equals(arcDpsPlayer.AccountName, StringComparison.InvariantCultureIgnoreCase)) {
                 return false;
             }
