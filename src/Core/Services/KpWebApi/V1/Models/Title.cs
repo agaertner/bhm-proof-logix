@@ -3,7 +3,7 @@
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
     [JsonConverter(typeof(TitleConverter))]
-    public class Title {
+    public sealed class Title {
         public enum TitleMode {
             Unknown,
             Raid,

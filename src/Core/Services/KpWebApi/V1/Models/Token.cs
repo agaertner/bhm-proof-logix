@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
     [JsonConverter(typeof(TokenConverter))]
-    public class Token
+    public sealed class Token
     {
         public string Name { get; set; }
 

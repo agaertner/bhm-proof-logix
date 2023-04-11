@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Converters;
 using TitleMode = Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Title.TitleMode;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
-    public class Title {
+    public sealed class Title {
         [JsonProperty("id")]
         public int Id { get; set; }
 

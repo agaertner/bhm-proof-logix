@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
-    public class Token {
+    public sealed class Token {
 
         [JsonProperty("id")]
         public int Id { get; set; }

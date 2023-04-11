@@ -2,7 +2,7 @@
 using System;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
-    public class OriginalUce {
+    public sealed class OriginalUce {
 
         [JsonProperty("amount")]
         public int Amount { get; set; }
