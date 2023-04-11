@@ -41,6 +41,8 @@ namespace Nekres.ProofLogix {
         protected override void OnModuleLoaded(EventArgs e) {
             GameService.ArcDps.Common.Activate();
 
+            PartySync.InitSquad();
+
             // Base handler must be called
             base.OnModuleLoaded(e);
         }

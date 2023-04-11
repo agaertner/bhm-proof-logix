@@ -1,27 +1,26 @@
-﻿using Blish_HUD.ArcDps.Common;
+﻿using Blish_HUD;
+using Blish_HUD.ArcDps.Common;
 using Blish_HUD.Content;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
-using System.Threading.Tasks;
-using Blish_HUD;
 
 namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
     public sealed class Player {
 
         public Profile KpProfile   { get; private set; }
-        public bool    IsLoading   { get; private set; }
         public string  AccountName { get; private set; }
 
+        public bool           HasAgent      => !string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
+        public bool           HasKpProfile  => !KpProfile?.IsEmpty ?? false;
         public string         Class         => GetClass();
         public AsyncTexture2D Icon          => GetIcon();
         public string         CharacterName => _arcDpsPlayer.CharacterName;
         public bool           Self          => _arcDpsPlayer.Self;
-        public bool           HasAgent      => string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
 
         private CommonFields.Player _arcDpsPlayer;
 
         private Player() {
-            this.IsLoading = true;
+            /* NOOP */
         }
 
         public Player(string accountName) : this() {
@@ -61,14 +60,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             return true;
         }
 
-        public async Task LoadAsync() {
-            this.IsLoading = true;
-            this.KpProfile = await ProofLogix.Instance.KpWebApi.GetProfile(this.AccountName).ConfigureAwait(false);
-            this.IsLoading = false;
-        }
-
         private string GetClass() {
-
             return PartySyncService.EliteNames.TryGetValue((int)_arcDpsPlayer.Elite, out var name) ? name :
                    PartySyncService.ProfNames.TryGetValue((int)_arcDpsPlayer.Profession, out name) ? name : string.Empty;
         }

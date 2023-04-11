@@ -32,18 +32,22 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
-            await LoadAsync();
+            await LoadAsync(); // Reload localized resources.
 
             foreach (var member in _members.Values) {
-                await member.LoadAsync();
+                // Reattach localized KP profiles.
+                member.AttachProfile(await ProofLogix.Instance.KpWebApi.GetProfile(member.AccountName));
             }
         }
 
         public async Task LoadAsync() {
             await LoadResources();
+        }
 
+        public void InitSquad() {
+            // Squad will be empty until map change if ArcDps just got activated.
             foreach (var player in GameService.ArcDps.Common.PlayersInSquad.Values) {
-                await AddArcDpsAgent(player);
+                AddArcDpsAgent(player);
             }
         }
 
@@ -71,7 +75,7 @@ namespace Nekres.ProofLogix.Core.Services {
             EliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
 
-        private async Task AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
+        private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
             this.AcquireWriteLock();
             try {
 
@@ -79,22 +83,19 @@ namespace Nekres.ProofLogix.Core.Services {
 
                 if (_members.TryGetValue(key, out var member)) {
 
-                    member.AttachAgent(arcDpsPlayer); // Attach the new player agent.
-
+                    member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
                     return;
                 }
 
                 member = Player.FromArcDps(arcDpsPlayer);
                 _members.Add(key, member);
 
-                await member.LoadAsync();
-
             } finally {
                 this.ReleaseWriteLock();
             }
         }
 
-        public async Task AddKpProfile(Profile kpProfile) {
+        public void AddKpProfile(Profile kpProfile) {
             this.AcquireWriteLock();
             try {
 
@@ -102,14 +103,12 @@ namespace Nekres.ProofLogix.Core.Services {
 
                 if (_members.TryGetValue(key, out var member)) {
 
-                    member.AttachProfile(kpProfile);
-
+                    member.AttachProfile(kpProfile); // Overwrite KP profile.
                     return;
                 }
 
                 member = Player.FromKpProfile(kpProfile);
                 _members.Add(key, member);
-                await member.LoadAsync(); 
 
             } finally {
                 this.ReleaseWriteLock();
@@ -127,7 +126,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
         #region ArcDps Player Events
         private async void OnPlayerAdded(CommonFields.Player player) {
-            await this.AddArcDpsAgent(player);
+            this.AddArcDpsAgent(player);
+            this.AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName));
         }
 
         private void OnPlayerRemoved(CommonFields.Player player) {
