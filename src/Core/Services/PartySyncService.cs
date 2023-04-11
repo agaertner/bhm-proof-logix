@@ -73,7 +73,10 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
-            if (_members.TryGetValue(arcDpsPlayer.AccountName, out var member)) {
+
+            var key = arcDpsPlayer.AccountName.ToLowerInvariant();
+
+            if (_members.TryGetValue(key, out var member)) {
 
                 member.AttachAgent(arcDpsPlayer); // Attach the new player agent.
 
@@ -81,7 +84,7 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             member = Player.FromArcDps(arcDpsPlayer);
-            _members.Add(arcDpsPlayer.AccountName, member);
+            _members.Add(key, member);
 
             await member.LoadAsync();
         }
@@ -98,7 +101,7 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private void OnPlayerRemoved(CommonFields.Player player) {
             try {
-                _members.Remove(player.AccountName);
+                _members.Remove(player.AccountName.ToLowerInvariant());
             } finally {
                 this.ReleaseWriteLock();
             }
@@ -107,13 +110,14 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public async Task<bool> TryAddManually(string accountName) {
             try {
+                var key = accountName.ToLowerInvariant();
 
-                if (_members.ContainsKey(accountName)) {
+                if (_members.ContainsKey(key)) {
                     return false;
                 }
 
                 var member = new Player(accountName);
-                _members.Add(accountName, member);
+                _members.Add(key, member);
 
                 await member.LoadAsync();
 
