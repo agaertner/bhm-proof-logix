@@ -263,6 +263,7 @@
     <Compile Include="Core\Services\KpWebApi\V2\Models\Title.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\Models\Token.cs" />
     <Compile Include="Core\Services\PartySyncService.cs" />
+    <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Utils\HttpUtil.cs" />
     <Compile Include="ProofLogix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

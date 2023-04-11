@@ -24,27 +24,32 @@ namespace Nekres.ProofLogix {
         [ImportingConstructor]
         public ProofLogix([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) => Instance = this;
 
-        internal KpWebApiService KpWebApi;
-
+        internal KpWebApiService  KpWebApi;
+        internal PartySyncService PartySync;
         protected override void DefineSettings(SettingCollection settings) {
         }
 
         protected override void Initialize() {
             KpWebApi = new KpWebApiService();
+            PartySync = new PartySyncService();
         }
 
         protected override async Task LoadAsync() {
-            var account = await KpWebApi.GetProfile("Jaq");
-            System.Console.WriteLine("wip");
+            await PartySync.LoadAsync();
         }
 
         protected override void OnModuleLoaded(EventArgs e) {
+            GameService.ArcDps.Common.Activate();
+
             // Base handler must be called
             base.OnModuleLoaded(e);
         }
 
         /// <inheritdoc />
         protected override void Unload() {
+
+            PartySync.Dispose();
+
             // All static members must be manually unset
             Instance = null;
         }
