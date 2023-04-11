@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using static Blish_HUD.ArcDps.Common.CommonFields;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
@@ -73,30 +74,53 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
+            this.AcquireWriteLock();
+            try {
 
-            var key = arcDpsPlayer.AccountName.ToLowerInvariant();
+                var key = arcDpsPlayer.AccountName.ToLowerInvariant();
 
-            if (_members.TryGetValue(key, out var member)) {
+                if (_members.TryGetValue(key, out var member)) {
 
-                member.AttachAgent(arcDpsPlayer); // Attach the new player agent.
+                    member.AttachAgent(arcDpsPlayer); // Attach the new player agent.
 
-                return;
+                    return;
+                }
+
+                member = Player.FromArcDps(arcDpsPlayer);
+                _members.Add(key, member);
+
+                await member.LoadAsync();
+
+            } finally {
+                this.ReleaseWriteLock();
             }
+        }
 
-            member = Player.FromArcDps(arcDpsPlayer);
-            _members.Add(key, member);
+        public async Task AddKpProfile(Profile kpProfile) {
+            this.AcquireWriteLock();
+            try {
 
-            await member.LoadAsync();
+                var key = kpProfile.Name.ToLowerInvariant();
+
+                if (_members.TryGetValue(key, out var member)) {
+
+                    member.AttachProfile(kpProfile);
+
+                    return;
+                }
+
+                member = Player.FromKpProfile(kpProfile);
+                _members.Add(key, member);
+                await member.LoadAsync();
+
+            } finally {
+                this.ReleaseWriteLock();
+            }
         }
 
         #region ArcDps Player Events
         private async void OnPlayerAdded(CommonFields.Player player) {
-            this.AcquireWriteLock();
-            try {
-                await this.AddArcDpsAgent(player);
-            } finally {
-                this.ReleaseWriteLock();
-            }
+            await this.AddArcDpsAgent(player);
         }
 
         private void OnPlayerRemoved(CommonFields.Player player) {
@@ -107,26 +131,6 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
         #endregion
-
-        public async Task<bool> TryAddManually(string accountName) {
-            try {
-                var key = accountName.ToLowerInvariant();
-
-                if (_members.ContainsKey(key)) {
-                    return false;
-                }
-
-                var member = new Player(accountName);
-                _members.Add(key, member);
-
-                await member.LoadAsync();
-
-                return true;
-
-            } finally {
-                this.ReleaseWriteLock();
-            }
-        }
 
         private void AcquireWriteLock() {
             try {

@@ -34,6 +34,12 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             };
         }
 
+        public static Player FromKpProfile(Profile profile) {
+            return new Player(profile.Name) {
+                KpProfile = profile
+            };
+        }
+
         public bool AttachAgent(CommonFields.Player arcDpsPlayer) {
             if (!this.AccountName.Equals(arcDpsPlayer.AccountName, StringComparison.InvariantCultureIgnoreCase)) {
                 return false;
@@ -42,6 +48,16 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             _arcDpsPlayer    = arcDpsPlayer;
             this.AccountName = arcDpsPlayer.AccountName;
             
+            return true;
+        }
+
+        public bool AttachProfile(Profile kpProfile) {
+            if (!this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
+                return false;
+            }
+
+            this.KpProfile   = kpProfile;
+            this.AccountName = kpProfile.Name;
             return true;
         }
 
