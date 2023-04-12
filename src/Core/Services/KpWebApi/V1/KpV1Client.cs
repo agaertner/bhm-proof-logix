@@ -14,14 +14,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
 
         private readonly string _uri = "https://killproof.me/api/";
 
-        private IReadOnlyDictionary<int, IReadOnlyList<string>> _wings = new Dictionary<int, IReadOnlyList<string>> {
-            {1, new List<string> { "vale_guardian", "spirit_woods", "gorseval", "sabetha" }},
-            {2, new List<string> { "slothasor", "bandit_trio", "matthias" }},
-            {3, new List<string> { "escort", "keep_construct", "twisted_castle", "xera" }},
-            {4, new List<string> { "cairn", "mursaat_overseer", "samarog", "deimos" }},
-            {5, new List<string> { "soulless_horror", "river_of_souls", "statues_of_grenth", "voice_in_the_void" }},
-            {6, new List<string> { "conjured_amalgamate", "twin_largos", "qadim" }},
-            {7, new List<string> { "gate", "adina", "sabir", "qadim_the_peerless" }},
+        private readonly IReadOnlyList<IReadOnlyList<string>> _wings = new List<IReadOnlyList<string>> {
+            new List<string> { "vale_guardian", "spirit_woods", "gorseval", "sabetha" },
+            new List<string> { "slothasor", "bandit_trio", "matthias" },
+            new List<string> { "escort", "keep_construct", "twisted_castle", "xera" },
+            new List<string> { "cairn", "mursaat_overseer", "samarog", "deimos" },
+            new List<string> { "soulless_horror", "river_of_souls", "statues_of_grenth", "voice_in_the_void" },
+            new List<string> { "conjured_amalgamate", "twin_largos", "qadim" },
+            new List<string> { "gate", "adina", "sabir", "qadim_the_peerless" },
         };
 
         public async Task<Profile> GetAccount(string id) {
@@ -63,7 +63,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
                 return null;
             }
 
-            var encounters = _wings.Values.SelectMany(x => x);
+            var encounters = _wings.SelectMany(x => x);
 
             if (!encounters.Any(x => x.Equals(encounter))) {
                 return null;
