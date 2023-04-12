@@ -11,7 +11,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         public string  AccountName { get; private set; }
 
         public bool           HasAgent      => !string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
-        public bool           HasKpProfile  => !KpProfile?.IsEmpty ?? false;
+        public bool           HasKpProfile  => this.KpProfile != null;
         public string         Class         => GetClass();
         public AsyncTexture2D Icon          => GetIcon();
         public string         CharacterName => _arcDpsPlayer.CharacterName;
