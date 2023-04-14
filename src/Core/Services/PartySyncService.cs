@@ -1,16 +1,11 @@
 ﻿using Blish_HUD;
 using Blish_HUD.ArcDps.Common;
-using Blish_HUD.Content;
-using Blish_HUD.Extended;
-using Gw2Sharp.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
+using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.Utils;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
