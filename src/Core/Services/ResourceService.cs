@@ -23,15 +23,15 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
-            await LoadAsync();
+            await LoadAsync(true);
         }
 
-        public async Task LoadAsync() {
-            await LoadProfessions();
-            await LoadItems();
+        public async Task LoadAsync(bool localeChange = false) {
+            await LoadProfessions(localeChange);
+            await LoadItems(localeChange);
         }
 
-        private async Task LoadItems() {
+        private async Task LoadItems(bool localeChange = false) {
 
             var ids = Enum.GetValues(typeof(Item)).Cast<int>();
             var items = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.ManyAsync(ids));
@@ -41,10 +41,15 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             ItemNames = items.ToDictionary(x => x.Id, x => x.Name);
+
+            if (localeChange) {
+                return;
+            }
+
             ItemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon.ToString()));
         }
 
-        private async Task LoadProfessions() {
+        private async Task LoadProfessions(bool localeChange = false) {
             var professions = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
 
             if (professions == null) {
@@ -59,12 +64,14 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var elites = specializations.Where(x => x.Elite).ToList();
 
-            ProfNames = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
-
-            ProfIcons = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
-
+            ProfNames  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
             EliteNames = elites.ToDictionary(x => x.Id, x => x.Name);
 
+            if (localeChange) {
+                return;
+            }
+
+            ProfIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
             EliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
 
