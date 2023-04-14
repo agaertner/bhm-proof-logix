@@ -24,18 +24,20 @@ namespace Nekres.ProofLogix {
         [ImportingConstructor]
         public ProofLogix([Import("ModuleParameters")] ModuleParameters moduleParameters) : base(moduleParameters) => Instance = this;
 
+        internal ResourceService  Resources;
         internal KpWebApiService  KpWebApi;
         internal PartySyncService PartySync;
         protected override void DefineSettings(SettingCollection settings) {
         }
 
         protected override void Initialize() {
-            KpWebApi = new KpWebApiService();
+            Resources = new ResourceService();
+            KpWebApi  = new KpWebApiService();
             PartySync = new PartySyncService();
         }
 
         protected override async Task LoadAsync() {
-            await PartySync.LoadAsync();
+            await Resources.LoadAsync();
         }
 
         protected override void OnModuleLoaded(EventArgs e) {
@@ -49,9 +51,8 @@ namespace Nekres.ProofLogix {
 
         /// <inheritdoc />
         protected override void Unload() {
-
             PartySync.Dispose();
-
+            Resources.Dispose();
             // All static members must be manually unset
             Instance = null;
         }

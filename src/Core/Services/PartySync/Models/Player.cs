@@ -61,13 +61,13 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         }
 
         private string GetClass() {
-            return PartySyncService.EliteNames.TryGetValue((int)_arcDpsPlayer.Elite, out var name) ? name :
-                   PartySyncService.ProfNames.TryGetValue((int)_arcDpsPlayer.Profession, out name) ? name : string.Empty;
+            return ResourceService.EliteNames.TryGetValue((int)_arcDpsPlayer.Elite, out var name) ? name :
+                   ResourceService.ProfNames.TryGetValue((int)_arcDpsPlayer.Profession, out name) ? name : string.Empty;
         }
 
         private AsyncTexture2D GetIcon() {
-            return PartySyncService.EliteIcons.TryGetValue((int)_arcDpsPlayer.Elite, out var icon) ? icon :
-                   PartySyncService.ProfIcons.TryGetValue((int)_arcDpsPlayer.Profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
+            return ResourceService.EliteIcons.TryGetValue((int)_arcDpsPlayer.Elite, out var icon) ? icon :
+                   ResourceService.ProfIcons.TryGetValue((int)_arcDpsPlayer.Profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
     }
 }

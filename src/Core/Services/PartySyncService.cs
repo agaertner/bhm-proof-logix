@@ -10,14 +10,11 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.Utils;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class PartySyncService : IDisposable {
-        public static Dictionary<int, string>         ProfNames  { get; private set; }
-        public static Dictionary<int, AsyncTexture2D> ProfIcons  { get; private set; }
-        public static Dictionary<int, string>         EliteNames { get; private set; }
-        public static Dictionary<int, AsyncTexture2D> EliteIcons { get; private set; }
 
         private          Dictionary<string, Player> _members      = new();
         private readonly ReaderWriterLockSlim       _rwLock       = new();
@@ -32,16 +29,10 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
-            await LoadAsync(); // Reload localized resources.
-
             foreach (var member in _members.Values) {
                 // Reattach localized KP profiles.
                 member.AttachProfile(await ProofLogix.Instance.KpWebApi.GetProfile(member.AccountName));
             }
-        }
-
-        public async Task LoadAsync() {
-            await LoadResources();
         }
 
         public void InitSquad() {
@@ -51,32 +42,8 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
 
-        private async Task LoadResources() {
-            var professions = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
-
-            if (professions == null) {
-                return;
-            }
-
-            var specializations = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Specializations.AllAsync());
-
-            if (specializations == null) {
-                return;
-            }
-
-            var elites = specializations.Where(x => x.Elite).ToList();
-
-            ProfNames = professions.ToDictionary(x => (int) (ProfessionType) Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
-
-            ProfIcons = professions.ToDictionary(x => (int) (ProfessionType) Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
-
-            EliteNames = elites.ToDictionary(x => x.Id, x => x.Name);
-
-            EliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
-        }
-
         private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
-            this.AcquireWriteLock();
+            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
             try {
 
                 var key = arcDpsPlayer.AccountName.ToLowerInvariant();
@@ -91,12 +58,12 @@ namespace Nekres.ProofLogix.Core.Services {
                 _members.Add(key, member);
 
             } finally {
-                this.ReleaseWriteLock();
+                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
         }
 
         public void AddKpProfile(Profile kpProfile) {
-            this.AcquireWriteLock();
+            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
             try {
 
                 var key = kpProfile.Name.ToLowerInvariant();
@@ -111,16 +78,16 @@ namespace Nekres.ProofLogix.Core.Services {
                 _members.Add(key, member);
 
             } finally {
-                this.ReleaseWriteLock();
+                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
         }
 
         public void RemovePlayer(string accountName) {
-            this.AcquireWriteLock();
+            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
             try {
                 _members.Remove(accountName.ToLowerInvariant());
             } finally {
-                this.ReleaseWriteLock();
+                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
         }
 
@@ -135,49 +102,10 @@ namespace Nekres.ProofLogix.Core.Services {
         }
         #endregion
 
-        private void AcquireWriteLock() {
-            try {
-                _rwLock.EnterWriteLock();
-                _lockAcquired = true;
-            } catch (Exception ex) {
-                ProofLogix.Logger.Debug(ex, ex.Message);
-            }
-        }
-
-        private void ReleaseWriteLock() {
-            try {
-                if (_lockAcquired) {
-                    _rwLock.ExitWriteLock();
-                    _lockAcquired = false;
-                }
-            } catch (Exception ex) {
-                ProofLogix.Logger.Debug(ex, ex.Message);
-            } finally {
-                _lockReleased.Set();
-            }
-        }
-
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged   -= OnUserLocaleChanged;
             GameService.ArcDps.Common.PlayerAdded   -= OnPlayerAdded;
             GameService.ArcDps.Common.PlayerRemoved -= OnPlayerRemoved;
-
-            EliteNames = null;
-            ProfNames  = null;
-
-            if (EliteIcons != null) {
-                foreach (var icon in EliteIcons.Values) {
-                    icon?.Dispose();
-                }
-                EliteIcons = null;
-            }
-
-            if (ProfIcons != null) {
-                foreach (var icon in ProfIcons.Values) {
-                    icon?.Dispose();
-                }
-                ProfIcons = null;
-            }
 
             // Wait for the lock to be released
             if (_lockAcquired) {
