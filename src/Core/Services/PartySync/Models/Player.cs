@@ -51,7 +51,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             _arcDpsPlayer      = arcDpsPlayer;
             this.AccountName   = arcDpsPlayer.AccountName;
             this.CharacterName = arcDpsPlayer.CharacterName;
-            this.IsLocalPlayer = arcDpsPlayer.Self;
+            this.IsLocalPlayer = this.IsLocalPlayer || arcDpsPlayer.Self;
 
             return true;
         }
@@ -63,8 +63,8 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
 
             this.KpProfile     = kpProfile;
             this.AccountName   = kpProfile.Name;
-            this.IsLocalPlayer = isLocalPlayer;
-            this.CharacterName = isLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : string.Empty;
+            this.IsLocalPlayer = this.IsLocalPlayer || isLocalPlayer;
+            this.CharacterName = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : string.Empty;
 
             return true;
         }
