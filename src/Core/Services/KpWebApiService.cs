@@ -20,8 +20,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var profile = await _v2Client.GetProfile(id, isCharacterName);
 
-            if (profile == null) {
-                return Profile.Empty;
+            if (profile.IsEmpty) {
+                return profile;
             }
 
             profile.Clears = await _v1Client.GetClears(profile.Id);
