@@ -50,8 +50,14 @@ namespace Nekres.ProofLogix.Core.Services {
         /// <param name="accountName">Account to remove.</param>
         public void RemovePlayer(string accountName) {
             RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try {
-                _members.Remove(accountName.ToLowerInvariant());
+            try { 
+                var key = accountName.ToLowerInvariant();
+
+                if (!_members.TryGetValue(key, out var member) || member.IsLocalPlayer) {
+                    return;
+                }
+
+                _members.Remove(key);
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
