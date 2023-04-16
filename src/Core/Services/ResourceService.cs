@@ -81,27 +81,9 @@ namespace Nekres.ProofLogix.Core.Services {
             EliteNames = null;
             ProfNames  = null;
             ItemNames  = null;
-
-            if (EliteIcons != null) {
-                foreach (var icon in EliteIcons.Values) {
-                    icon?.Dispose();
-                }
-                EliteIcons = null;
-            }
-
-            if (ProfIcons != null) {
-                foreach (var icon in ProfIcons.Values) {
-                    icon?.Dispose();
-                }
-                ProfIcons = null;
-            }
-
-            if (ItemIcons != null) {
-                foreach (var icon in ItemIcons.Values) {
-                    icon?.Dispose();
-                }
-                ItemIcons = null;
-            }
+            EliteIcons = null;
+            ProfIcons  = null;
+            ItemIcons  = null;
         }
     }
 }
