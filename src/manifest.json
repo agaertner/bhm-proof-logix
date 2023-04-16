@@ -1,19 +1,19 @@
 {
-    "name": "Proof Logix",
-    "version": "1.7.8",
-    "namespace": "KillProofModule",
-    "package": "ProofLogix.dll",
-    "manifest_version": 1,
-    "description": "Check someone's kills for raiding. Uses ArcDPS Bridge service if available.\n\nPowered by www.killproof.me",
-    "dependencies": {
-        "bh.blishhud": ">=1.0.0"
-    },
-    "enabled_without_gw2": false,
-    "url": "https://github.com/agaertner/bhm-proof-logix",
-    "contributors": [
-        {
-            "username": "Nekres.1943",
-            "name": "Nekres"
-        }
-    ]
+  "name": "Proof Logix",
+  "version": "2.4.1",
+  "namespace": "KillProofModule",
+  "package": "ProofLogix.dll",
+  "manifest_version": 1,
+  "description": "Check someone's kills for raiding. Uses ArcDPS Bridge service if available.\n\nPowered by www.killproof.me",
+  "dependencies": {
+    "bh.blishhud": ">=1.0.0"
+  },
+  "enabled_without_gw2": false,
+  "url": "https://github.com/agaertner/bhm-proof-logix",
+  "contributors": [
+    {
+      "username": "Nekres.1943",
+      "name": "Nekres"
+    }
+  ]
 }
