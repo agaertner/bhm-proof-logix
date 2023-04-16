@@ -12,6 +12,9 @@ using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 namespace Nekres.ProofLogix.Core.Services {
     internal class PartySyncService : IDisposable {
 
+        public static event EventHandler<ValueEventArgs<Player>> OnPlayerAdded;
+        public static event EventHandler<ValueEventArgs<Player>> OnPlayerRemoved;
+
         private          Dictionary<string, Player> _members      = new();
         private readonly ReaderWriterLockSlim       _rwLock       = new();
         private          ManualResetEvent           _lockReleased = new(false);
@@ -20,8 +23,8 @@ namespace Nekres.ProofLogix.Core.Services {
         public PartySyncService() {
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
 
-            GameService.ArcDps.Common.PlayerAdded   += OnPlayerAdded;
-            GameService.ArcDps.Common.PlayerRemoved += OnPlayerRemoved;
+            GameService.ArcDps.Common.PlayerAdded   += OnPlayerJoin;
+            GameService.ArcDps.Common.PlayerRemoved += OnPlayerLeft;
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
@@ -53,11 +56,12 @@ namespace Nekres.ProofLogix.Core.Services {
             try { 
                 var key = accountName.ToLowerInvariant();
 
-                if (!_members.TryGetValue(key, out var member) || member.IsLocalPlayer) {
+                if (!_members.TryGetValue(key, out var member) || member.IsLocalPlayer || !_members.Remove(key)) {
                     return;
                 }
 
-                _members.Remove(key);
+                OnPlayerRemoved?.Invoke(this, new ValueEventArgs<Player>(member));
+
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
@@ -69,8 +73,11 @@ namespace Nekres.ProofLogix.Core.Services {
         public void Dispose() {
             GameService.Gw2Mumble.PlayerCharacter.NameChanged -= OnPlayerCharacterNameChanged;
             GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
-            GameService.ArcDps.Common.PlayerAdded             -= OnPlayerAdded;
-            GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerRemoved;
+            GameService.ArcDps.Common.PlayerAdded             -= OnPlayerJoin;
+            GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerLeft;
+
+            OnPlayerAdded = null;
+            OnPlayerRemoved = null;
 
             // Wait for the lock to be released
             if (_lockAcquired) {
@@ -122,6 +129,8 @@ namespace Nekres.ProofLogix.Core.Services {
                 member = Player.FromArcDps(arcDpsPlayer);
                 _members.Add(key, member);
 
+                OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
+
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
@@ -146,18 +155,20 @@ namespace Nekres.ProofLogix.Core.Services {
                 member = Player.FromKpProfile(kpProfile, isLocalPlayer);
                 _members.Add(key, member);
 
+                OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
+
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
         }
 
         #region ArcDps Player Events
-        private async void OnPlayerAdded(CommonFields.Player player) {
+        private async void OnPlayerJoin(CommonFields.Player player) {
             AddArcDpsAgent(player);
             AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName), player.Self);
         }
 
-        private void OnPlayerRemoved(CommonFields.Player player) {
+        private void OnPlayerLeft(CommonFields.Player player) {
             if (player.Self) {
                 return; // Never remove local player.
             }
