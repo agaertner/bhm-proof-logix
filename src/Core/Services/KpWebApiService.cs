@@ -14,6 +14,9 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<Profile> GetProfile(string id, bool isCharacterName = false) {
+            if (string.IsNullOrEmpty(id)) {
+                return Profile.Empty;
+            }
 
             var profile = await _v2Client.GetProfile(id, isCharacterName);
 

@@ -26,17 +26,9 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 
-        private async void OnPlayerCharacterNameChanged(object sender, ValueEventArgs<string> e) {
-            await AddLocalPlayer();
-        }
-
-        private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
-            foreach (var member in _members.Values) {
-                // Reattach localized KP profiles.
-                member.AttachProfile(await ProofLogix.Instance.KpWebApi.GetProfile(member.AccountName));
-            }
-        }
-
+        /// <summary>
+        /// Initializes all players currently in the party.
+        /// </summary>
         public async Task InitSquad() {
             await AddLocalPlayer();
 
@@ -46,58 +38,16 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
 
-        private async Task AddLocalPlayer() {
-            var name = GameService.Gw2Mumble.PlayerCharacter.Name;
-            if (string.IsNullOrEmpty(name)) {
-                return;
-            }
-            var self = this.AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(name, true));
-            self.IsLocalPlayer = true;
-            self.CharacterName = name;
-        }
+        /// <summary>
+        /// Adds a player by a given <see href="https://www.killproof.me/">www.killproof.me</see> profile to the list of available players.
+        /// </summary>
+        /// <param name="kpProfile">Profile to add.</param>
+        public void AddKpProfile(Profile kpProfile) => AddKpProfile(kpProfile, false);
 
-        private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
-            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try {
-
-                var key = arcDpsPlayer.AccountName.ToLowerInvariant();
-
-                if (_members.TryGetValue(key, out var member)) {
-
-                    member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
-                    return;
-                }
-
-                member = Player.FromArcDps(arcDpsPlayer);
-                _members.Add(key, member);
-                return;
-
-            } finally {
-                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
-            }
-        }
-
-        public Player AddKpProfile(Profile kpProfile) {
-            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try {
-
-                var key = kpProfile.Name.ToLowerInvariant();
-
-                if (_members.TryGetValue(key, out var member)) {
-
-                    member.AttachProfile(kpProfile); // Overwrite KP profile.
-                    return member;
-                }
-
-                member = Player.FromKpProfile(kpProfile);
-                _members.Add(key, member);
-                return member;
-
-            } finally {
-                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
-            }
-        }
-
+        /// <summary>
+        /// Removes a player by a given account name.
+        /// </summary>
+        /// <param name="accountName">Account to remove.</param>
         public void RemovePlayer(string accountName) {
             RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
             try {
@@ -107,20 +57,9 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
 
-        #region ArcDps Player Events
-        private async void OnPlayerAdded(CommonFields.Player player) {
-            this.AddArcDpsAgent(player);
-            this.AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName));
-        }
-
-        private void OnPlayerRemoved(CommonFields.Player player) {
-            if (player.Self) {
-                return; // Never remove local player.
-            }
-            this.RemovePlayer(player.AccountName);
-        }
-        #endregion
-
+        /// <summary>
+        /// Disposes the <see cref="PartySyncService"/> and frees all its held resources.
+        /// </summary>
         public void Dispose() {
             GameService.Gw2Mumble.PlayerCharacter.NameChanged -= OnPlayerCharacterNameChanged;
             GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
@@ -141,5 +80,83 @@ namespace Nekres.ProofLogix.Core.Services {
                 ProofLogix.Logger.Debug(ex, ex.Message);
             }
         }
+
+        private async void OnPlayerCharacterNameChanged(object sender, ValueEventArgs<string> e) {
+            await AddLocalPlayer();
+        }
+
+        private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
+            foreach (var member in _members.Values) {
+                // Reattach localized KP profiles.
+                member.AttachProfile(await ProofLogix.Instance.KpWebApi.GetProfile(member.AccountName));
+            }
+        }
+
+        private async Task AddLocalPlayer() {
+            var profile = await ProofLogix.Instance.KpWebApi.GetProfile(GameService.Gw2Mumble.PlayerCharacter.Name, true);
+            AddKpProfile(profile, true);
+        }
+
+        private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
+            if (string.IsNullOrEmpty(arcDpsPlayer.AccountName)) {
+                return; // No account name to use as key.
+            }
+
+            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
+            try {
+
+                var key = arcDpsPlayer.AccountName.ToLowerInvariant();
+
+                if (_members.TryGetValue(key, out var member)) {
+
+                    member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
+                    return;
+                }
+
+                member = Player.FromArcDps(arcDpsPlayer);
+                _members.Add(key, member);
+
+            } finally {
+                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
+            }
+        }
+
+        private void AddKpProfile(Profile kpProfile, bool isLocalPlayer) {
+            if (kpProfile.IsEmpty) {
+                return; // No account name to use as key.
+            }
+
+            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
+            try {
+
+                var key = kpProfile.Name.ToLowerInvariant();
+
+                if (_members.TryGetValue(key, out var member)) {
+
+                    member.AttachProfile(kpProfile, isLocalPlayer); // Overwrite KP profile.
+                    return;
+                }
+
+                member = Player.FromKpProfile(kpProfile, isLocalPlayer);
+                _members.Add(key, member);
+
+            } finally {
+                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
+            }
+        }
+
+        #region ArcDps Player Events
+        private async void OnPlayerAdded(CommonFields.Player player) {
+            AddArcDpsAgent(player);
+            AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName), player.Self);
+        }
+
+        private void OnPlayerRemoved(CommonFields.Player player) {
+            if (player.Self) {
+                return; // Never remove local player.
+            }
+            RemovePlayer(player.AccountName);
+        }
+        #endregion
     }
 }
