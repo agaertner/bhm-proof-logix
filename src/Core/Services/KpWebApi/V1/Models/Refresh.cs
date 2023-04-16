@@ -3,8 +3,7 @@ using Newtonsoft.Json;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
-    // 20230411140415
-    // https://killproof.me/proof/Nekres.1943/refresh
+    // Path: /proof/{account_name_OR_kp_id}/refresh
 
     public sealed class Refresh {
 

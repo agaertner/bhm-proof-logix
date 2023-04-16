@@ -4,11 +4,11 @@ using Newtonsoft.Json;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
-    // 20230409214725
-    // https://killproof.me/api/clear/Nekres.1943
+    // Paths: /api/clear/{account_name_OR_kp_id}
+    //        /api/character/{character_name}/clear
 
     [JsonConverter(typeof(RaidConverter))]
-    public sealed class Raid {
+    public sealed class Clear : BaseResponse {
         public string Name { get; set; }
 
         public List<Boss> Encounters { get; set; }

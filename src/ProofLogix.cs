@@ -38,12 +38,11 @@ namespace Nekres.ProofLogix {
 
         protected override async Task LoadAsync() {
             await Resources.LoadAsync();
+            await PartySync.InitSquad();
         }
 
         protected override void OnModuleLoaded(EventArgs e) {
             GameService.ArcDps.Common.Activate();
-
-            PartySync.InitSquad();
 
             // Base handler must be called
             base.OnModuleLoaded(e);

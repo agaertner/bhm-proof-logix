@@ -2,12 +2,12 @@
 
     public enum Item {
         // KillProofs
-        LegendaryInsight       = 98327,
-        LegendaryInsight2      = 77302,
-        LegendaryDivination    = 88485,
-        UnstableFractalEssence = 94020,
-        UnstableCosmicEssence  = 81743,
-        BoneskinnerRitualVial  = 93781,
+        LegendaryInsight        = 98327,
+        LegendaryInsightGeneric = 77302,
+        LegendaryDivination     = 88485,
+        UnstableFractalEssence  = 94020,
+        UnstableCosmicEssence   = 81743,
+        BoneskinnerRitualVial   = 93781,
         // Tokens
         Banana                           = 12251,
         BananasInBulk                    = 12773,

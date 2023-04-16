@@ -4,11 +4,11 @@ using System;
 using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
-    public class RaidConverter : JsonConverter {
+    public class ClearConverter : JsonConverter {
         public override bool CanWrite => false;
 
         public override bool CanConvert(Type objectType) {
-            return objectType == typeof(Raid);
+            return objectType == typeof(Clear);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
@@ -23,7 +23,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
             var displayName = firstPath.Path;
             var bosses = firstPath.Values();
 
-            var raid = new Raid {
+            var raid = new Clear {
                 Name = displayName,
                 Encounters = bosses.Select(boss =>
                                                serializer.Deserialize<Boss>(boss.CreateReader())

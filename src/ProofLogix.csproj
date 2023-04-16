@@ -247,6 +247,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Services\KpWebApiService.cs" />
+    <Compile Include="Core\Services\KpWebApi\BaseResponse.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\KpV1Client.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\AddKey.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\HttpStatusCodeConverter.cs" />
@@ -254,18 +255,13 @@
     <Compile Include="Core\Services\KpWebApi\V1\Models\Profile.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\BossConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\DictionaryConverter.cs" />
-    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\RaidConverter.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\ClearConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TitleConverter.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Converter\TokenConverter.cs" />
-    <Compile Include="Core\Services\KpWebApi\V1\Models\Raid.cs" />
+    <Compile Include="Core\Services\KpWebApi\V1\Models\Clear.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Refresh.cs" />
-    <Compile Include="Core\Services\KpWebApi\V1\Models\Title.cs" />
-    <Compile Include="Core\Services\KpWebApi\V1\Models\Token.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\KpV2Client.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\Models\Profile.cs" />
-    <Compile Include="Core\Services\KpWebApi\V2\Models\OriginalUce.cs" />
-    <Compile Include="Core\Services\KpWebApi\V2\Models\Title.cs" />
-    <Compile Include="Core\Services\KpWebApi\V2\Models\Token.cs" />
     <Compile Include="Core\Services\PartySyncService.cs" />
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Services\ResourceService.cs" />

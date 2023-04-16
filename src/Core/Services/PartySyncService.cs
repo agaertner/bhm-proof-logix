@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -17,10 +18,16 @@ namespace Nekres.ProofLogix.Core.Services {
         private          bool                       _lockAcquired = false;
 
         public PartySyncService() {
+            GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
+
             GameService.ArcDps.Common.PlayerAdded   += OnPlayerAdded;
             GameService.ArcDps.Common.PlayerRemoved += OnPlayerRemoved;
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
+        }
+
+        private async void OnPlayerCharacterNameChanged(object sender, ValueEventArgs<string> e) {
+            await AddLocalPlayer();
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
@@ -30,11 +37,23 @@ namespace Nekres.ProofLogix.Core.Services {
             }
         }
 
-        public void InitSquad() {
+        public async Task InitSquad() {
+            await AddLocalPlayer();
+
             // Squad will be empty until map change if ArcDps just got activated.
             foreach (var player in GameService.ArcDps.Common.PlayersInSquad.Values) {
                 AddArcDpsAgent(player);
             }
+        }
+
+        private async Task AddLocalPlayer() {
+            var name = GameService.Gw2Mumble.PlayerCharacter.Name;
+            if (string.IsNullOrEmpty(name)) {
+                return;
+            }
+            var self = this.AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(name, true));
+            self.IsLocalPlayer = true;
+            self.CharacterName = name;
         }
 
         private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
@@ -51,13 +70,14 @@ namespace Nekres.ProofLogix.Core.Services {
 
                 member = Player.FromArcDps(arcDpsPlayer);
                 _members.Add(key, member);
+                return;
 
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
             }
         }
 
-        public void AddKpProfile(Profile kpProfile) {
+        public Player AddKpProfile(Profile kpProfile) {
             RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
             try {
 
@@ -66,11 +86,12 @@ namespace Nekres.ProofLogix.Core.Services {
                 if (_members.TryGetValue(key, out var member)) {
 
                     member.AttachProfile(kpProfile); // Overwrite KP profile.
-                    return;
+                    return member;
                 }
 
                 member = Player.FromKpProfile(kpProfile);
                 _members.Add(key, member);
+                return member;
 
             } finally {
                 RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
@@ -93,14 +114,18 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnPlayerRemoved(CommonFields.Player player) {
+            if (player.Self) {
+                return; // Never remove local player.
+            }
             this.RemovePlayer(player.AccountName);
         }
         #endregion
 
         public void Dispose() {
-            GameService.Overlay.UserLocaleChanged   -= OnUserLocaleChanged;
-            GameService.ArcDps.Common.PlayerAdded   -= OnPlayerAdded;
-            GameService.ArcDps.Common.PlayerRemoved -= OnPlayerRemoved;
+            GameService.Gw2Mumble.PlayerCharacter.NameChanged -= OnPlayerCharacterNameChanged;
+            GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
+            GameService.ArcDps.Common.PlayerAdded             -= OnPlayerAdded;
+            GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerRemoved;
 
             // Wait for the lock to be released
             if (_lockAcquired) {

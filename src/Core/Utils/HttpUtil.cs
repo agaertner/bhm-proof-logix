@@ -21,7 +21,7 @@ namespace Nekres.ProofLogix.Core.Utils {
             return success;
         }
 
-        public static async Task<T> RetryAsync<T>(Func<Task<HttpResponseMessage>> request, int retries = 2, int delayMs = 10000, Logger logger = null) {
+        public static async Task<T> RetryAsync<T>(Func<Task<HttpResponseMessage>> request, int retries = 2, int delayMs = 2000, Logger logger = null) {
 
             logger ??= Logger.GetLogger(typeof(HttpUtil));
 

@@ -5,11 +5,10 @@ using System.Collections.Generic;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
-    // 20230409220443
-    // https://killproof.me/api/kp/Nekres.1943
+    // Paths: /api/kp/{account_name_OR_kp_id}
+    //        /api/character/{character_name}/kp
 
     public class Profile {
-
         public static Profile Empty => new() {
             IsEmpty = true
         };
@@ -44,6 +43,27 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
         public List<Title> Titles { get; set; }
 
         [JsonIgnore]
-        public List<Raid> Clears { get; set; }
+        public List<Clear> Clears { get; set; }
+    }
+
+    [JsonConverter(typeof(TitleConverter))]
+    public sealed class Title {
+        public enum TitleMode {
+            Unknown,
+            Raid,
+            Fractal
+        }
+
+        public string Name { get; set; }
+
+        public TitleMode Mode { get; set; }
+
+    }
+
+    [JsonConverter(typeof(TokenConverter))]
+    public sealed class Token {
+        public string Name { get; set; }
+
+        public int Quantity { get; set; }
     }
 }

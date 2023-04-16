@@ -5,10 +5,9 @@ using Newtonsoft.Json.Converters;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
-    // 20230411144237
-    // https://killproof.me/api/opener?encounter=vale_guardian&region=eu
+    // Path: /api/opener?encounter={encounter_id}&region={na_OR_eu}
 
-    public sealed class Opener {
+    public sealed class Opener : BaseResponse {
 
         public static Opener Empty = new() {
             IsEmpty = true

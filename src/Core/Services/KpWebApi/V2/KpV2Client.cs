@@ -11,9 +11,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2 {
 
         private readonly string _uri = "https://killproof.me/api/";
 
-        public async Task<Profile> GetProfile(string id) {
-            return await HttpUtil.RetryAsync<Profile>(() => _uri.AppendPathSegments("kp", id)
-                                                                .SetQueryParam($"lang={GameService.Overlay.UserLocale.Value.Code()}").GetAsync());
+        public async Task<Profile> GetProfile(string id, bool isCharacterName = false) {
+            var profile = await HttpUtil.RetryAsync<Profile>(isCharacterName ?
+                                                                 () => _uri.AppendPathSegments("character", id, "kp")
+                                                                           .SetQueryParam($"lang={GameService.Overlay.UserLocale.Value.Code()}").GetAsync() : 
+                                                                 () => _uri.AppendPathSegments("kp", id)
+                                                                           .SetQueryParam($"lang={GameService.Overlay.UserLocale.Value.Code()}").GetAsync());
+            return profile ?? Profile.Empty;
         }
     }
 }

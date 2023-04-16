@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
-
+using Newtonsoft.Json.Converters;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
-    // 20230409220443
-    // https://killproof.me/api/kp/Nekres.1943?lang=en
+    // Paths: /api/kp/{account_name_OR_kp_id}?lang={code}
+    //        /api/character/{character_name}/kp?lang={code}
 
-    public class Profile {
+    public class Profile : BaseResponse {
 
         public static Profile Empty => new() {
             IsEmpty = true
@@ -53,10 +53,10 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public LinkedTotals LinkedTotals { get; set; }
 
         [JsonIgnore]
-        public List<Raid> Clears { get; set; }
+        public List<Clear> Clears { get; set; }
     }
 
-    public class LinkedTotals {
+    public sealed class LinkedTotals {
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
 
@@ -68,5 +68,38 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
         [JsonProperty("titles")]
         public List<Title> Titles { get; set; }
+    }
+
+    public sealed class OriginalUce {
+
+        [JsonProperty("amount")]
+        public int Amount { get; set; }
+
+        [JsonProperty("at_date")]
+        public DateTime AtDate { get; set; }
+    }
+
+    public sealed class Title {
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("mode")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public V1.Models.Title.TitleMode Mode { get; set; }
+    }
+
+    public sealed class Token {
+
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
     }
 }
