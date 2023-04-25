@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading;
 
 namespace Nekres.ProofLogix.Core.UI {
-    public class StandardTable<T> : Control where T : IEquatable<T> {
+    public class StandardTable<T> : Container where T : IEquatable<T> {
 
         private enum SortOrder {
 
@@ -62,6 +62,11 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         public void ChangeHeader(object[] headerRow) {
+            foreach (object o in _header) {
+                if (o is Control ctrl) {
+                    ctrl.Dispose();
+                }
+            }
             Interlocked.Exchange(ref _header, headerRow);
         } 
 
@@ -69,7 +74,14 @@ namespace Nekres.ProofLogix.Core.UI {
             if (row.Length != _header.Length) {
                 return;
             }
-            _data.AddOrUpdate(key, row, (_, _) => row);
+            _data.AddOrUpdate(key, row, (_, oldRow) => {
+                foreach (object o in oldRow) {
+                    if (o is Control ctrl) {
+                        ctrl.Dispose();
+                    }
+                }
+                return row;
+            });
         }
 
         public void RemoveData(T key) {
@@ -136,7 +148,7 @@ namespace Nekres.ProofLogix.Core.UI {
             Interlocked.Exchange(ref _data, newData);
         }
 
-        protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
+        public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds) {
             // Calculate the maximum width and height of each column and row
             var dataTable = new List<object[]> { _header }.Concat(_data.Values).ToList();
             var colLength = dataTable.Count;
@@ -154,6 +166,12 @@ namespace Nekres.ProofLogix.Core.UI {
                         var maxHeight = Math.Min(texture.Bounds.Height, _maxTextureHeight);
                         _rowWidths[row]  = Math.Max(_rowWidths[row],  maxWidth); // In case there is no text to define cell width.
                         _colHeights[col] = Math.Max(_colHeights[col], maxHeight);
+
+                    } else if (cellContent is Control ctrl) {
+
+                        _rowWidths[row]  = Math.Max(_rowWidths[row],  ctrl.Size.X);
+                        _colHeights[col] = Math.Max(_colHeights[col], ctrl.Size.Y);
+
                     } else {
                         var str = cellContent.ToString();
                         var size = this.Font.MeasureString(str);
@@ -204,21 +222,25 @@ namespace Nekres.ProofLogix.Core.UI {
                     var contentRect = new Rectangle(x, y, currentCellWidth, currentCellHeight);
 
                     if (cellContent is AsyncTexture2D texture) {
-                        // Calculate the target height based on the cell height
+
                         var target = Math.Min(_maxTextureHeight, currentCellWidth);
 
-                        // Calculate the target width based on the aspect ratio of the texture
-                        var targetSize = (int)(target * ((float)texture.Bounds.Width / texture.Bounds.Height));
+                        // Calculate the target width based on the aspect ratio of the texture.
+                        var targetSize = (int) (target * ((float) texture.Bounds.Width / texture.Bounds.Height));
 
-                        // Calculate the position of the texture to center it in the cell
-                        var textureRect = new Rectangle(
-                                                        x + (currentCellWidth  - targetSize)  / 2,
+                        // Center texture in the cell.
+                        var textureRect = new Rectangle(x + (currentCellWidth  - targetSize) / 2,
                                                         y + (currentCellHeight - targetSize) / 2,
                                                         targetSize,
-                                                        targetSize
-                                                       );
+                                                        targetSize);
 
                         spriteBatch.DrawOnCtrl(this, texture, textureRect, Color.White);
+
+                    } else if (cellContent is Control ctrl) {
+
+                        ctrl.Location = new Point(x + (currentCellWidth - ctrl.Size.X) / 2, 
+                                                  y + (currentCellHeight - ctrl.Size.Y) / 2);
+                        
                     } else {
                         var str = cellContent.ToString();
                         spriteBatch.DrawStringOnCtrl(this, str, this.Font, contentRect, Color.White, false, row == 0, 1, HorizontalAlignment.Center);
