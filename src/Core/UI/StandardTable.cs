@@ -31,7 +31,7 @@ namespace Nekres.ProofLogix.Core.UI {
                 {
                     return;
                 }
-                _maxTextureHeight = (int)Math.Round(_font.MeasureString(".").Height);
+                _maxTextureHeight = (int)Math.Round(value.MeasureString(".").Height);
             }
         }
 
@@ -62,11 +62,7 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         public void ChangeHeader(object[] headerRow) {
-            foreach (object o in _header) {
-                if (o is Control ctrl) {
-                    ctrl.Dispose();
-                }
-            }
+            DisposeRow(_header);
             Interlocked.Exchange(ref _header, headerRow);
         } 
 
@@ -75,17 +71,16 @@ namespace Nekres.ProofLogix.Core.UI {
                 return;
             }
             _data.AddOrUpdate(key, row, (_, oldRow) => {
-                foreach (object o in oldRow) {
-                    if (o is Control ctrl) {
-                        ctrl.Dispose();
-                    }
-                }
+                DisposeRow(oldRow);
                 return row;
             });
         }
 
         public void RemoveData(T key) {
-            _data.TryRemove(key, out _);
+            if (!_data.TryRemove(key, out var row)) {
+                return;
+            };
+            DisposeRow(row);
         }
 
         protected override void OnMouseMoved(MouseEventArgs e) {
@@ -116,6 +111,14 @@ namespace Nekres.ProofLogix.Core.UI {
             
         }
 
+        private void DisposeRow(object[] row) {
+            foreach (object o in row) {
+                if (o is IDisposable inst and not AsyncTexture2D and not Texture2D) { // We do not know if textures are DatAssetCache textures.
+                    inst.Dispose();
+                }
+            }
+        }
+
         private void SortTable(int column) {
 
             // Determine the sort order (ascending or descending)
@@ -140,7 +143,7 @@ namespace Nekres.ProofLogix.Core.UI {
                                     } else {
                                         compareResult = ((IComparable)y).CompareTo(x);
                                     }
-                                    return _sortOrder == SortOrder.Descending ? -compareResult : compareResult;
+                                    return _sortOrder == SortOrder.Ascending ? compareResult : -compareResult;
                                 }));
 
             // Update the data table with the sorted values

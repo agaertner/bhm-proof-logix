@@ -35,8 +35,8 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             };
         }
 
-        public static Player FromKpProfile(Profile profile, bool isLocalPlayer = false) {
-            return new Player(profile.Name) {
+        public static Player FromKpProfile(Profile profile, bool isLocalPlayer = false, string accountName = null) {
+            return new Player(string.IsNullOrEmpty(accountName) ? profile.Name : accountName) {
                 KpProfile = profile,
                 IsLocalPlayer = isLocalPlayer,
                 CharacterName = isLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : string.Empty
@@ -49,7 +49,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             }
 
             _arcDpsPlayer      = arcDpsPlayer;
-            this.AccountName   = arcDpsPlayer.AccountName;
+            this.AccountName   = string.IsNullOrEmpty(arcDpsPlayer.AccountName) ? this.AccountName : arcDpsPlayer.AccountName;
             this.CharacterName = arcDpsPlayer.CharacterName;
             this.IsLocalPlayer = this.IsLocalPlayer || arcDpsPlayer.Self;
 
@@ -57,12 +57,12 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         }
 
         public bool AttachProfile(Profile kpProfile, bool isLocalPlayer = false) {
-            if (!this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
+            if (!kpProfile.IsEmpty && !this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
                 return false;
             }
 
             this.KpProfile     = kpProfile;
-            this.AccountName   = kpProfile.Name;
+            this.AccountName   = string.IsNullOrEmpty(kpProfile.Name) ? this.AccountName : kpProfile.Name;
             this.IsLocalPlayer = this.IsLocalPlayer || isLocalPlayer;
             this.CharacterName = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : this.CharacterName;
 

@@ -26,22 +26,31 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
-            var totals = player.KpProfile.LinkedTotals;
-
             var size = GetLabelSize(player.AccountName, true);
-            var label = new FormattedLabelBuilder()
+            var accountName = new FormattedLabelBuilder()
                        .SetWidth(size.X).SetHeight(size.Y)
                        .SetHorizontalAlignment(HorizontalAlignment.Center)
-                       .CreatePart(player.AccountName, o =>
-                                       o.SetFontSize(ContentService.FontSize.Size16)
-                                        .SetHyperLink(player.KpProfile.ProofUrl)).Build();
+                       .CreatePart(player.AccountName, o => { 
+                                  o.SetFontSize(ContentService.FontSize.Size16);
 
-            label.Parent = this.View.Table;
+                                  if (player.KpProfile.IsEmpty) {
+                                      o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
+                                      return;
+                                  }
+
+                                  o.SetHyperLink(player.KpProfile.ProofUrl);
+
+                              }).Build();
+
+            accountName.BasicTooltipText = !player.KpProfile.IsEmpty ? player.KpProfile.ProofUrl : string.Empty;
+            accountName.Parent  = this.View.Table;
+
+            var totals = player.KpProfile.LinkedTotals;
 
             this.View.Table.ChangeData(key, new object[] {
-                player.Icon, player.CharacterName, label, player.KpProfile?.Id ?? string.Empty,
-                totals.Killproofs.First(x => x.Id == (int)Item.LegendaryInsightGeneric).Amount,
-                totals.Killproofs.First(x => x.Id == (int)Item.UnstableFractalEssence).Amount
+                player.Icon, player.CharacterName, accountName,
+                totals.Killproofs.FirstOrDefault(x => x.Id == (int)Item.LegendaryInsightGeneric)?.Amount ?? 0,
+                totals.Killproofs.FirstOrDefault(x => x.Id == (int)Item.UnstableFractalEssence)?.Amount ?? 0
             });
         }
 

@@ -114,16 +114,17 @@ namespace Nekres.ProofLogix.Core.Services {
             });
         }
 
-        private void AddKpProfile(Profile kpProfile, bool isLocalPlayer) {
-            if (kpProfile.IsEmpty) {
+        private void AddKpProfile(Profile kpProfile, bool isLocalPlayer, string accountName = null) {
+
+            var key = (string.IsNullOrEmpty(accountName) ? kpProfile.Name : accountName)?.ToLowerInvariant();
+
+            if (string.IsNullOrEmpty(key)) {
                 return; // No account name to use as key.
             }
 
-            var key = kpProfile.Name.ToLowerInvariant();
-
             _members.AddOrUpdate(key, _ => {
 
-                var member = Player.FromKpProfile(kpProfile, isLocalPlayer);
+                var member = Player.FromKpProfile(kpProfile, isLocalPlayer, key);
                 OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
                 return member;
 
@@ -139,7 +140,7 @@ namespace Nekres.ProofLogix.Core.Services {
         #region ArcDps Player Events
         private async void OnPlayerJoin(CommonFields.Player player) {
             AddArcDpsAgent(player);
-            AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName), player.Self);
+            AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName), player.Self, player.AccountName);
         }
 
         private void OnPlayerLeft(CommonFields.Player player) {

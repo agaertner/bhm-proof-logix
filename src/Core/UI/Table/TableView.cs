@@ -25,7 +25,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected override void Build(Container buildPanel) {
             Table = new StandardTable<string>(new object[] {
-                string.Empty, "Character", "Account", "ID", 
+                string.Empty, "Character", "Account", 
                 ResourceService.GetItemIcon((int)Item.LegendaryInsightGeneric),  
                 ResourceService.GetItemIcon((int)Item.UnstableFractalEssence)
             }) {
@@ -35,10 +35,16 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Font = GameService.Content.DefaultFont16
             };
 
+            buildPanel.ContentResized += OnResized;
+
             foreach (var player in PartySyncService.PlayerList) {
                 this.Presenter.AddPlayer(player);
             }
             base.Build(buildPanel);
+        }
+
+        private void OnResized(object sender, RegionChangedEventArgs e) {
+            this.Table.Size = e.CurrentRegion.Size;
         }
 
         protected override void Unload() {
