@@ -11,24 +11,54 @@ using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
-        public static Dictionary<int, string>         ProfNames  { get; private set; }
-        public static Dictionary<int, AsyncTexture2D> ProfIcons  { get; private set; }
-        public static Dictionary<int, string>         EliteNames { get; private set; }
-        public static Dictionary<int, AsyncTexture2D> EliteIcons { get; private set; }
-        public static Dictionary<int, string>         ItemNames  { get; private set; }
-        public static Dictionary<int, AsyncTexture2D> ItemIcons  { get; private set; }
+
+        private static Dictionary<int, string>         _profNames  = new();
+        private static Dictionary<int, AsyncTexture2D> _profIcons  = new();
+        private static Dictionary<int, string>         _eliteNames = new();
+        private static Dictionary<int, AsyncTexture2D> _eliteIcons = new();
+        private static Dictionary<int, string>         _itemNames  = new();
+        private static Dictionary<int, AsyncTexture2D> _itemIcons  = new();
 
         public ResourceService() {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 
-        private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
-            await LoadAsync(true);
-        }
-
         public async Task LoadAsync(bool localeChange = false) {
             await LoadProfessions(localeChange);
             await LoadItems(localeChange);
+        }
+
+        public static string GetClassName(int profession, int elite) {
+            return _eliteNames.TryGetValue(elite, out var name) ? name :
+                   _profNames.TryGetValue(profession, out name) ? name : string.Empty;
+        }
+
+        public static AsyncTexture2D GetClassIcon(int profession, int elite) {
+            return _eliteIcons.TryGetValue(elite, out var icon) ? icon :
+                   _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
+        }
+
+        public static string GetItemName(int id) {
+            return _itemNames.TryGetValue(id, out var name) ? name : string.Empty;
+        }
+
+        public static AsyncTexture2D GetItemIcon(int id) {
+            return _itemIcons.TryGetValue(id, out var icon) ? icon : ContentService.Textures.TransparentPixel;
+        }
+
+        public void Dispose() {
+            GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
+
+            _eliteNames = null;
+            _profNames  = null;
+            _itemNames  = null;
+            _eliteIcons = null;
+            _profIcons  = null;
+            _itemIcons  = null;
+        }
+
+        private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
+            await LoadAsync(true);
         }
 
         private async Task LoadItems(bool localeChange = false) {
@@ -40,13 +70,13 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
-            ItemNames = items.ToDictionary(x => x.Id, x => x.Name);
+            _itemNames = items.ToDictionary(x => x.Id, x => x.Name);
 
             if (localeChange) {
                 return;
             }
 
-            ItemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon.ToString()));
+            _itemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon.ToString()));
         }
 
         private async Task LoadProfessions(bool localeChange = false) {
@@ -64,26 +94,15 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var elites = specializations.Where(x => x.Elite).ToList();
 
-            ProfNames  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
-            EliteNames = elites.ToDictionary(x => x.Id, x => x.Name);
+            _profNames  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => x.Name);
+            _eliteNames = elites.ToDictionary(x => x.Id, x => x.Name);
 
             if (localeChange) {
                 return;
             }
 
-            ProfIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
-            EliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
-        }
-
-        public void Dispose() {
-            GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
-
-            EliteNames = null;
-            ProfNames  = null;
-            ItemNames  = null;
-            EliteIcons = null;
-            ProfIcons  = null;
-            ItemIcons  = null;
+            _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
+            _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
     }
 }

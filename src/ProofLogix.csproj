@@ -266,6 +266,10 @@
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Services\ResourceService.cs" />
     <Compile Include="Core\Services\Resources\Items.cs" />
+    <Compile Include="Core\UI\StandardTable.cs" />
+    <Compile Include="Core\UI\Table\TablePresenter.cs" />
+    <Compile Include="Core\UI\Table\TableConfig.cs" />
+    <Compile Include="Core\UI\Table\TableView.cs" />
     <Compile Include="Core\Utils\HttpUtil.cs" />
     <Compile Include="Core\Utils\RwLockUtil.cs" />
     <Compile Include="ProofLogix.cs" />

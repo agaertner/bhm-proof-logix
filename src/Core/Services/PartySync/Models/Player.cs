@@ -64,7 +64,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             this.KpProfile     = kpProfile;
             this.AccountName   = kpProfile.Name;
             this.IsLocalPlayer = this.IsLocalPlayer || isLocalPlayer;
-            this.CharacterName = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : string.Empty;
+            this.CharacterName = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : this.CharacterName;
 
             return true;
         }
@@ -72,15 +72,13 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         private string GetClass() {
             var elite      = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Specialization : (int)_arcDpsPlayer.Elite;
             var profession = this.IsLocalPlayer ? (int)GameService.Gw2Mumble.PlayerCharacter.Profession : (int)_arcDpsPlayer.Profession;
-            return ResourceService.EliteNames.TryGetValue(elite, out var name) ? name :
-                   ResourceService.ProfNames.TryGetValue(profession, out name) ? name : string.Empty;
+            return ResourceService.GetClassName(profession, elite);
         }
 
         private AsyncTexture2D GetIcon() {
             var elite      = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Specialization : (int)_arcDpsPlayer.Elite;
             var profession = this.IsLocalPlayer ? (int)GameService.Gw2Mumble.PlayerCharacter.Profession : (int)_arcDpsPlayer.Profession;
-            return ResourceService.EliteIcons.TryGetValue(elite, out var icon) ? icon :
-                   ResourceService.ProfIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
+            return ResourceService.GetClassIcon(profession, elite);
         }
     }
 }

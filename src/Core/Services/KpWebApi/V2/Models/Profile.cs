@@ -49,8 +49,17 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("linked")]
         public List<Profile> Linked { get; set; }
 
+        private LinkedTotals _linkedTotals;
         [JsonProperty("linked_totals")]
-        public LinkedTotals LinkedTotals { get; set; }
+        public LinkedTotals LinkedTotals { 
+            get => _linkedTotals ?? new LinkedTotals {
+                Tokens     = this.Tokens,
+                Killproofs = this.Killproofs,
+                Coffers    = this.Coffers,
+                Titles     = this.Titles
+            };
+            set => _linkedTotals = value;
+        }
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
