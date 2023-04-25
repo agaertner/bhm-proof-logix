@@ -9,6 +9,7 @@ using MonoGame.Extended.BitmapFonts;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 
@@ -104,8 +105,6 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         private void SortTable(int column) {
-            
-            var data = _data.ToList();
 
             // Determine the sort order (ascending or descending)
             if (_sortColumn == column) {
@@ -116,10 +115,21 @@ namespace Nekres.ProofLogix.Core.UI {
             }
 
             // Sort the data based on the values in the specified column
-            var comparer = Comparer<object>.Default;
-            var sortedData = _sortOrder == SortOrder.Ascending
-                                 ? data.OrderBy(x => x.Value[column], comparer)
-                                 : data.OrderByDescending(x => x.Value[column], comparer);
+            var sortedData = _data.OrderBy(row => {
+                                    var value = row.Value[column];
+                                    if (value is not IComparable) {
+                                        return _sortOrder == SortOrder.Ascending ? int.MinValue : int.MaxValue;
+                                    }
+                                    return value;
+                                }, Comparer<object>.Create((x, y) => {
+                                    int compareResult;
+                                    if (x is string && y is string) {
+                                        compareResult = StringComparer.InvariantCultureIgnoreCase.Compare(y, x);
+                                    } else {
+                                        compareResult = ((IComparable)y).CompareTo(x);
+                                    }
+                                    return _sortOrder == SortOrder.Descending ? -compareResult : compareResult;
+                                }));
 
             // Update the data table with the sorted values
             var newData = new ConcurrentDictionary<T, object[]>(sortedData);

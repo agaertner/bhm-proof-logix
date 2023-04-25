@@ -109,6 +109,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public string Name { get; set; }
 
         [JsonProperty("amount")]
-        public string Amount { get; set; }
+        public int Amount { get; set; }
     }
 }
