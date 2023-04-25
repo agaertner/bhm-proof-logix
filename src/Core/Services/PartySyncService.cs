@@ -1,12 +1,11 @@
 ﻿using Blish_HUD;
 using Blish_HUD.ArcDps.Common;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
-using Nekres.ProofLogix.Core.Utils;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
@@ -17,12 +16,9 @@ namespace Nekres.ProofLogix.Core.Services {
         public static event EventHandler<ValueEventArgs<Player>> OnPlayerRemoved;
         public static event EventHandler<ValueEventArgs<Player>> OnPlayerChanged;
 
-        public static IReadOnlyList<Player> PlayerList => _members.Values.ToList();
+        public static  IReadOnlyList<Player> PlayerList => _members.Values.ToList();
 
-        private static   Dictionary<string, Player> _members      = new();
-        private readonly ReaderWriterLockSlim       _rwLock       = new();
-        private          ManualResetEvent           _lockReleased = new(false);
-        private          bool                       _lockAcquired = false;
+        private static ConcurrentDictionary<string, Player> _members = new();
 
         public PartySyncService() {
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
@@ -56,19 +52,13 @@ namespace Nekres.ProofLogix.Core.Services {
         /// </summary>
         /// <param name="accountName">Account to remove.</param>
         public void RemovePlayer(string accountName) {
-            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try { 
-                var key = accountName.ToLowerInvariant();
+            var key = accountName.ToLowerInvariant();
 
-                if (!_members.TryGetValue(key, out var member) || member.IsLocalPlayer || !_members.Remove(key)) {
-                    return;
-                }
-
-                OnPlayerRemoved?.Invoke(this, new ValueEventArgs<Player>(member));
-
-            } finally {
-                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
+            if (string.IsNullOrEmpty(key) || !_members.TryGetValue(key, out var member) || member.IsLocalPlayer || !_members.TryRemove(key, out _)) {
+                return;
             }
+
+            OnPlayerRemoved?.Invoke(this, new ValueEventArgs<Player>(member));
         }
 
         /// <summary>
@@ -82,8 +72,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
             OnPlayerAdded = null;
             OnPlayerRemoved = null;
-
-            RwLockUtil.Dispose(_rwLock, ref _lockAcquired, _lockReleased);
 
             _members = null;
         }
@@ -110,28 +98,20 @@ namespace Nekres.ProofLogix.Core.Services {
                 return; // No account name to use as key.
             }
 
-            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try {
+            var key = arcDpsPlayer.AccountName.ToLowerInvariant();
 
-                var key = arcDpsPlayer.AccountName.ToLowerInvariant();
+            _members.AddOrUpdate(key, _ => {
 
-                if (_members.TryGetValue(key, out var member)) {
-
-                    member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
-
-                    OnPlayerChanged?.Invoke(this, new ValueEventArgs<Player>(member));
-
-                    return;
-                }
-
-                member = Player.FromArcDps(arcDpsPlayer);
-                _members.Add(key, member);
-
+                var member = Player.FromArcDps(arcDpsPlayer);
                 OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
+                return member;
 
-            } finally {
-                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
-            }
+            }, (_, member) => {
+
+                member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
+                OnPlayerChanged?.Invoke(this, new ValueEventArgs<Player>(member));
+                return member;
+            });
         }
 
         private void AddKpProfile(Profile kpProfile, bool isLocalPlayer) {
@@ -139,28 +119,21 @@ namespace Nekres.ProofLogix.Core.Services {
                 return; // No account name to use as key.
             }
 
-            RwLockUtil.AcquireWriteLock(_rwLock, ref _lockAcquired);
-            try {
+            var key = kpProfile.Name.ToLowerInvariant();
 
-                var key = kpProfile.Name.ToLowerInvariant();
+            _members.AddOrUpdate(key, _ => {
 
-                if (_members.TryGetValue(key, out var member)) {
-
-                    member.AttachProfile(kpProfile, isLocalPlayer); // Overwrite KP profile.
-
-                    OnPlayerChanged?.Invoke(this, new ValueEventArgs<Player>(member));
-
-                    return;
-                }
-
-                member = Player.FromKpProfile(kpProfile, isLocalPlayer);
-                _members.Add(key, member);
-
+                var member = Player.FromKpProfile(kpProfile, isLocalPlayer);
                 OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
+                return member;
 
-            } finally {
-                RwLockUtil.ReleaseWriteLock(_rwLock, ref _lockAcquired, _lockReleased);
-            }
+            }, (_, member) => {
+
+                member.AttachProfile(kpProfile, isLocalPlayer); // Overwrite KP profile.
+                OnPlayerChanged?.Invoke(this, new ValueEventArgs<Player>(member));
+                return member;
+
+            });
         }
 
         #region ArcDps Player Events
