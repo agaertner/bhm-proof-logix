@@ -261,6 +261,7 @@
     <Compile Include="Core\Services\KpWebApi\V1\Models\Clear.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\Models\Refresh.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\KpV2Client.cs" />
+    <Compile Include="Core\Services\KpWebApi\V2\Models\IProfileV2.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\Models\Profile.cs" />
     <Compile Include="Core\Services\PartySyncService.cs" />
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />

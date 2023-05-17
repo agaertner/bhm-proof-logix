@@ -24,29 +24,24 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
             new List<string> { "gate", "adina", "sabir", "qadim_the_peerless" },
         };
 
-        public async Task<Profile> GetProfile(string id, bool isCharacterName = false) {
-            var profile = await HttpUtil.RetryAsync<Profile>(isCharacterName ?
-                                                                 () => _uri.AppendPathSegments("character", id, "kp").GetAsync() :
-                                                                 () => _uri.AppendPathSegments("kp", id).GetAsync());
+        public async Task<Profile> GetProfile(string id) {
+            var profile = await HttpUtil.RetryAsync<Profile>(() => _uri.AppendPathSegments("kp", id).GetAsync());
             return profile ?? Profile.Empty;
         }
 
-        public async Task<List<Clear>> GetClears(string id, bool isCharacterName = false) {
-            var response = await HttpUtil.RetryAsync<JObject>(isCharacterName ?
-                                                                  () => _uri.AppendPathSegments("character", id, "clear").GetAsync() : 
-                                                                  () => _uri.AppendPathSegments("clear", id).GetAsync());
+        public async Task<Profile> GetProfileByCharacter(string name) {
+            var profile = await HttpUtil.RetryAsync<Profile>(() => _uri.AppendPathSegments("character", name, "kp").GetAsync());
+            return profile ?? Profile.Empty;
+        }
 
-            if (response == null) {
-                return Enumerable.Empty<Clear>().ToList();
-            }
+        public async Task<List<Clear>> GetClears(string id) {
+            var response = await HttpUtil.RetryAsync<JObject>(() => _uri.AppendPathSegments("clear", id).GetAsync());
+            return FormatClears(response);
+        }
 
-            var clears = response.Properties()
-                                 .Select(property => new JObject {
-                                      [property.Name] = property.Value
-                                  }.ToObject<Clear>())
-                                 .ToList();
-
-            return clears;
+        public async Task<List<Clear>> GetClearsByCharacter(string name) {
+            var response = await HttpUtil.RetryAsync<JObject>(() => _uri.AppendPathSegments("character", name, "clear").GetAsync());
+            return FormatClears(response);
         }
 
         public async Task<bool> Refresh(string id) {
@@ -92,5 +87,17 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
 
             return response.KpId;
         }
+
+        private static List<Clear> FormatClears(JObject response) {
+            if (response == null) {
+                return Enumerable.Empty<Clear>().ToList();
+            }
+
+            return response.Properties()
+                           .Select(property => new JObject {
+                                [property.Name] = property.Value
+                            }.ToObject<Clear>())
+                           .ToList();
+        } 
     }
 }

@@ -2,15 +2,17 @@
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services;
-using Nekres.ProofLogix.Core.Services.Resources;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Item = Nekres.ProofLogix.Core.Services.Resources.Item;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
 
-        public StandardTable<string> Table;
-
+        public  StandardTable<string> Table;
+        private Panel                 _panel;
         public TableView(TableConfig config) {
             this.WithPresenter(new TablePresenter(this, config));
         }
@@ -24,15 +26,26 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override void Build(Container buildPanel) {
-            Table = new StandardTable<string>(new object[] {
-                string.Empty, "Character", "Account", 
-                ResourceService.GetItemIcon((int)Item.LegendaryInsightGeneric),  
-                ResourceService.GetItemIcon((int)Item.UnstableFractalEssence)
-            }) {
+            _panel = new Panel {
                 Parent = buildPanel,
                 Width  = buildPanel.ContentRegion.Width,
                 Height = buildPanel.ContentRegion.Height,
-                Font = GameService.Content.DefaultFont16
+                CanScroll = true
+            };
+
+            var row = new List<object> {
+                string.Empty, "Character", "Account"
+            };
+
+            var tokens = Enum.GetValues(typeof(Item)).Cast<int>().Select(ResourceService.GetItemIcon).Cast<object>();
+
+            row.AddRange(tokens);
+
+            this.Table = new StandardTable<string>(row.ToArray()) {
+                Parent = _panel,
+                Width  = _panel.Width,
+                Height = _panel.Height,
+                Font   = GameService.Content.DefaultFont16
             };
 
             buildPanel.ContentResized += OnResized;
@@ -44,12 +57,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void OnResized(object sender, RegionChangedEventArgs e) {
-            this.Table.Size = e.CurrentRegion.Size;
+            _panel.Size = e.CurrentRegion.Size;
         }
 
         protected override void Unload() {
             base.Unload();
         }
-
     }
 }

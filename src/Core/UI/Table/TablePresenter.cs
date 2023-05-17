@@ -6,8 +6,10 @@ using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using Nekres.ProofLogix.Core.Services.Resources;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -43,15 +45,20 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                               }).Build();
 
             accountName.BasicTooltipText = !player.KpProfile.IsEmpty ? player.KpProfile.ProofUrl : string.Empty;
-            accountName.Parent  = this.View.Table;
+            accountName.Parent           = this.View.Table;
+            accountName.Visible          = this.View.Table.Visible;
 
-            var totals = player.KpProfile.LinkedTotals;
+            var totals = (IProfileV2)player.KpProfile.LinkedTotals ?? player.KpProfile;
 
-            this.View.Table.ChangeData(key, new object[] {
-                player.Icon, player.CharacterName, accountName,
-                totals.Killproofs.FirstOrDefault(x => x.Id == (int)Item.LegendaryInsightGeneric)?.Amount ?? 0,
-                totals.Killproofs.FirstOrDefault(x => x.Id == (int)Item.UnstableFractalEssence)?.Amount ?? 0
-            });
+            var row = new List<object> {
+                player.Icon, player.CharacterName, accountName
+            };
+
+            var tokens = Enum.GetValues(typeof(Item)).Cast<int>().Select(i => totals.GetToken(i)?.Amount).Cast<object>();
+            
+            row.AddRange(tokens);
+
+            this.View.Table.ChangeData(key, row.ToArray());
         }
 
         /// <summary>

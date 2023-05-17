@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Newtonsoft.Json.Converters;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
@@ -8,12 +9,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     // Paths: /api/kp/{account_name_OR_kp_id}?lang={code}
     //        /api/character/{character_name}/kp?lang={code}
 
-    public class Profile : BaseResponse {
+    public class Profile : BaseResponse, IProfileV2 {
 
-        public static Profile Empty => new() {
+        public static Profile Empty = new() {
             IsEmpty = true
         };
 
+        [JsonIgnore]
         public bool IsEmpty { get; private init; }
 
         [JsonProperty("account_name")]
@@ -49,23 +51,20 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("linked")]
         public List<Profile> Linked { get; set; }
 
-        private LinkedTotals _linkedTotals;
         [JsonProperty("linked_totals")]
-        public LinkedTotals LinkedTotals { 
-            get => _linkedTotals ?? new LinkedTotals {
-                Tokens     = this.Tokens     ?? new List<Token>(),
-                Killproofs = this.Killproofs ?? new List<Token>(),
-                Coffers    = this.Coffers    ?? new List<Token>(),
-                Titles     = this.Titles     ?? new List<Title>()
-            };
-            set => _linkedTotals = value;
-        }
+        public LinkedTotals LinkedTotals;
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
+
+        public Token GetToken(int id) {
+            return Tokens?.FirstOrDefault(x => x.Id == id) ??
+                   Killproofs?.FirstOrDefault(x => x.Id == id) ??
+                   Coffers?.FirstOrDefault(x => x.Id == id);
+        }
     }
 
-    public sealed class LinkedTotals {
+    public sealed class LinkedTotals : IProfileV2 {
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
 
@@ -77,6 +76,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
         [JsonProperty("titles")]
         public List<Title> Titles { get; set; }
+
+        public Token GetToken(int id) {
+            return Tokens?.FirstOrDefault(x => x.Id == id) ??
+                   Killproofs?.FirstOrDefault(x => x.Id == id) ??
+                   Coffers?.FirstOrDefault(x => x.Id    == id);
+        }
     }
 
     public sealed class OriginalUce {

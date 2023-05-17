@@ -1,7 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
-using Blish_HUD.Extended;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,9 +8,10 @@ using MonoGame.Extended.BitmapFonts;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading;
+using Blish_HUD.Extended;
+using Container = Blish_HUD.Controls.Container;
 
 namespace Nekres.ProofLogix.Core.UI {
     public class StandardTable<T> : Container where T : IEquatable<T> {
@@ -52,9 +52,14 @@ namespace Nekres.ProofLogix.Core.UI {
         private int       _sortColumn       = -1;
         private SortOrder _sortOrder        = SortOrder.Ascending;
 
+        private ConcurrentDictionary<T, object[]> _pending;
+
+        private DateTime _lastBulkAddTime;
+
         public StandardTable(object[] headerRow) {
             _header = headerRow;
             _data   = new ConcurrentDictionary<T, object[]>();
+            _pending = new ConcurrentDictionary<T, object[]>();
         }
 
         protected override void DisposeControl() {
@@ -70,14 +75,15 @@ namespace Nekres.ProofLogix.Core.UI {
             if (row.Length != _header.Length) {
                 return;
             }
-            _data.AddOrUpdate(key, row, (_, oldRow) => {
+            _pending.AddOrUpdate(key, row, (_, oldRow) => {
                 DisposeRow(oldRow);
+                _lastBulkAddTime = DateTime.UtcNow;
                 return row;
             });
         }
 
         public void RemoveData(T key) {
-            if (!_data.TryRemove(key, out var row)) {
+            if (!_pending.TryRemove(key, out var row)) {
                 return;
             };
             DisposeRow(row);
@@ -151,7 +157,18 @@ namespace Nekres.ProofLogix.Core.UI {
             Interlocked.Exchange(ref _data, newData);
         }
 
+        private void UpdateData() {
+            // Update the data table with new values
+            var newData = new ConcurrentDictionary<T, object[]>(_pending);
+            Interlocked.Exchange(ref _data, newData);
+        }
+
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds) {
+            if (DateTime.UtcNow.Subtract(_lastBulkAddTime).TotalSeconds > 5) {
+                UpdateData();
+                _lastBulkAddTime = DateTime.UtcNow;
+            }
+
             // Calculate the maximum width and height of each column and row
             var dataTable = new List<object[]> { _header }.Concat(_data.Values).ToList();
             var colLength = dataTable.Count;
@@ -176,7 +193,7 @@ namespace Nekres.ProofLogix.Core.UI {
                         _colHeights[col] = Math.Max(_colHeights[col], ctrl.Size.Y);
 
                     } else {
-                        var str = cellContent.ToString();
+                        var str = cellContent?.ToString() ?? string.Empty;
                         var size = this.Font.MeasureString(str);
                         _rowWidths[row]  = Math.Max(_rowWidths[row],  (int)size.Width + -_cellPadding / 2);
                         _colHeights[col] = Math.Max(_colHeights[col], (int)size.Height);
@@ -188,6 +205,8 @@ namespace Nekres.ProofLogix.Core.UI {
             int totalWidth = _rowWidths.Sum(w => w + _cellPadding * 2);
             // Calculate the total height of the table
             int totalHeight = _colHeights.Sum(h => h + _cellPadding * 2);
+
+            this.Height = totalHeight;
 
             // Determine the remaining width and height available for cells to occupy
             int remainingWidth = Math.Max(bounds.Width - totalWidth, 0);
@@ -243,13 +262,24 @@ namespace Nekres.ProofLogix.Core.UI {
 
                         ctrl.Location = new Point(x + (currentCellWidth - ctrl.Size.X) / 2, 
                                                   y + (currentCellHeight - ctrl.Size.Y) / 2);
-                        
+
+                        ctrl.Visible = this.Visible;
+
+                    } else if (cellContent == default) {
+
+                        spriteBatch.DrawStringOnCtrl(this, string.Empty, this.Font, contentRect, Color.White, false, row == 0, 1, HorizontalAlignment.Center);
+
                     } else {
+
                         var str = cellContent.ToString();
                         spriteBatch.DrawStringOnCtrl(this, str, this.Font, contentRect, Color.White, false, row == 0, 1, HorizontalAlignment.Center);
                     }
 
-                    spriteBatch.DrawRectangleOnCtrl(this, contentRect, 1);
+                    var rightEdge = new Rectangle(contentRect.Right, contentRect.Top, 0, contentRect.Height);
+                    spriteBatch.DrawRectangleOnCtrl(this, rightEdge, 1);
+
+                    var bottomEdge = new Rectangle(contentRect.Left, contentRect.Bottom, contentRect.Width, 0);
+                    spriteBatch.DrawRectangleOnCtrl(this, bottomEdge, 1);
 
                     x += currentCellWidth;
                 }
@@ -257,6 +287,5 @@ namespace Nekres.ProofLogix.Core.UI {
                 y += _colHeights[row] + _cellPadding * 2;
             }
         }
-
     }
 }

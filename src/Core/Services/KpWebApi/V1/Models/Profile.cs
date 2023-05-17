@@ -9,10 +9,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
     //        /api/character/{character_name}/kp
 
     public class Profile {
-        public static Profile Empty => new() {
+        public static Profile Empty = new() {
             IsEmpty = true
         };
 
+        [JsonIgnore]
         public bool IsEmpty { get; private init; }
 
         [JsonProperty("account_name")]

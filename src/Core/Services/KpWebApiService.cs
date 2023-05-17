@@ -1,7 +1,10 @@
 ﻿using Nekres.ProofLogix.Core.Services.KpWebApi.V1;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System.Threading.Tasks;
+using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
+
 namespace Nekres.ProofLogix.Core.Services {
     internal class KpWebApiService {
 
@@ -13,13 +16,27 @@ namespace Nekres.ProofLogix.Core.Services {
             _v2Client = new KpV2Client();
         }
 
-        public async Task<Profile> GetProfile(string id, bool isCharacterName = false) {
+        public async Task<Profile> GetProfile(string id) {
             if (string.IsNullOrEmpty(id)) {
                 return Profile.Empty;
             }
 
-            var profile = await _v2Client.GetProfile(id, isCharacterName);
+            var profile = await _v2Client.GetProfile(id);
 
+            return await ExpandProfile(profile);
+        }
+
+        public async Task<Profile> GetProfileByCharacterName(string characterName) {
+            if (string.IsNullOrEmpty(characterName)) {
+                return Profile.Empty;
+            }
+
+            var profile = await _v2Client.GetProfileByCharacterName(characterName);
+
+            return await ExpandProfile(profile);
+        }
+
+        private async Task<Profile> ExpandProfile(Profile profile) {
             if (profile.IsEmpty) {
                 return profile;
             }

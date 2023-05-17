@@ -89,7 +89,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task AddLocalPlayer() {
-            var profile = await ProofLogix.Instance.KpWebApi.GetProfile(GameService.Gw2Mumble.PlayerCharacter.Name, true);
+            var profile = await ProofLogix.Instance.KpWebApi.GetProfileByCharacterName(GameService.Gw2Mumble.PlayerCharacter.Name);
             AddKpProfile(profile, true);
         }
 
