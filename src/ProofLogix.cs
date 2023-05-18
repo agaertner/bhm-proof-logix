@@ -1,18 +1,16 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
+using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
-using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using Nekres.ProofLogix.Core.UI;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Blish_HUD.Input;
-using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]

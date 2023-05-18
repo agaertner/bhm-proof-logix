@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Item = Nekres.ProofLogix.Core.Services.Resources.Item;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
@@ -37,9 +36,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 string.Empty, "Character", "Account"
             };
 
-            var tokens = Enum.GetValues(typeof(Item)).Cast<int>().Select(ResourceService.GetItemIcon).Cast<object>();
+            var tokens = ResourceService.GetItemIds().Select(ResourceService.GetItemIcon).Cast<object>();
 
-            row.AddRange(tokens);
+            row.AddRange(tokens); 
 
             this.Table = new StandardTable<string>(row.ToArray()) {
                 Parent = _panel,

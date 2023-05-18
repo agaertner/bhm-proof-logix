@@ -1,9 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
-using Newtonsoft.Json.Converters;
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
     // Paths: /api/kp/{account_name_OR_kp_id}?lang={code}

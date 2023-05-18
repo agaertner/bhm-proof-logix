@@ -3,13 +3,12 @@ using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using Nekres.ProofLogix.Core.Services.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -54,7 +53,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 player.Icon, player.CharacterName, accountName
             };
 
-            var tokens = Enum.GetValues(typeof(Item)).Cast<int>().Select(i => totals.GetToken(i)?.Amount).Cast<object>();
+            var tokens = ResourceService.GetItemIds().Select(i => totals.GetToken(i)?.Amount).Cast<object>();
             
             row.AddRange(tokens);
 

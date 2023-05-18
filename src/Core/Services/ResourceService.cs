@@ -2,7 +2,7 @@
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
-using Nekres.ProofLogix.Core.Services.Resources;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -46,6 +46,10 @@ namespace Nekres.ProofLogix.Core.Services {
             return _itemIcons.TryGetValue(id, out var icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
+        public static List<int> GetItemIds() {
+            return _itemNames.Keys.ToList();
+        }
+
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 
@@ -63,12 +67,23 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private async Task LoadItems(bool localeChange = false) {
 
-            var ids = Enum.GetValues(typeof(Item)).Cast<int>();
-            var items = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.ManyAsync(ids));
+            var resources = await ProofLogix.Instance.KpWebApi.GetResources();
 
-            if (items == null) {
+            if (resources.IsEmpty) {
                 return;
             }
+
+            var items = resources.Raids
+                                 .SelectMany(raid => raid.Wings)
+                                 .SelectMany(wing => wing.Events)
+                                 .Where(ev => ev.Token != null || ev.Miniatures != null)
+                                 .SelectMany(ev => (ev.Token != null ? new[] { ev.Token } : Array.Empty<Resource>())
+                                                .Concat(ev.Miniatures ?? Enumerable.Empty<Resource>()))
+                                 .Concat(resources.Fractals)
+                                 .Concat(resources.GeneralTokens)
+                                 .GroupBy(resource => resource.Id)
+                                 .Select(group => group.First())
+                                 .ToList();
 
             _itemNames = items.ToDictionary(x => x.Id, x => x.Name);
 
@@ -76,7 +91,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
-            _itemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon.ToString()));
+            _itemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon));
         }
 
         private async Task LoadProfessions(bool localeChange = false) {
