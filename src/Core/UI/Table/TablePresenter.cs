@@ -17,7 +17,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             PartySyncService.OnPlayerAdded   += OnPlayerAddedOrChanged;
             PartySyncService.OnPlayerChanged += OnPlayerAddedOrChanged;
             PartySyncService.OnPlayerRemoved += OnPlayerRemoved;
-
         }
 
         public void AddPlayer(Player player) {
@@ -53,7 +52,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 player.Icon, player.CharacterName, accountName
             };
 
-            var tokens = ResourceService.GetItemIds().Select(i => totals.GetToken(i)?.Amount).Cast<object>();
+            var tokens = ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id)
+                                        .Select(i => totals.GetToken(i)?.Amount).Cast<object>();
             
             row.AddRange(tokens);
 

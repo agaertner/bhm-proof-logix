@@ -1,6 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
@@ -82,6 +84,25 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
                 [JsonProperty("miniatures")]
                 public List<Resource> Miniatures { get; set; }
+
+                public List<Resource> GetTokens() {
+
+                    var result = Enumerable.Empty<Resource>().ToList();
+
+                    if (this.Token == null && this.Miniatures == null) {
+                        return result;
+                    }
+
+                    if (this.Token != null) {
+                        result.Add(this.Token);
+                    }
+
+                    if (this.Miniatures != null) {
+                        result.AddRange(this.Miniatures);
+                    }
+
+                    return result;
+                } 
             }
 
         }

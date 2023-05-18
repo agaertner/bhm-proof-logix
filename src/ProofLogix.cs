@@ -34,7 +34,7 @@ namespace Nekres.ProofLogix {
         internal PartySyncService PartySync;
 
         private TableConfig    _config;
-        private StandardWindow _window;
+        private TabbedWindow2  _window;
         private CornerIcon     _cornerIcon;
         private AsyncTexture2D _icon;
 
@@ -60,7 +60,7 @@ namespace Nekres.ProofLogix {
                 Priority = 296658677 // Arbitrary value that should be unique to this module.
             };
 
-            _window = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985), 
+            _window = new TabbedWindow2(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985), 
                                          new Rectangle(40, 26, 913, 691), 
                                          new Rectangle(70, 71, 839, 605)) {
                 Parent        = GameService.Graphics.SpriteScreen,
@@ -75,7 +75,8 @@ namespace Nekres.ProofLogix {
             };
 
             _config = new TableConfig();
-            _window.Show(new TableView(_config));
+            _window.Tabs.Add(new Tab(_icon, () => new TableView(_config), "Squad Tracker"));
+            _window.Show();
 
             _cornerIcon.Click += OnCornerIconClick;
             // Base handler must be called

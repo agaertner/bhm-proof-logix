@@ -72,13 +72,22 @@ namespace Nekres.ProofLogix.Core.UI {
         } 
 
         public void ChangeData(T key, object[] row) {
-            if (row.Length != _header.Length) {
+            if (row.Length > _header.Length) {
                 return;
             }
-            _pending.AddOrUpdate(key, row, (_, oldRow) => {
+
+            var diff = Math.Abs(row.Length - _header.Length);
+
+            var rowFill = row;
+
+            if (diff > 0) {
+                rowFill = row.Concat(new object[diff]).ToArray();
+            }
+            
+            _pending.AddOrUpdate(key, rowFill, (_, oldRow) => {
                 DisposeRow(oldRow);
                 _lastBulkAddTime = DateTime.UtcNow;
-                return row;
+                return rowFill;
             });
         }
 

@@ -19,6 +19,8 @@ namespace Nekres.ProofLogix.Core.Services {
         private static Dictionary<int, string>         _itemNames  = new();
         private static Dictionary<int, AsyncTexture2D> _itemIcons  = new();
 
+        private static Resources _resources = Resources.Empty;
+
         public ResourceService() {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
@@ -50,6 +52,19 @@ namespace Nekres.ProofLogix.Core.Services {
             return _itemNames.Keys.ToList();
         }
 
+        public static List<int> GetItemIdsForMap(int mapId) {
+            if (_resources.IsEmpty) {
+                return Enumerable.Empty<int>().ToList();
+            }
+
+            var items = _resources.Raids.SelectMany(x => x.Wings)
+                                   .Where(x => x.MapId == mapId)
+                                   .SelectMany(x => x.Events)
+                                   .SelectMany(x => x.GetTokens());
+
+            return items.Select(x => x.Id).ToList();
+        }
+
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 
@@ -76,9 +91,7 @@ namespace Nekres.ProofLogix.Core.Services {
             var items = resources.Raids
                                  .SelectMany(raid => raid.Wings)
                                  .SelectMany(wing => wing.Events)
-                                 .Where(ev => ev.Token != null || ev.Miniatures != null)
-                                 .SelectMany(ev => (ev.Token != null ? new[] { ev.Token } : Array.Empty<Resource>())
-                                                .Concat(ev.Miniatures ?? Enumerable.Empty<Resource>()))
+                                 .SelectMany(ev => ev.GetTokens())
                                  .Concat(resources.Fractals)
                                  .Concat(resources.GeneralTokens)
                                  .GroupBy(resource => resource.Id)
@@ -86,6 +99,8 @@ namespace Nekres.ProofLogix.Core.Services {
                                  .ToList();
 
             _itemNames = items.ToDictionary(x => x.Id, x => x.Name);
+
+            _resources = resources;
 
             if (localeChange) {
                 return;
