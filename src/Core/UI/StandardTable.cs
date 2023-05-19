@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Extended;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +11,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Blish_HUD.Extended;
 using Container = Blish_HUD.Controls.Container;
 
 namespace Nekres.ProofLogix.Core.UI {
@@ -83,10 +83,13 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         public void RemoveData(T key) {
-            if (!_pending.TryRemove(key, out var row)) {
-                return;
+            if (_pending.TryRemove(key, out var row)) {
+                DisposeRow(row);
             };
-            DisposeRow(row);
+            
+            if (_data.TryRemove(key, out row)) {
+                DisposeRow(row);
+            };
         }
 
         protected override void OnMouseMoved(MouseEventArgs e) {
@@ -138,24 +141,28 @@ namespace Nekres.ProofLogix.Core.UI {
             // Sort the data based on the values in the specified column
             var sortedData = _data.OrderBy(row => {
                 var value = row.Value[column];
-                if (value is null) {
-                    return _sortOrder == SortOrder.Ascending ? int.MaxValue : int.MinValue;
+                return value is not IComparable ? 0 : value;
+            }, Comparer<object>.Create((x, y) =>
+            {
+                if (x is not IComparable cX || y is not IComparable cY) {
+                    return _sortOrder == SortOrder.Ascending ? int.MinValue : int.MaxValue;
                 }
-                if (value is not IComparable) {
-                    return _sortOrder == SortOrder.Ascending ? int.MaxValue : int.MinValue;
-                }
-                return value;
-            }, Comparer<object>.Create((x, y) => {
-                int compareResult;
+
+                int comparison;
+                // Use invariant ignore case for strings.
                 if (x is string && y is string) {
-                    compareResult = StringComparer.InvariantCultureIgnoreCase.Compare(y, x);
-                } else if (x is not IComparable || y is not IComparable comparable) {
-                    compareResult = _sortOrder == SortOrder.Ascending ? int.MaxValue : int.MinValue;
-                } else {
-                    compareResult = comparable.CompareTo(x);
+                    comparison = StringComparer.InvariantCultureIgnoreCase.Compare(y, x);
+                    return _sortOrder == SortOrder.Ascending ? -comparison : comparison;
                 }
-                return _sortOrder == SortOrder.Ascending ? compareResult : -compareResult;
+
+                if (x.GetType() == y.GetType()) {
+                    comparison = cX.CompareTo(cY);
+                    return _sortOrder == SortOrder.Ascending ? -comparison : comparison;
+                }
+
+                return _sortOrder == SortOrder.Ascending ? int.MinValue : int.MaxValue;
             }));
+
 
             // Update the data table with the sorted values
             var newData = new ConcurrentDictionary<T, object[]>(sortedData);

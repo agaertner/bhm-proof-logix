@@ -21,6 +21,11 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private static Resources _resources = Resources.Empty;
 
+        private static IReadOnlyList<int> _outdatedItemIds = new List<int>() {
+            81743,
+            88485
+        };
+
         public ResourceService() {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
@@ -65,23 +70,33 @@ namespace Nekres.ProofLogix.Core.Services {
             return items.Select(x => x.Id).ToList();
         }
 
-        public static List<int> GetItemIdsForFractals() {
-            return _resources.IsEmpty ? Enumerable.Empty<int>().ToList() : _resources.Fractals.Select(x => x.Id).ToList();
+        public static List<int> GetItemIdsForFractals(bool includeOld = false) {
+            var fractalItemIds = _resources.IsEmpty ? Enumerable.Empty<int>() : _resources.Fractals.Select(x => x.Id);
+            if (!includeOld) {
+                fractalItemIds = fractalItemIds.Except(_outdatedItemIds);
+            }
+            return fractalItemIds.ToList();
         }
 
-        public static List<int> GetGeneralItemIds() {
-            return _resources.IsEmpty ? Enumerable.Empty<int>().ToList() : _resources.GeneralTokens.Select(x => x.Id).ToList();
+        public static List<int> GetGeneralItemIds(bool includeOld = false) {
+            var generalItemIds = _resources.IsEmpty ? Enumerable.Empty<int>() : _resources.GeneralTokens.Select(x => x.Id);
+            if (!includeOld) {
+                generalItemIds = generalItemIds.Except(_outdatedItemIds);
+            }
+            return generalItemIds.ToList();
         }
 
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 
-            _eliteNames = null;
-            _profNames  = null;
-            _itemNames  = null;
-            _eliteIcons = null;
-            _profIcons  = null;
-            _itemIcons  = null;
+            _eliteNames      = null;
+            _profNames       = null;
+            _itemNames       = null;
+            _eliteIcons      = null;
+            _profIcons       = null;
+            _itemIcons       = null;
+            _resources       = null;
+            _outdatedItemIds = null;
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {

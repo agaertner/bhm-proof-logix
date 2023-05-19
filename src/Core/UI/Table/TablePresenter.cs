@@ -59,25 +59,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             
             row.AddRange(tokens);
 
-            var refresh = new StandardButton {
-                Parent  = this.View.Table,
-                Width = 24,
-                Height = 24,
-                Visible = false,
-                Text = "\u0020"
-            };
-
-            refresh.Click += async (_, _) => {
-                if (!await ProofLogix.Instance.KpWebApi.Refresh(player.KpProfile.Id)) {
-                    ScreenNotification.ShowNotification($"{player.AccountName}'s proof cannot be refreshed. Cooldown?", ScreenNotification.NotificationType.Error);
-                    return;
-                }
-
-                ScreenNotification.ShowNotification($"{player.AccountName}'s proof was refreshed.");
-            };
-
-            row.Add(refresh);
-
             UpdateHeader();
             this.View.Table.ChangeData(key, row.ToArray());
         }
@@ -93,8 +74,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                                         .Select(ResourceService.GetItemIcon).Cast<object>();
 
             row.AddRange(tokens);
-
-            row.Add("Refresh?");
 
             this.View.Table.ChangeHeader(row.ToArray());
         }
