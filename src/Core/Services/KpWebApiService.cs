@@ -19,6 +19,10 @@ namespace Nekres.ProofLogix.Core.Services {
             return await _v2Client.GetResources();
         }
 
+        public async Task<bool> Refresh(string id) {
+            return await _v1Client.Refresh(id);
+        }
+
         public async Task<Profile> GetProfile(string id) {
             if (string.IsNullOrEmpty(id)) {
                 return Profile.Empty;

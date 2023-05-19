@@ -36,7 +36,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 string.Empty, "Character", "Account"
             };
 
-            var tokens = ResourceService.GetItemIds().Select(ResourceService.GetItemIcon).Cast<object>();
+            var tokens = ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id)
+                                        .Select(ResourceService.GetItemIcon).Cast<object>();
 
             row.AddRange(tokens); 
 
@@ -44,6 +45,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Parent = _panel,
                 Width  = _panel.Width,
                 Height = _panel.Height,
+                Left = 50,
                 Font   = GameService.Content.DefaultFont16
             };
 
@@ -56,7 +58,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void OnResized(object sender, RegionChangedEventArgs e) {
-            _panel.Size = e.CurrentRegion.Size;
+            _panel.Width = e.CurrentRegion.Width - 100;
+            _panel.Height = e.CurrentRegion.Height;
         }
 
         protected override void Unload() {

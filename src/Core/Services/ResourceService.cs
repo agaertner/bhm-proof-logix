@@ -65,6 +65,14 @@ namespace Nekres.ProofLogix.Core.Services {
             return items.Select(x => x.Id).ToList();
         }
 
+        public static List<int> GetItemIdsForFractals() {
+            return _resources.IsEmpty ? Enumerable.Empty<int>().ToList() : _resources.Fractals.Select(x => x.Id).ToList();
+        }
+
+        public static List<int> GetGeneralItemIds() {
+            return _resources.IsEmpty ? Enumerable.Empty<int>().ToList() : _resources.GeneralTokens.Select(x => x.Id).ToList();
+        }
+
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 

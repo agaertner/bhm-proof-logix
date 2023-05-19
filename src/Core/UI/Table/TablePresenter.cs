@@ -44,7 +44,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             accountName.BasicTooltipText = !player.KpProfile.IsEmpty ? player.KpProfile.ProofUrl : string.Empty;
             accountName.Parent           = this.View.Table;
-            accountName.Visible          = this.View.Table.Visible;
+            accountName.Visible          = false;
 
             var totals = (IProfileV2)player.KpProfile.LinkedTotals ?? player.KpProfile;
 
@@ -52,12 +52,51 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 player.Icon, player.CharacterName, accountName
             };
 
-            var tokens = ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id)
+            var tokens = ResourceService.GetItemIdsForFractals()
+                                        .Union(ResourceService.GetGeneralItemIds())
+                                        .Union(ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id))
                                         .Select(i => totals.GetToken(i)?.Amount).Cast<object>();
             
             row.AddRange(tokens);
 
+            var refresh = new StandardButton {
+                Parent  = this.View.Table,
+                Width = 24,
+                Height = 24,
+                Visible = false,
+                Text = "\u0020"
+            };
+
+            refresh.Click += async (_, _) => {
+                if (!await ProofLogix.Instance.KpWebApi.Refresh(player.KpProfile.Id)) {
+                    ScreenNotification.ShowNotification($"{player.AccountName}'s proof cannot be refreshed. Cooldown?", ScreenNotification.NotificationType.Error);
+                    return;
+                }
+
+                ScreenNotification.ShowNotification($"{player.AccountName}'s proof was refreshed.");
+            };
+
+            row.Add(refresh);
+
+            UpdateHeader();
             this.View.Table.ChangeData(key, row.ToArray());
+        }
+
+        public void UpdateHeader() {
+            var row = new List<object> {
+                string.Empty, "Character", "Account"
+            };
+
+            var tokens = ResourceService.GetItemIdsForFractals()
+                                        .Union(ResourceService.GetGeneralItemIds())
+                                        .Union(ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id))
+                                        .Select(ResourceService.GetItemIcon).Cast<object>();
+
+            row.AddRange(tokens);
+
+            row.Add("Refresh?");
+
+            this.View.Table.ChangeHeader(row.ToArray());
         }
 
         /// <summary>
