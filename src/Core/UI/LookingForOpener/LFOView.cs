@@ -27,9 +27,9 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 Height     = buildPanel.ContentRegion.Height
             };
 
-            buildPanel.Resized += (_, _) => {
-                menuPanel.Height = buildPanel.ContentRegion.Height;
-                resultContainer.Height = buildPanel.ContentRegion.Height;
+            buildPanel.ContentResized += (_, e) => {
+                menuPanel.Height = e.CurrentRegion.Height;
+                resultContainer.Height = e.CurrentRegion.Height;
             };
 
             var menu = new Menu {
@@ -40,8 +40,8 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 Height = menuPanel.ContentRegion.Height
             };
 
-            menuPanel.Resized += (_, _) => {
-                menu.Height = menuPanel.ContentRegion.Height;
+            menuPanel.ContentResized += (_, e) => {
+                menu.Height = e.CurrentRegion.Height;
             };
 
             var wings = ResourceService.GetWings();

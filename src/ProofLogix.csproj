@@ -246,6 +246,7 @@
     <Reference Include="System.Xml.ReaderWriter" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Extensions\DateTimeExtension.cs" />
     <Compile Include="Core\Services\KpWebApiService.cs" />
     <Compile Include="Core\Services\KpWebApi\BaseResponse.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\KpV1Client.cs" />

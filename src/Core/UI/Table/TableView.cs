@@ -45,7 +45,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Parent = _panel,
                 Width  = _panel.Width,
                 Height = _panel.Height,
-                Left = 50,
                 Font   = GameService.Content.DefaultFont16
             };
 
@@ -58,7 +57,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void OnResized(object sender, RegionChangedEventArgs e) {
-            _panel.Width = e.CurrentRegion.Width - 100;
+            _panel.Width = e.CurrentRegion.Width;
             _panel.Height = e.CurrentRegion.Height;
         }
 

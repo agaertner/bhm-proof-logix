@@ -45,9 +45,9 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 CanScroll = true
             };
 
-            buildPanel.Resized += (_,_) => {
-                flow.Width  = buildPanel.ContentRegion.Width;
-                flow.Height = buildPanel.ContentRegion.Height - header.Height - Panel.TOP_PADDING;
+            buildPanel.ContentResized += (_,e) => {
+                flow.Width  = e.CurrentRegion.Width;
+                flow.Height = e.CurrentRegion.Height - header.Height - Panel.TOP_PADDING;
             };
 
             if (_results.Opener.IsEmpty) {
@@ -68,12 +68,13 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
             foreach (var volunteer in _results.Opener.Volunteers) {
                 var fontSize  = ContentService.FontSize.Size24;
-                var labelSize = LabelUtil.GetLabelSize(fontSize, volunteer.AccountName + volunteer.Updated.ToString(CultureInfo.CurrentCulture));
+
+                var labelSize = LabelUtil.GetLabelSize(fontSize, volunteer.AccountName + volunteer.Updated.AsTimeAgo());
 
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(volunteer.AccountName, o => {
                                                             o.SetLink(() => CopyText(volunteer.AccountName));
-                                                        }).CreatePart(volunteer.Updated.ToString(CultureInfo.CurrentCulture), o => {
+                                                        }).CreatePart(volunteer.Updated.AsTimeAgo(), o => {
                                                             o.SetFontSize(ContentService.FontSize.Size11);
                                                             o.MakeItalic();
                                                         }).Build();
