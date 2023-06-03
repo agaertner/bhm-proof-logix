@@ -22,12 +22,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
 
         }
 
+        [JsonProperty("encounter")]
         public string Encounter { get; set; }
 
         [JsonProperty("region")]
         [JsonConverter(typeof(StringEnumConverter))]
         public ServerRegion Region { get; set; }
 
+        [JsonProperty("opener")]
         public List<Volunteer> Volunteers { get; set; }
     }
 

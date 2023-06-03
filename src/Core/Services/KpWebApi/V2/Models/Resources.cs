@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
@@ -25,12 +27,31 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
         [JsonProperty("raids")]
         public List<Raid> Raids { get; set; }
+
+        [JsonIgnore]
+        public IEnumerable<Raid.Wing> Wings => this.Raids.SelectMany(raid => raid.Wings);
+
+        [JsonIgnore]
+        public IEnumerable<Resource> Items => this.Raids
+                                                  .SelectMany(raid => raid.Wings)
+                                                  .SelectMany(wing => wing.Events)
+                                                  .SelectMany(ev => ev.GetTokens())
+                                                  .Concat(this.Fractals)
+                                                  .Concat(this.GeneralTokens)
+                                                  .GroupBy(resource => resource.Id)
+                                                  .Select(group => group.First());
     }
 
     public class Resource {
 
         [JsonProperty("icon")]
-        public string Icon { get; set; }
+        public string IconUrl { get; set; }
+
+        [JsonIgnore]
+        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl) 
+                                          ? GameService.Content.DatAssetCache.
+                                                        GetTextureFromAssetId(int.Parse(Path.GetFileNameWithoutExtension(this.IconUrl))) 
+                                          : ContentService.Textures.TransparentPixel;
 
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -84,6 +105,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
                 [JsonProperty("miniatures")]
                 public List<Resource> Miniatures { get; set; }
+
+                [JsonIgnore]
+                public AsyncTexture2D Icon => this.Miniatures?
+                                                 .FirstOrDefault()?.Icon
+                                           ?? this.Token?.Icon 
+                                           ?? GameService.Content.DatAssetCache.GetTextureFromAssetId(1302744);
 
                 public List<Resource> GetTokens() {
 

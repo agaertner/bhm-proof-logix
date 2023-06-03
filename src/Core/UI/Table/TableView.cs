@@ -36,8 +36,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 string.Empty, "Character", "Account"
             };
 
-            var tokens = ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id)
-                                        .Select(ResourceService.GetItemIcon).Cast<object>();
+            var tokens = ResourceService.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id)
+                                        .Select(item => item.Icon).Cast<object>();
 
             row.AddRange(tokens); 
 

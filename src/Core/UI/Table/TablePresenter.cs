@@ -1,7 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
-using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
@@ -26,7 +25,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
-            var size = GetLabelSize(player.AccountName, true);
+            var size = LabelUtil.GetLabelSize(this.View.Table.Font, player.AccountName, true);
             var accountName = new FormattedLabelBuilder()
                        .SetWidth(size.X).SetHeight(size.Y)
                        .SetHorizontalAlignment(HorizontalAlignment.Center)
@@ -52,10 +51,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 player.Icon, player.CharacterName, accountName
             };
 
-            var tokens = ResourceService.GetItemIdsForFractals()
-                                        .Union(ResourceService.GetGeneralItemIds())
-                                        .Union(ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id))
-                                        .Select(i => totals.GetToken(i)?.Amount).Cast<object>();
+            var tokens = ResourceService.GetItemsForFractals()
+                                        .Union(ResourceService.GetGeneralItems())
+                                        .Union(ResourceService.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id))
+                                        .Select(i => totals.GetToken(i.Id)?.Amount).Cast<object>();
             
             row.AddRange(tokens);
 
@@ -68,34 +67,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 string.Empty, "Character", "Account"
             };
 
-            var tokens = ResourceService.GetItemIdsForFractals()
-                                        .Union(ResourceService.GetGeneralItemIds())
-                                        .Union(ResourceService.GetItemIdsForMap(GameService.Gw2Mumble.CurrentMap.Id))
-                                        .Select(ResourceService.GetItemIcon).Cast<object>();
+            var tokens = ResourceService.GetItemsForFractals()
+                                        .Union(ResourceService.GetGeneralItems())
+                                        .Union(ResourceService.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id))
+                                        .Select(item => item.Icon).Cast<object>();
 
             row.AddRange(tokens);
 
             this.View.Table.ChangeHeader(row.ToArray());
-        }
-
-        /// <summary>
-        /// Workaround until <see cref="FormattedLabelBuilder.AutoSizeHeight"/> and <see cref="FormattedLabelBuilder.AutoSizeWidth"/> is fixed.
-        /// </summary>
-        private Point GetLabelSize(string text, bool hasPrefix = false, bool hasSuffix = false) {
-            var icon = this.View.Table.Font.MeasureString("."); // Additional measurement of a single glyph for icons since the text might contain line breaks.
-            var size = this.View.Table.Font.MeasureString(text);
-
-            float width;
-
-            if (hasPrefix && hasSuffix) {
-                width = size.Width + icon.Height * 4;
-            } else if (hasPrefix || hasSuffix) {
-                width = size.Width + icon.Height * 2;
-            } else {
-                width = size.Width;
-            }
-
-            return new Point((int)width, (int)size.Height);
         }
 
         protected override Task<bool> Load(IProgress<string> progress) {

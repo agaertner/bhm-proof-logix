@@ -11,6 +11,7 @@ using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.UI.LookingForOpener;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
@@ -33,7 +34,9 @@ namespace Nekres.ProofLogix {
         internal KpWebApiService  KpWebApi;
         internal PartySyncService PartySync;
 
-        private TableConfig    _config;
+        private TableConfig    _tableConfig;
+        private LfoConfig      _lfoConfig;
+
         private TabbedWindow2  _window;
         private CornerIcon     _cornerIcon;
         private AsyncTexture2D _icon;
@@ -57,25 +60,29 @@ namespace Nekres.ProofLogix {
 
             _icon = ContentsManager.GetTexture("killproof_icon.png");
             _cornerIcon = new CornerIcon(_icon, "Kill Proof") {
-                Priority = 296658677 // Arbitrary value that should be unique to this module.
+                Priority = 236278055 // Arbitrary value that should be unique to this module.
             };
 
             _window = new TabbedWindow2(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985), 
                                          new Rectangle(40, 26, 913, 691), 
-                                         new Rectangle(70, 71, 839, 605)) {
+                                         new Rectangle(100, 36, 839, 605)) {
                 Parent        = GameService.Graphics.SpriteScreen,
                 Title         = this.Name,
                 Emblem        = _icon,
                 Subtitle      = "Kill Proof",
                 SavesPosition = true,
-                Id            = $"{nameof(ProofLogix)}_8af48717-08ee-43e8-9ed8-aab24f53ab9c",
+                Id            = $"{nameof(ProofLogix)}_KillProof_91702dd39f0340b5bd7883cc566e4f63",
                 CanResize = true,
-                Width = 1000,
-                Height = 400
+                Width = 700,
+                Height = 600
             };
 
-            _config = new TableConfig();
-            _window.Tabs.Add(new Tab(_icon, () => new TableView(_config), "Squad Tracker"));
+            _tableConfig = new TableConfig();
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156407), () => new TableView(_tableConfig), "Squad Tracker"));
+
+            _lfoConfig = new LfoConfig();
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
+
             _window.Show();
 
             _cornerIcon.Click += OnCornerIconClick;

@@ -16,8 +16,6 @@ namespace Nekres.ProofLogix.Core.Services {
         private static Dictionary<int, AsyncTexture2D> _profIcons  = new();
         private static Dictionary<int, string>         _eliteNames = new();
         private static Dictionary<int, AsyncTexture2D> _eliteIcons = new();
-        private static Dictionary<int, string>         _itemNames  = new();
-        private static Dictionary<int, AsyncTexture2D> _itemIcons  = new();
 
         private static Resources _resources = Resources.Empty;
 
@@ -32,7 +30,11 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public async Task LoadAsync(bool localeChange = false) {
             await LoadProfessions(localeChange);
-            await LoadItems(localeChange);
+            await LoadResources();
+        }
+
+        private async Task LoadResources() {
+            _resources  = await ProofLogix.Instance.KpWebApi.GetResources();
         }
 
         public static string GetClassName(int profession, int elite) {
@@ -45,21 +47,17 @@ namespace Nekres.ProofLogix.Core.Services {
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public static string GetItemName(int id) {
-            return _itemNames.TryGetValue(id, out var name) ? name : string.Empty;
+        public static Resource GetItem(int id) {
+            return _resources.Items.FirstOrDefault(item => item.Id == id);
         }
 
-        public static AsyncTexture2D GetItemIcon(int id) {
-            return _itemIcons.TryGetValue(id, out var icon) ? icon : ContentService.Textures.TransparentPixel;
+        public static List<Raid.Wing> GetWings() {
+            return _resources.Wings.ToList();
         }
 
-        public static List<int> GetItemIds() {
-            return _itemNames.Keys.ToList();
-        }
-
-        public static List<int> GetItemIdsForMap(int mapId) {
+        public static List<Resource> GetItemsForMap(int mapId) {
             if (_resources.IsEmpty) {
-                return Enumerable.Empty<int>().ToList();
+                return Enumerable.Empty<Resource>().ToList();
             }
 
             var items = _resources.Raids.SelectMany(x => x.Wings)
@@ -67,23 +65,23 @@ namespace Nekres.ProofLogix.Core.Services {
                                    .SelectMany(x => x.Events)
                                    .SelectMany(x => x.GetTokens());
 
-            return items.Select(x => x.Id).ToList();
+            return items.ToList();
         }
 
-        public static List<int> GetItemIdsForFractals(bool includeOld = false) {
-            var fractalItemIds = _resources.IsEmpty ? Enumerable.Empty<int>() : _resources.Fractals.Select(x => x.Id);
+        public static List<Resource> GetItemsForFractals(bool includeOld = false) {
+            var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
             if (!includeOld) {
-                fractalItemIds = fractalItemIds.Except(_outdatedItemIds);
+                fractalItems = fractalItems.Where(item => !_outdatedItemIds.Contains(item.Id));
             }
-            return fractalItemIds.ToList();
+            return fractalItems.ToList();
         }
 
-        public static List<int> GetGeneralItemIds(bool includeOld = false) {
-            var generalItemIds = _resources.IsEmpty ? Enumerable.Empty<int>() : _resources.GeneralTokens.Select(x => x.Id);
+        public static List<Resource> GetGeneralItems(bool includeOld = false) {
+            var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             if (!includeOld) {
-                generalItemIds = generalItemIds.Except(_outdatedItemIds);
+                generalItems = generalItems.Where(item => !_outdatedItemIds.Contains(item.Id));
             }
-            return generalItemIds.ToList();
+            return generalItems.ToList();
         }
 
         public void Dispose() {
@@ -91,45 +89,14 @@ namespace Nekres.ProofLogix.Core.Services {
 
             _eliteNames      = null;
             _profNames       = null;
-            _itemNames       = null;
             _eliteIcons      = null;
             _profIcons       = null;
-            _itemIcons       = null;
             _resources       = null;
             _outdatedItemIds = null;
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
             await LoadAsync(true);
-        }
-
-        private async Task LoadItems(bool localeChange = false) {
-
-            var resources = await ProofLogix.Instance.KpWebApi.GetResources();
-
-            if (resources.IsEmpty) {
-                return;
-            }
-
-            var items = resources.Raids
-                                 .SelectMany(raid => raid.Wings)
-                                 .SelectMany(wing => wing.Events)
-                                 .SelectMany(ev => ev.GetTokens())
-                                 .Concat(resources.Fractals)
-                                 .Concat(resources.GeneralTokens)
-                                 .GroupBy(resource => resource.Id)
-                                 .Select(group => group.First())
-                                 .ToList();
-
-            _itemNames = items.ToDictionary(x => x.Id, x => x.Name);
-
-            _resources = resources;
-
-            if (localeChange) {
-                return;
-            }
-
-            _itemIcons = items.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.Icon));
         }
 
         private async Task LoadProfessions(bool localeChange = false) {

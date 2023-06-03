@@ -50,21 +50,22 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
             return response is {Status: HttpStatusCode.OK};
         }
 
-        public async Task<Opener> GetOpener(string encounter, string serverRegion) {
-            if (!Enum.TryParse<Opener.ServerRegion>(serverRegion, true, out var region)) {
-                return null;
-            }
+        public async Task<Opener> GetOpener(string encounter, Opener.ServerRegion region) {
 
             var encounters = _wings.SelectMany(x => x);
 
             if (!encounters.Any(x => x.Equals(encounter))) {
-                return null;
+                return Opener.Empty;
             }
 
             var response = await HttpUtil.RetryAsync<Opener>(() => _uri.AppendPathSegment("opener")
                                                                        .SetQueryParams($"encounter={encounter}", $"region={region}").GetAsync());
 
-            return response ?? Opener.Empty;
+            if (response == null) {
+                return Opener.Empty;
+            }
+
+            return response.Volunteers?.Any() ?? false ? response : Opener.Empty;
 
         }
 

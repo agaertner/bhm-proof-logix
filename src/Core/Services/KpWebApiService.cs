@@ -2,6 +2,7 @@
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System.Threading.Tasks;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -13,6 +14,10 @@ namespace Nekres.ProofLogix.Core.Services {
         public KpWebApiService() {
             _v1Client = new KpV1Client();
             _v2Client = new KpV2Client();
+        }
+
+        public async Task<Opener> GetOpener(string encounterId, Opener.ServerRegion region) {
+            return await _v1Client.GetOpener(encounterId, region);
         }
 
         public async Task<Resources> GetResources() {
