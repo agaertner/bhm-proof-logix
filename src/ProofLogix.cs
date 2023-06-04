@@ -70,11 +70,12 @@ namespace Nekres.ProofLogix {
                 Title         = this.Name,
                 Emblem        = _icon,
                 Subtitle      = "Kill Proof",
-                SavesPosition = true,
                 Id            = $"{nameof(ProofLogix)}_KillProof_91702dd39f0340b5bd7883cc566e4f63",
-                CanResize = true,
-                Width = 700,
-                Height = 600
+                CanResize     = true,
+                SavesSize     = true,
+                SavesPosition = true,
+                Width         = 700,
+                Height        = 600
             };
 
             _tableConfig = new TableConfig();

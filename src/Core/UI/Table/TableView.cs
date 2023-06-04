@@ -10,7 +10,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
 
         public  StandardTable<string> Table;
-        private Panel                 _panel;
+
         public TableView(TableConfig config) {
             this.WithPresenter(new TablePresenter(this, config));
         }
@@ -19,10 +19,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var search = new TextBox {
                 Parent = buildPanel,
-                Width = 150,
+                Width = 200,
                 Height = 32,
                 Font = GameService.Content.DefaultFont18,
-                PlaceholderText = "Search.."
+                PlaceholderText = "Search..",
+                BasicTooltipText = "Guild Wars 2 account, character name or \nKillproof.me identifier."
             };
 
             var notFound = "Not found.";
@@ -50,6 +51,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             search.EnterPressed += async (_, _) => {
+                if (string.IsNullOrEmpty(search.Text)) {
+                    return;
+                }
+
                 loading.Visible = true;
 
                 var query   = (string)search.Text.Clone();
@@ -57,12 +62,16 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 var profile = await ProofLogix.Instance.KpWebApi.GetProfile(query);
 
                 if (profile.IsEmpty) {
+                    profile = await ProofLogix.Instance.KpWebApi.GetProfileByCharacter(query);
+                }
+
+                if (profile.IsEmpty) {
 
                     loading.Visible = false;
 
                     notFoundLabel.Visible = search.Text.Equals(query);
 
-                    ScreenNotification.ShowNotification("Not found.", ScreenNotification.NotificationType.Warning);
+                    ScreenNotification.ShowNotification(notFound, ScreenNotification.NotificationType.Warning);
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
@@ -80,7 +89,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 notFoundLabel.Visible = false;
             };
 
-            _panel = new Panel {
+            var tableContainer = new Panel {
                 Parent = buildPanel,
                 Top = search.Bottom + Panel.TOP_PADDING,
                 Width  = buildPanel.ContentRegion.Width,
@@ -98,27 +107,22 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             row.AddRange(tokens); 
 
             this.Table = new StandardTable<string>(row.ToArray()) {
-                Parent = _panel,
-                Width  = _panel.Width,
-                Height = _panel.Height,
+                Parent = tableContainer,
+                Width  = tableContainer.Width,
+                Height = tableContainer.Height,
                 Font   = GameService.Content.DefaultFont16
             };
 
-            buildPanel.ContentResized += OnResized;
+            buildPanel.ContentResized += (_, e) => {
+                tableContainer.Width  = e.CurrentRegion.Width;
+                tableContainer.Height = e.CurrentRegion.Height - search.Height - Panel.TOP_PADDING;
+            };
 
             foreach (var player in PartySyncService.PlayerList) {
                 this.Presenter.AddPlayer(player);
             }
+
             base.Build(buildPanel);
-        }
-
-        private void OnResized(object sender, RegionChangedEventArgs e) {
-            _panel.Width = e.CurrentRegion.Width;
-            _panel.Height = e.CurrentRegion.Height;
-        }
-
-        protected override void Unload() {
-            base.Unload();
         }
     }
 }

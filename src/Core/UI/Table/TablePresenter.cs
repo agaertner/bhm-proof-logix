@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -25,6 +26,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
+            if (player.KpProfile.IsEmpty) {
+                return;
+            }
+
             var size = LabelUtil.GetLabelSize(this.View.Table.Font, player.AccountName, true);
             var accountName = new FormattedLabelBuilder()
                        .SetWidth(size.X).SetHeight(size.Y)
@@ -37,7 +42,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                                       return;
                                   }
 
-                                  o.SetHyperLink(player.KpProfile.ProofUrl);
+                                  o.SetLink(() => OpenProfileWindow(player.KpProfile));
 
                               }).Build();
 
@@ -77,13 +82,22 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             this.View.Table.ChangeHeader(row.ToArray());
         }
 
-        protected override Task<bool> Load(IProgress<string> progress) {
-            return base.Load(progress);
-        }
+        private void OpenProfileWindow(Profile profile) {
+            var window = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                        new Rectangle(40,  26, 913, 691),
+                                        new Rectangle(70, 36, 839, 605)) {
+                Parent    = GameService.Graphics.SpriteScreen,
+                Title     = $"Profile: {profile.Name}",
+                Subtitle  = "Kill Proof",
+                CanResize = true,
+                Width     = 700,
+                Height    = 600,
+                Left = (GameService.Graphics.SpriteScreen.Width - 700) / 2,
+                Top = (GameService.Graphics.SpriteScreen.Height - 600) / 2,
+                Emblem = GameService.Content.GetTexture("common/733268")
+            };
 
-        protected override void UpdateView() {
-
-            base.UpdateView();
+            window.Show(new ProfileView(profile));
         }
 
         protected override void Unload() {

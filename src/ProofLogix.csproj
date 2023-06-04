@@ -273,6 +273,7 @@
     <Compile Include="Core\UI\LookingForOpener\LFOResultView.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOView.cs" />
     <Compile Include="Core\UI\StandardTable.cs" />
+    <Compile Include="Core\UI\Table\ProfileView.cs" />
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
     <Compile Include="Core\UI\Table\TableConfig.cs" />
     <Compile Include="Core\UI\Table\TableView.cs" />
