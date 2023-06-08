@@ -2,10 +2,9 @@
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
-using System.Globalization;
-using System.Linq;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
+using System.Linq;
 
 namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
     public class LfoResultView : View {
@@ -100,11 +99,9 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
         public string EncounterId { get; init; }
         public Opener Opener      { get; init; }
 
-        public LfoResults(string encounterId, Opener opener) {
+        public LfoResults(string encounterId, Opener openerTask) {
             this.EncounterId = encounterId;
-            this.Opener = opener;
+            this.Opener      = openerTask;
         }
-
     }
-
 }

@@ -19,9 +19,12 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private static Resources _resources = Resources.Empty;
 
-        private static IReadOnlyList<int> _outdatedItemIds = new List<int>() {
-            81743,
-            88485
+        private static Dictionary<int, AsyncTexture2D> _apiIcons = new();
+
+        public static IReadOnlyList<int> ObsoleteItemIds = new List<int>() {
+            81743, // Unstable Cosmic Essence
+            12251, // Banana
+            12773, // Bananas in Bulk
         };
 
         public ResourceService() {
@@ -71,7 +74,7 @@ namespace Nekres.ProofLogix.Core.Services {
         public static List<Resource> GetItemsForFractals(bool includeOld = false) {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
             if (!includeOld) {
-                fractalItems = fractalItems.Where(item => !_outdatedItemIds.Contains(item.Id));
+                fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
             }
             return fractalItems.ToList();
         }
@@ -79,20 +82,43 @@ namespace Nekres.ProofLogix.Core.Services {
         public static List<Resource> GetGeneralItems(bool includeOld = false) {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             if (!includeOld) {
-                generalItems = generalItems.Where(item => !_outdatedItemIds.Contains(item.Id));
+                generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
             }
             return generalItems.ToList();
+        }
+
+        /// <summary>
+        /// Returns the icon for an item not included in <see cref="Resources"/> but in <see cref="Profile"/>.
+        /// </summary>
+        /// <param name="itemId">The id of the item to make an API request with.</param>
+        /// <returns>The icon or <see cref="ContentService.Textures.TransparentPixel"/></returns>
+        public static AsyncTexture2D GetApiIcon(int itemId) {
+            if (_apiIcons.TryGetValue(itemId, out var tex)) {
+                return tex;
+            }
+
+            var response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
+
+            if (response?.Icon == null) {
+                return ContentService.Textures.TransparentPixel;
+            }
+
+            var assetId = AssetUtil.GetId(response.Icon);
+            var icon = GameService.Content.DatAssetCache.GetTextureFromAssetId(assetId);
+            _apiIcons.Add(itemId, icon);
+            return icon;
         }
 
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 
-            _eliteNames      = null;
-            _profNames       = null;
-            _eliteIcons      = null;
-            _profIcons       = null;
-            _resources       = null;
-            _outdatedItemIds = null;
+            _eliteNames     = null;
+            _profNames      = null;
+            _eliteIcons     = null;
+            _profIcons      = null;
+            _resources      = null;
+            _apiIcons       = null;
+            ObsoleteItemIds = null;
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {

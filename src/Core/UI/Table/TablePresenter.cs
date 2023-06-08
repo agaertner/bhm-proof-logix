@@ -50,7 +50,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             accountName.Parent           = this.View.Table;
             accountName.Visible          = false;
 
-            var totals = (IProfileV2)player.KpProfile.LinkedTotals ?? player.KpProfile;
+            var totals = player.KpProfile.LinkedTotals ?? player.KpProfile;
 
             var row = new List<object> {
                 player.Icon, player.CharacterName, accountName

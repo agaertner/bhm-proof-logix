@@ -9,7 +9,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     // Paths: /api/kp/{account_name_OR_kp_id}?lang={code}
     //        /api/character/{character_name}/kp?lang={code}
 
-    public class Profile : BaseResponse, IProfileV2 {
+    public class Profile : Proofs {
 
         public static Profile Empty = new() {
             IsEmpty = true
@@ -36,35 +36,19 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("original_uce")]
         public OriginalUce OriginalUce { get; set; }
 
-        [JsonProperty("tokens")]
-        public List<Token> Tokens { get; set; }
-
-        [JsonProperty("killproofs")]
-        public List<Token> Killproofs { get; set; }
-
-        [JsonProperty("coffers")]
-        public List<Token> Coffers { get; set; }
-
-        [JsonProperty("titles")]
-        public List<Title> Titles { get; set; }
-
         [JsonProperty("linked")]
         public List<Profile> Linked { get; set; }
 
         [JsonProperty("linked_totals")]
-        public LinkedTotals LinkedTotals;
+        public Proofs LinkedTotals { get; set; }
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
 
-        public Token GetToken(int id) {
-            return Tokens?.FirstOrDefault(x => x.Id == id) ??
-                   Killproofs?.FirstOrDefault(x => x.Id == id) ??
-                   Coffers?.FirstOrDefault(x => x.Id == id);
-        }
+        public Proofs Totals => this.LinkedTotals ?? this;
     }
 
-    public sealed class LinkedTotals : IProfileV2 {
+    public class Proofs : BaseResponse {
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
 
@@ -81,6 +65,24 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             return Tokens?.FirstOrDefault(x => x.Id == id) ??
                    Killproofs?.FirstOrDefault(x => x.Id == id) ??
                    Coffers?.FirstOrDefault(x => x.Id    == id);
+        }
+
+        public IEnumerable<Token> GetTokens() {
+            var tokens = Enumerable.Empty<Token>();
+
+            if (Tokens != null) {
+                tokens = tokens.Concat(Tokens);
+            }
+
+            if (Killproofs != null) {
+                tokens = tokens.Concat(Killproofs);
+            }
+
+            if (Coffers != null) {
+                tokens = tokens.Concat(Coffers);
+            }
+
+            return tokens;
         }
     }
 

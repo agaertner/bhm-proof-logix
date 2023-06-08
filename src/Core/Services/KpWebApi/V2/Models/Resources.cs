@@ -50,7 +50,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonIgnore]
         public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl) 
                                           ? GameService.Content.DatAssetCache.
-                                                        GetTextureFromAssetId(int.Parse(Path.GetFileNameWithoutExtension(this.IconUrl))) 
+                                                        GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
                                           : ContentService.Textures.TransparentPixel;
 
         [JsonProperty("name")]

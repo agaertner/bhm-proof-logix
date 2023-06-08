@@ -20,7 +20,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Converter {
                 return null;
             }
 
-            var displayName = firstPath.Path;
+            var displayName = firstPath.Path.Trim('[', '\'', ']');
             var bosses = firstPath.Values();
 
             var raid = new Clear {

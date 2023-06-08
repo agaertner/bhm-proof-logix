@@ -1,4 +1,5 @@
-﻿using Blish_HUD.Controls;
+﻿using System.Threading.Tasks;
+using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services;
 
@@ -67,9 +68,9 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
                     encounterItem.Click += async (_, _) => {
                         this.Presenter.SetEncounterId(encounter.Id);
+                        resultContainer.Show(new LoadingView("Searching..."));
                         resultContainer
-                           .Show(new LfoResultView(new LfoResults(encounter.Id, 
-                                                                  await this.Presenter.GetOpener())));
+                           .Show(new LfoResultView(new LfoResults(this.Presenter.Model.EncounterId, await this.Presenter.GetOpener())));
                     };
                 }
             }

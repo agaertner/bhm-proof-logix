@@ -9,7 +9,7 @@ using System.Linq;
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
 
-        public  StandardTable<string> Table;
+        public StandardTable<string> Table;
 
         public TableView(TableConfig config) {
             this.WithPresenter(new TablePresenter(this, config));
