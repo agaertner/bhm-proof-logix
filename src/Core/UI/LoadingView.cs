@@ -4,7 +4,7 @@ using Blish_HUD.Graphics.UI;
 namespace Nekres.ProofLogix.Core.UI {
     public class LoadingView : View {
 
-        private string _text; 
+        private readonly string _text; 
 
         public LoadingView(string text) {
             _text = text;

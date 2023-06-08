@@ -28,8 +28,41 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Height              = 100,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
-                FlowDirection       = ControlFlowDirection.SingleRightToLeft,
+                FlowDirection       = ControlFlowDirection.SingleTopToBottom,
                 ShowBorder          = true
+            };
+
+            var info = new FlowPanel {
+                Parent              = header,
+                Width               = header.Width,
+                Height              = header.ContentRegion.Height - 45,
+                ControlPadding      = new Vector2(5, 5),
+                OuterControlPadding = new Vector2(5, 5),
+                FlowDirection       = ControlFlowDirection.SingleTopToBottom
+            };
+
+            var navMenu = new FlowPanel {
+                Parent              = header,
+                Width               = header.ContentRegion.Width,
+                Height              = 45,
+                ControlPadding      = new Vector2(5, 5),
+                OuterControlPadding = new Vector2(5, 5),
+                FlowDirection       = ControlFlowDirection.SingleRightToLeft,
+            };
+
+            var lastRefreshText = _profile.LastRefresh.AsTimeAgo();
+            var size            = LabelUtil.GetLabelSize(ContentService.FontSize.Size11, lastRefreshText);
+            var lastRefresh     = new FormattedLabelBuilder().SetWidth(size.X).SetHeight(size.Y)
+                                                             .CreatePart(lastRefreshText, o => {
+                                                                  o.SetFontSize(ContentService.FontSize.Size11);
+                                                                  o.MakeItalic();
+                                                              }).Build();
+            lastRefresh.Parent = info;
+
+            header.ContentResized += (_, e) => {
+                info.Width    = e.CurrentRegion.Width;
+                info.Height   = e.CurrentRegion.Height - navMenu.Height;
+                navMenu.Width = e.CurrentRegion.Width;
             };
 
             var body = new ViewContainer {
@@ -49,7 +82,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             body.Show(new ItemsView(_profile));
 
             var b1 = new StandardButton {
-                Parent = header,
+                Parent = navMenu,
                 Width  = 150,
                 Height = 30,
                 Text   = "Weekly Clears"
@@ -60,7 +93,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             var b2 = new StandardButton {
-                Parent = header,
+                Parent = navMenu,
                 Width  = 150,
                 Height = 30,
                 Text   = "Proofs"
@@ -129,7 +162,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         var encounterItem = new FormattedLabelBuilder()
                                            .SetWidth(size.X)
                                            .SetHeight(size.Y + Control.ControlStandard.ControlOffset.Y)
-                                           .CreatePart(encounter.Name, o => {
+                                           .CreatePart(encounter.Name, o => { 
+                                                o.SetFontSize(ContentService.FontSize.Size16); 
                                                 o.SetPrefixImage(icon);
                                             }).Build();
 
