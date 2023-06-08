@@ -1,19 +1,19 @@
 {
-  "name": "TemplateModule",
-  "version": "0.0.1",
-  "namespace": "Nekres.TemplateModule",
-  "package": "TemplateModule.dll",
+  "name": "Proof Logix",
+  "version": "2.9.1",
+  "namespace": "KillProofModule",
+  "package": "ProofLogix.dll",
   "manifest_version": 1,
-  "description": "A template module for Blish-HUD.",
+  "description": "Check someone's kills for raiding. Uses ArcDPS Bridge service if available.\n\nPowered by www.killproof.me",
   "dependencies": {
     "bh.blishhud": ">=1.0.0"
   },
   "enabled_without_gw2": false,
-  "url": "https://github.com/agaertner/bhm-module-template",
+  "url": "https://github.com/agaertner/bhm-proof-logix",
   "contributors": [
     {
-      "name": "Nekres",
-      "username": "Nekres.1943"
+      "username": "Nekres.1943",
+      "name": "Nekres"
     }
   ]
 }
