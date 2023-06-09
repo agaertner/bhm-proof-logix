@@ -92,10 +92,6 @@ namespace Nekres.ProofLogix.Core.UI {
             };
         }
 
-        protected override void OnMouseMoved(MouseEventArgs e) {
-            base.OnMouseMoved(e);
-        }
-
         protected override void OnClick(MouseEventArgs e) {
             base.OnClick(e);
 
@@ -176,7 +172,7 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds) {
-            if (DateTime.UtcNow.Subtract(_lastBulkAddTime).TotalSeconds > 5) {
+            if (DateTime.UtcNow.Subtract(_lastBulkAddTime).TotalSeconds > 1) {
                 UpdateData();
                 _lastBulkAddTime = DateTime.UtcNow;
             }

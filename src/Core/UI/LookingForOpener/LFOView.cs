@@ -1,7 +1,8 @@
-﻿using System.Threading.Tasks;
-using Blish_HUD.Controls;
+﻿using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
+using System;
 
 namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
     public class LfoView : View<LfoPresenter>{
@@ -12,10 +13,35 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
         protected override void Build(Container buildPanel) {
 
+            ((WindowBase2)buildPanel).Subtitle = "Looking for Opener";
+
+            var header = new Panel {
+                Parent = buildPanel,
+                Width = buildPanel.ContentRegion.Width,
+                Height = 20
+            };
+
+            var regionSelect = new Dropdown {
+                Parent = header,
+                Left  = header.ContentRegion.Width - 50,
+                Width  = 50,
+                Height = header.ContentRegion.Height
+            };
+            foreach (var region in Enum.GetNames(typeof(Opener.ServerRegion))) {
+                regionSelect.Items.Add(region);
+            }
+            regionSelect.SelectedItem =  ProofLogix.Instance.Region.Value;
+            regionSelect.ValueChanged += (_, e) => this.Presenter.SetRegion(e.CurrentValue);
+
+            header.ContentResized += (_, e) => {
+                regionSelect.Left = e.CurrentRegion.Width - regionSelect.Width;
+            };
+
             var menuPanel = new Panel {
                 Parent = buildPanel,
                 Width  = 200,
-                Height = buildPanel.ContentRegion.Height,
+                Height = buildPanel.ContentRegion.Height - header.Height,
+                Top = header.Bottom,
                 CanScroll = true,
                 Title  = "Select an Encounter"
             };
@@ -24,13 +50,16 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 Parent     = buildPanel,
                 ShowBorder = true,
                 Left       = menuPanel.Width + Panel.MenuStandard.PanelOffset.X,
-                Width      = buildPanel.ContentRegion.Width - 200,
-                Height     = buildPanel.ContentRegion.Height
+                Width      = buildPanel.ContentRegion.Width - menuPanel.Width,
+                Height     = buildPanel.ContentRegion.Height - header.Height,
+                Top = header.Bottom
             };
 
             buildPanel.ContentResized += (_, e) => {
-                menuPanel.Height = e.CurrentRegion.Height;
-                resultContainer.Height = e.CurrentRegion.Height;
+                menuPanel.Height       = e.CurrentRegion.Height - header.Height;
+                resultContainer.Height = e.CurrentRegion.Height - header.Height;
+                resultContainer.Width  = e.CurrentRegion.Width  - menuPanel.Width;
+                header.Width           = e.CurrentRegion.Width;
             };
 
             var menu = new Menu {

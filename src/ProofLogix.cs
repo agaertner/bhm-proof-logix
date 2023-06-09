@@ -7,11 +7,11 @@ using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.UI.LookingForOpener;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
@@ -41,7 +41,11 @@ namespace Nekres.ProofLogix {
         private CornerIcon     _cornerIcon;
         private AsyncTexture2D _icon;
 
+        internal SettingEntry<string> Region;
+
         protected override void DefineSettings(SettingCollection settings) {
+            var selfManaged = settings.AddSubCollection("lfo", false, false);
+            Region = selfManaged.DefineSetting("server_region", "EU");
         }
 
         protected override void Initialize() {

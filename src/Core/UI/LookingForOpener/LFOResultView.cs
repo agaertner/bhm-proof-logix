@@ -51,11 +51,12 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
             if (_results.Opener.IsEmpty) {
                 var text      = "No volunteers found.";
+
                 var fontSize  = ContentService.FontSize.Size24;
                 var labelSize = LabelUtil.GetLabelSize(fontSize, text);
-
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(text, o => {
+                                                            o.SetFontSize(fontSize);
                                                             o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
                                                             o.SetTextColor(Color.Red);
                                                         }).Build();

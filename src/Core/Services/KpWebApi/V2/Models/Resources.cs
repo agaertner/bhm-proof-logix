@@ -3,7 +3,6 @@ using Blish_HUD.Content;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {

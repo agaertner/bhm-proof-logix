@@ -17,6 +17,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected override void Build(Container buildPanel) {
 
+            ((WindowBase2)buildPanel).Subtitle = "Squad Tracker";
+
             var search = new TextBox {
                 Parent = buildPanel,
                 Width = 200,

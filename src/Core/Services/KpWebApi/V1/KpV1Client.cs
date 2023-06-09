@@ -14,16 +14,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
 
         private readonly string _uri = "https://killproof.me/api/";
 
-        private readonly IReadOnlyList<IReadOnlyList<string>> _wings = new List<IReadOnlyList<string>> {
-            new List<string> { "vale_guardian", "spirit_woods", "gorseval", "sabetha" },
-            new List<string> { "slothasor", "bandit_trio", "matthias" },
-            new List<string> { "escort", "keep_construct", "twisted_castle", "xera" },
-            new List<string> { "cairn", "mursaat_overseer", "samarog", "deimos" },
-            new List<string> { "soulless_horror", "river_of_souls", "statues_of_grenth", "voice_in_the_void" },
-            new List<string> { "conjured_amalgamate", "twin_largos", "qadim" },
-            new List<string> { "gate", "adina", "sabir", "qadim_the_peerless" },
-        };
-
         public async Task<Profile> GetProfile(string id) {
             var profile = await HttpUtil.RetryAsync<Profile>(() => _uri.AppendPathSegments("kp", id).GetAsync());
             return profile ?? Profile.Empty;
@@ -51,13 +41,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
         }
 
         public async Task<Opener> GetOpener(string encounter, Opener.ServerRegion region) {
-
-            var encounters = _wings.SelectMany(x => x);
-
-            if (!encounters.Any(x => x.Equals(encounter))) {
-                return Opener.Empty;
-            }
-
             var response = await HttpUtil.RetryAsync<Opener>(() => _uri.AppendPathSegment("opener")
                                                                        .SetQueryParams($"encounter={encounter}", $"region={region}").GetAsync());
 
@@ -66,7 +49,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
             }
 
             return response.Volunteers?.Any() ?? false ? response : Opener.Empty;
-
         }
 
         public async Task<string> AddKey(string apiKey, bool opener) {
