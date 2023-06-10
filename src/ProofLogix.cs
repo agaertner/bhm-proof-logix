@@ -5,13 +5,16 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
+using Gw2Sharp.WebApi.V2.Models;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
@@ -91,6 +94,7 @@ namespace Nekres.ProofLogix {
             _window.Show();
 
             _cornerIcon.Click += OnCornerIconClick;
+
             // Base handler must be called
             base.OnModuleLoaded(e);
         }

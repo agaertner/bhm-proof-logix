@@ -203,6 +203,24 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                     panel.Height = e.CurrentRegion.Height;
                 };
 
+                if (_profile.IsEmpty) {
+                    var nothingFound = "Nothing found.";
+                    var description  = "\n  Player is registered but either has proofs explicitly hidden or none at all.";
+                    var fontSize     = ContentService.FontSize.Size24;
+                    var labelSize    = LabelUtil.GetLabelSize(fontSize, nothingFound + description, true);
+                    var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
+                                                           .CreatePart(nothingFound, o => {
+                                                                o.SetFontSize(fontSize);
+                                                                o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
+                                                                o.SetTextColor(Color.Yellow);
+                                                            }).CreatePart(description, o => {
+                                                                o.SetFontSize(ContentService.FontSize.Size18);
+                                                                o.SetTextColor(Color.White);
+                                                            }).Build();
+                    label.Parent = panel;
+                    base.Build(panel);
+                    return;
+                }
                 var totals = _profile.Totals;
 
                 var fractalResources = ResourceService.GetItemsForFractals();

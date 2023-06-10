@@ -12,11 +12,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     public class Profile : Proofs {
 
         public static Profile Empty = new() {
-            IsEmpty = true
+            NotFound = true
         };
 
+        public new bool IsEmpty => this.Totals.IsEmpty;
+
         [JsonIgnore]
-        public bool IsEmpty { get; private init; }
+        public bool NotFound { get; private init; }
 
         [JsonProperty("account_name")]
         public string Name { get; set; }
@@ -39,16 +41,24 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("linked")]
         public List<Profile> Linked { get; set; }
 
+        private Proofs _totals;
         [JsonProperty("linked_totals")]
-        public Proofs LinkedTotals { get; set; }
+        public Proofs Totals { 
+            get => _totals ?? this; 
+            set => _totals = value;
+        }
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
-
-        public Proofs Totals => this.LinkedTotals ?? this;
     }
 
     public class Proofs : BaseResponse {
+
+        public bool IsEmpty => (!this.Tokens?.Any()     ?? true) &&
+                               (!this.Killproofs?.Any() ?? true) &&
+                               (!this.Coffers?.Any()    ?? true) &&
+                               (!this.Titles?.Any()     ?? true);
+
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
 

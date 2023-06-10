@@ -1,7 +1,11 @@
-﻿using Nekres.ProofLogix.Core.Services.KpWebApi.V1;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System.Threading.Tasks;
+using Blish_HUD;
+using Gw2Sharp.WebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
 
@@ -10,10 +14,31 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private readonly KpV1Client _v1Client;
         private readonly KpV2Client _v2Client;
-       
+
+        private readonly IReadOnlyList<TokenPermission> _requires = new List<TokenPermission> {
+            TokenPermission.Account,
+            TokenPermission.Inventories,
+            TokenPermission.Characters,
+            TokenPermission.Wallet,
+            TokenPermission.Unlocks,
+            TokenPermission.Progression
+        };
+
         public KpWebApiService() {
             _v1Client = new KpV1Client();
             _v2Client = new KpV2Client();
+
+            //ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated += OnSubtokenUpdated;
+        }
+
+        private void OnSubtokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e) {
+            if (e.Value.Intersect(_requires).Count() != _requires.Count) {
+                return;
+            }
+        }
+
+        public async Task<string> AddKey(string key, bool opener) {
+            return await _v1Client.AddKey(key, opener);
         }
 
         public async Task<Opener> GetOpener(string encounterId, Opener.ServerRegion region) {
@@ -49,7 +74,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task<Profile> ExpandProfile(Profile profile) {
-            if (profile.IsEmpty) {
+            if (profile.NotFound) {
                 return profile;
             }
 

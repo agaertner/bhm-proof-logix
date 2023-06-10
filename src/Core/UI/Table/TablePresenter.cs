@@ -1,14 +1,12 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
+using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -26,7 +24,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
-            if (player.KpProfile.IsEmpty) {
+            if (player.KpProfile.NotFound) {
                 return;
             }
 
@@ -37,7 +35,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                        .CreatePart(player.AccountName, o => { 
                                   o.SetFontSize(ContentService.FontSize.Size16);
 
-                                  if (player.KpProfile.IsEmpty) {
+                                  if (player.KpProfile.NotFound) {
                                       o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
                                       return;
                                   }
@@ -46,11 +44,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                               }).Build();
 
-            accountName.BasicTooltipText = !player.KpProfile.IsEmpty ? player.KpProfile.ProofUrl : string.Empty;
+            accountName.BasicTooltipText = !player.KpProfile.NotFound ? player.KpProfile.ProofUrl : string.Empty;
             accountName.Parent           = this.View.Table;
             accountName.Visible          = false;
 
-            var totals = player.KpProfile.LinkedTotals ?? player.KpProfile;
+            var totals = player.KpProfile.Totals;
 
             var row = new List<object> {
                 player.Icon, player.CharacterName, accountName

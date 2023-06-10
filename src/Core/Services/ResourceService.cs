@@ -21,7 +21,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private static Dictionary<int, AsyncTexture2D> _apiIcons = new();
 
-        public static IReadOnlyList<int> ObsoleteItemIds = new List<int>() {
+        public static IReadOnlyList<int> ObsoleteItemIds = new List<int> {
+            88485, // Legendary Divination
             81743, // Unstable Cosmic Essence
             12251, // Banana
             12773, // Bananas in Bulk

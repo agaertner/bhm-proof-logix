@@ -57,7 +57,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         }
 
         public bool AttachProfile(Profile kpProfile, bool isLocalPlayer = false) {
-            if (!kpProfile.IsEmpty && !this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
+            if (!kpProfile.NotFound && !this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
                 return false;
             }
 

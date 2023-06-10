@@ -63,11 +63,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                 var profile = await ProofLogix.Instance.KpWebApi.GetProfile(query);
 
-                if (profile.IsEmpty) {
+                if (profile.NotFound) {
                     profile = await ProofLogix.Instance.KpWebApi.GetProfileByCharacter(query);
                 }
 
-                if (profile.IsEmpty) {
+                if (profile.NotFound) {
 
                     loading.Visible = false;
 
