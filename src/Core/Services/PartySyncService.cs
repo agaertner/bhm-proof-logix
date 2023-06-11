@@ -98,9 +98,13 @@ namespace Nekres.ProofLogix.Core.Services {
                 return; // No account name to use as key.
             }
 
-            var key = arcDpsPlayer.AccountName.ToLowerInvariant();
+            var key = arcDpsPlayer.AccountName;
 
-            _members.AddOrUpdate(key, _ => {
+            if (HasAccountInParty(key, out var existingAccount)) {
+                key = existingAccount;
+            };
+
+            _members.AddOrUpdate(key.ToLowerInvariant(), _ => {
 
                 var member = Player.FromArcDps(arcDpsPlayer);
                 OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
@@ -116,13 +120,17 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private void AddKpProfile(Profile kpProfile, bool isLocalPlayer, string accountName = null) {
 
-            var key = (string.IsNullOrEmpty(accountName) ? kpProfile.Name : accountName)?.ToLowerInvariant();
+            var key = string.IsNullOrEmpty(accountName) ? kpProfile.Name : accountName;
 
             if (string.IsNullOrEmpty(key)) {
                 return; // No account name to use as key.
             }
 
-            _members.AddOrUpdate(key, _ => {
+            if (HasAccountInParty(key, out var existingAccount)) {
+                key = existingAccount;
+            };
+
+            _members.AddOrUpdate(key.ToLowerInvariant(), _ => {
 
                 var member = Player.FromKpProfile(kpProfile, isLocalPlayer, key);
                 OnPlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
@@ -135,6 +143,18 @@ namespace Nekres.ProofLogix.Core.Services {
                 return member;
 
             });
+        }
+
+        private bool HasAccountInParty(string account, out string existingAccount) {
+            var existingMember = _members.Values.FirstOrDefault(member => member.HasKpProfile && member.KpProfile.BelongsTo(account));
+
+            if (existingMember != null) {
+                existingAccount = existingMember.AccountName;
+                return true;
+            }
+
+            existingAccount = string.Empty;
+            return false;
         }
 
         #region ArcDps Player Events

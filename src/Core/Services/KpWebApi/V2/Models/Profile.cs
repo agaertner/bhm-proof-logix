@@ -50,6 +50,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
+
+        public bool BelongsTo(string accountName) {
+            if (this.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) {
+                return true;
+            }
+            return this.Linked?.Any(profile => profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) ?? false;
+        }
     }
 
     public class Proofs : BaseResponse {
