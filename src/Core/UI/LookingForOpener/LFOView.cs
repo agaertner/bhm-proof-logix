@@ -13,8 +13,6 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
         protected override void Build(Container buildPanel) {
 
-            ((WindowBase2)buildPanel).Subtitle = "Looking for Opener";
-
             var header = new Panel {
                 Parent = buildPanel,
                 Width = buildPanel.ContentRegion.Width,

@@ -91,6 +91,8 @@ namespace Nekres.ProofLogix {
             _lfoConfig = new LfoConfig();
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
 
+            _window.TabChanged += OnTabChanged;
+
             _window.Show();
 
             _cornerIcon.Click += OnCornerIconClick;
@@ -99,13 +101,21 @@ namespace Nekres.ProofLogix {
             base.OnModuleLoaded(e);
         }
 
+        private void OnTabChanged(object sender, ValueChangedEventArgs<Tab> e) {
+            if (sender is not TabbedWindow2 wnd) {
+                return;
+            }
+            wnd.Subtitle = e.NewValue.Name;
+        }
+
         private void OnCornerIconClick(object sender, MouseEventArgs e) {
             _window.ToggleWindow();
         }
 
         /// <inheritdoc />
         protected override void Unload() {
-            _cornerIcon.Click -= OnCornerIconClick;
+            _window.TabChanged -= OnTabChanged;
+            _cornerIcon.Click  -= OnCornerIconClick;
             _cornerIcon?.Dispose();
             _window?.Dispose();
             _icon?.Dispose();
