@@ -146,7 +146,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private bool HasAccountInParty(string account, out string existingAccount) {
-            var existingMember = _members.Values.FirstOrDefault(member => member.HasKpProfile && member.KpProfile.BelongsTo(account));
+            var existingMember = _members.Values.FirstOrDefault(member => member.HasKpProfile && member.KpProfile.BelongsTo(account, out _));
 
             if (existingMember != null) {
                 existingAccount = existingMember.AccountName;

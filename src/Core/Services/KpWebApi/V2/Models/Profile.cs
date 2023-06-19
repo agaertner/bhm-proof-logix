@@ -15,8 +15,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             NotFound = true
         };
 
-        public new bool IsEmpty => this.Totals.IsEmpty;
-
         [JsonIgnore]
         public bool NotFound { get; private init; }
 
@@ -51,11 +49,16 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
 
-        public bool BelongsTo(string accountName) {
-            if (this.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) {
-                return true;
-            }
-            return this.Linked?.Any(profile => profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) ?? false;
+        #region Shorthands
+        public     List<Profile> Accounts => this.Linked?.Prepend(this).ToList() ?? new List<Profile> { this };
+
+        public new bool          IsEmpty  => this.Totals.IsEmpty;
+        #endregion
+
+        public bool BelongsTo(string accountName, out Profile linkedProfile) {
+            linkedProfile = this.Accounts?.FirstOrDefault(profile => profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) ?? Profile.Empty;
+
+            return !linkedProfile.NotFound;
         }
     }
 

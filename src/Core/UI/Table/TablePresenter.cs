@@ -95,7 +95,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Emblem = GameService.Content.GetTexture("common/733268")
             };
 
-            window.Show(new ProfileView(profile));
+            window.Show(new LinkedView(profile));
         }
 
         protected override void Unload() {

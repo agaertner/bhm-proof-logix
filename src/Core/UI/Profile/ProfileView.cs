@@ -1,4 +1,5 @@
-﻿using Blish_HUD;
+﻿using System;
+using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
@@ -13,6 +14,84 @@ using Title = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Title;
 using Token = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Token;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
+
+    public class LinkedView : View {
+
+        private readonly Profile _profile;
+        public LinkedView(Profile profile) {
+            _profile = profile;
+        }
+
+        protected override void Build(Container buildPanel) {
+
+            var profileContainer = new ViewContainer {
+                Parent = buildPanel,
+                Width  = buildPanel.ContentRegion.Width,
+                Height = buildPanel.ContentRegion.Height
+            };
+
+            if (_profile.Linked == null || !_profile.Linked.Any()) {
+
+                buildPanel.ContentResized += (_, e) => {
+                    profileContainer.Width  = e.CurrentRegion.Width;
+                    profileContainer.Height = e.CurrentRegion.Height;
+                };
+
+                profileContainer.Show(new ProfileView(_profile));
+
+                base.Build(buildPanel);
+                return;
+            }
+
+            var menuPanel = new Panel {
+                Parent    = buildPanel,
+                Width     = 100,
+                Height    = buildPanel.ContentRegion.Height,
+                CanScroll = true,
+                Title     = "Accounts"
+            };
+
+            var menu = new Menu {
+                Parent = menuPanel,
+                Width  = menuPanel.ContentRegion.Width,
+                Height = menuPanel.ContentRegion.Height
+            };
+
+            menuPanel.ContentResized += (_, e) => {
+                menu.Height = e.CurrentRegion.Height;
+            };
+
+            profileContainer.Width   -= menuPanel.Width;
+            profileContainer.Left    =  menuPanel.Right;
+
+            foreach (var profile in _profile.Accounts) {
+
+                var entry = new MenuItem(profile.Name) {
+                    Parent = menu
+                };
+
+                entry.ItemSelected += (_,_) => {
+                    if (!_profile.BelongsTo(entry.Text, out var selected)) {
+                        return;
+                    }
+                    profileContainer.Show(new ProfileView(selected));
+                };
+
+            }
+
+            buildPanel.ContentResized += (_, e) => {
+                profileContainer.Width  = e.CurrentRegion.Width - menu.Width;
+                profileContainer.Height = e.CurrentRegion.Height;
+                profileContainer.Left   = menuPanel.Right;
+                menuPanel.Height        = buildPanel.ContentRegion.Height;
+            };
+
+            profileContainer.Show(new ProfileView(_profile));
+
+            base.Build(buildPanel);
+        }
+    }
+
     public class ProfileView : View {
 
         private readonly Profile _profile;
@@ -28,14 +107,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Height              = 100,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
-                FlowDirection       = ControlFlowDirection.SingleTopToBottom,
+                FlowDirection       = ControlFlowDirection.SingleLeftToRight,
                 ShowBorder          = true
             };
 
             var info = new FlowPanel {
                 Parent              = header,
-                Width               = header.Width,
-                Height              = header.ContentRegion.Height - 45,
+                Width               = header.ContentRegion.Width / 2,
+                Height              = header.ContentRegion.Height,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
                 FlowDirection       = ControlFlowDirection.SingleTopToBottom
@@ -43,12 +122,19 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var navMenu = new FlowPanel {
                 Parent              = header,
-                Width               = header.ContentRegion.Width,
-                Height              = 45,
+                Width               = header.ContentRegion.Width / 2,
+                Height              = header.ContentRegion.Height,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
                 FlowDirection       = ControlFlowDirection.SingleRightToLeft,
             };
+
+            var nameSize = LabelUtil.GetLabelSize(ContentService.FontSize.Size18, _profile.Name);
+            var name = new FormattedLabelBuilder().SetWidth(nameSize.X).SetHeight(nameSize.Y)
+                                                  .CreatePart(_profile.Name, o => {
+                                                       o.SetFontSize(ContentService.FontSize.Size18);
+                                                   }).Build();
+            name.Parent = info;
 
             var lastRefreshText = _profile.LastRefresh.AsTimeAgo();
             var size            = LabelUtil.GetLabelSize(ContentService.FontSize.Size11, lastRefreshText);
@@ -60,9 +146,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             lastRefresh.Parent = info;
 
             header.ContentResized += (_, e) => {
-                info.Width    = e.CurrentRegion.Width;
-                info.Height   = e.CurrentRegion.Height - navMenu.Height;
-                navMenu.Width = e.CurrentRegion.Width;
+                info.Width    = e.CurrentRegion.Width / 2;
+                info.Height   = e.CurrentRegion.Height;
+                navMenu.Width = e.CurrentRegion.Width / 2;
+                navMenu.Height = e.CurrentRegion.Height;
             };
 
             var body = new ViewContainer {
