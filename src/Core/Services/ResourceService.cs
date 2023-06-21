@@ -12,23 +12,31 @@ using System.Threading.Tasks;
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
 
-        private static Dictionary<int, string>         _profNames  = new();
-        private static Dictionary<int, AsyncTexture2D> _profIcons  = new();
-        private static Dictionary<int, string>         _eliteNames = new();
-        private static Dictionary<int, AsyncTexture2D> _eliteIcons = new();
+        private static Dictionary<int, string>         _profNames;
+        private static Dictionary<int, AsyncTexture2D> _profIcons;
+        private static Dictionary<int, string>         _eliteNames;
+        private static Dictionary<int, AsyncTexture2D> _eliteIcons;
 
-        private static Resources _resources = Resources.Empty;
+        private static Resources _resources;
 
-        private static Dictionary<int, AsyncTexture2D> _apiIcons = new();
+        private static Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        public static IReadOnlyList<int> ObsoleteItemIds = new List<int> {
-            88485, // Legendary Divination
-            81743, // Unstable Cosmic Essence
-            12251, // Banana
-            12773, // Bananas in Bulk
-        };
+        public static IReadOnlyList<int> ObsoleteItemIds;
 
         public ResourceService() {
+            _profNames  = new Dictionary<int, string>();
+            _profIcons  = new Dictionary<int, AsyncTexture2D>();
+            _eliteNames = new Dictionary<int, string>();
+            _eliteIcons = new Dictionary<int, AsyncTexture2D>();
+            _resources  = Resources.Empty;
+            _apiIcons   = new Dictionary<int, AsyncTexture2D>();
+            ObsoleteItemIds = new List<int> {
+                88485, // Legendary Divination
+                81743, // Unstable Cosmic Essence
+                12251, // Banana
+                12773, // Bananas in Bulk
+            };
+
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 

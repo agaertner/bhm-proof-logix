@@ -18,9 +18,11 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public static  IReadOnlyList<Player> PlayerList => _members.Values.ToList();
 
-        private static ConcurrentDictionary<string, Player> _members = new();
+        private static ConcurrentDictionary<string, Player> _members;
 
         public PartySyncService() {
+            _members =  new ConcurrentDictionary<string, Player>();
+
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
 
             GameService.ArcDps.Common.PlayerAdded   += OnPlayerJoin;
