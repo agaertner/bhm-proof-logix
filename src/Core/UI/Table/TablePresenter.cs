@@ -81,9 +81,19 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void OpenProfileWindow(Profile profile) {
-            var window = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
-                                        new Rectangle(40,  26, 913, 691),
-                                        new Rectangle(70, 36, 839, 605)) {
+            var key = profile.Name.ToLowerInvariant();
+
+            if (TrackableWindow.TryGetById(key, out var wnd)) {
+                wnd.Left = (GameService.Graphics.SpriteScreen.Width  - wnd.Width)  / 2;
+                wnd.Top  = (GameService.Graphics.SpriteScreen.Height - wnd.Height) / 2;
+                wnd.BringWindowToFront();
+                wnd.Show();
+                return;
+            }
+
+            var window = new TrackableWindow(key, GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                             new Rectangle(40,  26, 913, 691),
+                                             new Rectangle(70, 36, 839, 605)) {
                 Parent    = GameService.Graphics.SpriteScreen,
                 Title     = $"Profile: {profile.Name}",
                 Subtitle  = "Kill Proof",

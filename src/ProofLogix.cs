@@ -6,14 +6,12 @@ using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.UI;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading.Tasks;
-using Gw2Sharp.WebApi.V2.Models;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Nekres.ProofLogix {
@@ -82,7 +80,8 @@ namespace Nekres.ProofLogix {
                 SavesSize     = true,
                 SavesPosition = true,
                 Width         = 700,
-                Height        = 600
+                Height        = 600,
+                Visible = false
             };
 
             _tableConfig = new TableConfig();
@@ -92,8 +91,6 @@ namespace Nekres.ProofLogix {
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
 
             _window.TabChanged += OnTabChanged;
-
-            _window.Show();
 
             _cornerIcon.Click += OnCornerIconClick;
 
@@ -125,6 +122,7 @@ namespace Nekres.ProofLogix {
 
             // All static members must be manually unset
             Instance = null;
+            TrackableWindow.Unset();
         }
     }
 }

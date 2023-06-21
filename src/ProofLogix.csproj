@@ -277,6 +277,7 @@
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
     <Compile Include="Core\UI\Table\TableConfig.cs" />
     <Compile Include="Core\UI\Table\TableView.cs" />
+    <Compile Include="Core\UI\TrackableWindow.cs" />
     <Compile Include="Core\Utils\AssetUtil.cs" />
     <Compile Include="Core\Utils\HttpUtil.cs" />
     <Compile Include="Core\Utils\LabelUtil.cs" />
