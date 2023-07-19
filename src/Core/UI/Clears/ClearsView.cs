@@ -1,11 +1,11 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix.Core.UI.Clears {
     public sealed class ClearsView : View {
@@ -20,36 +20,31 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
             _redCross = ProofLogix.Instance.ContentsManager.GetTexture("red-cross.gif");
         }
 
+        /// <summary>
+        /// Display encounter weekly clear states.
+        /// </summary>
+        /// <param name="clears">Clear state of encounters</param>
         public ClearsView(List<Clear> clears) : this() {
             _clears = clears;
         }
 
+        /// <summary>
+        /// Display encounter weekly clear states from <see cref="Services.Gw2WebApiService"/> like<br/>
+        /// clears from <see cref="Services.KpWebApiService"/>.
+        /// </summary>
+        /// <param name="clears">Cleared encounter ids</param>
         public ClearsView(List<string> clears) : this() {
-            var tempClears = new List<Clear>();
-
             var raids = ProofLogix.Instance.Resources.GetRaids();
-
-            foreach (var wing in raids.SelectMany(raid => raid.Wings)) {
-
-                if (string.IsNullOrEmpty(wing.Id)) {
-                    continue;
-                }
-                
-                var clear = new Clear {
-                    Name = wing.Name,
-                    Encounters = new List<Boss>()
-                };
-
-                foreach (var ev in wing.Events) {
-                    clear.Encounters.Add(new Boss {
-                        Name    = ev.Name,
-                        Cleared = clears.Any(id => id.Equals(ev.Id))
-                    });
-                }
-                tempClears.Add(clear);
-            }
-
-            _clears = tempClears;
+            _clears = (from wing in raids.SelectMany(raid => raid.Wings)
+                       where !string.IsNullOrEmpty(wing.Id)
+                       select new Clear {
+                           Name = wing.Name,
+                           Encounters = wing.Events.Select(ev => new Boss {
+                                                 Name    = ev.Name,
+                                                 Cleared = clears.Any(id => id.Equals(ev.Id))
+                                             })
+                                            .ToList()
+                       }).ToList();
         }
 
         protected override void Unload() {

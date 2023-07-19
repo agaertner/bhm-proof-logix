@@ -10,7 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
-    internal class KpV1Client {
+    public class KpV1Client {
 
         private readonly string _uri = "https://killproof.me/api/";
 
