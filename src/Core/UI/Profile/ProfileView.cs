@@ -1,11 +1,9 @@
-﻿using System;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Nekres.ProofLogix.Core.Services;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
+using Nekres.ProofLogix.Core.UI.Clears;
 using System.Collections.Generic;
 using System.Linq;
 using static Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Title;
@@ -98,6 +96,36 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         public ProfileView(Profile profile) {
             _profile = profile;
+        }
+
+        public static void Open(Profile profile) {
+            var key = profile.Name.ToLowerInvariant();
+
+            if (TrackableWindow.TryGetById(key, out var wnd)) {
+                wnd.Left = (GameService.Graphics.SpriteScreen.Width  - wnd.Width)  / 2;
+                wnd.Top  = (GameService.Graphics.SpriteScreen.Height - wnd.Height) / 2;
+                wnd.BringWindowToFront();
+                wnd.Show();
+                return;
+            }
+
+            var window = new TrackableWindow(key, GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                             new Rectangle(40, 26, 913, 691),
+                                             new Rectangle(70, 36, 839, 605)) {
+                Parent    = GameService.Graphics.SpriteScreen,
+                Title     = $"Profile: {profile.Name}",
+                Subtitle  = "Kill Proof",
+                Id        = $"{nameof(ProofLogix)}_Profile_a32c972dd9fe4025a01d3256025ab1dc",
+                CanResize = true,
+                SavesSize = true,
+                Width     = 800,
+                Height    = 600,
+                Left      = (GameService.Graphics.SpriteScreen.Width  - 700) / 2,
+                Top       = (GameService.Graphics.SpriteScreen.Height - 600) / 2,
+                Emblem    = GameService.Content.GetTexture("common/733268")
+            };
+
+            window.Show(new LinkedView(profile));
         }
 
         protected override void Build(Container buildPanel) {
@@ -193,75 +221,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             base.Build(buildPanel);
         }
 
-        private sealed class ClearsView : View {
-
-            private readonly IReadOnlyList<Clear> _clears;
-
-            private readonly Texture2D _greenTick;
-            private readonly Texture2D _redCross;
-
-            public ClearsView(IEnumerable<Clear> clears) {
-                _clears    = clears.ToList();
-                _greenTick = ProofLogix.Instance.ContentsManager.GetTexture("green-tick.gif");
-                _redCross  = ProofLogix.Instance.ContentsManager.GetTexture("red-cross.gif");
-            }
-
-            protected override void Unload() {
-                _greenTick.Dispose();
-                _redCross.Dispose();
-                base.Unload();
-            }
-
-            protected override void Build(Container buildPanel) {
-                var panel = new FlowPanel {
-                    Parent        = buildPanel,
-                    Width         = buildPanel.ContentRegion.Width,
-                    Height        = buildPanel.ContentRegion.Height,
-                    CanScroll     = true,
-                    FlowDirection = ControlFlowDirection.SingleTopToBottom
-                };
-
-                buildPanel.ContentResized += (_, e) => {
-                    panel.Width  = e.CurrentRegion.Width;
-                    panel.Height = e.CurrentRegion.Height;
-                };
-
-                foreach (var clear in _clears) {
-
-                    var wing = new FlowPanel {
-                        Parent           = panel,
-                        Width            = panel.ContentRegion.Width,
-                        HeightSizingMode = SizingMode.AutoSize,
-                        Title            = clear.Name,
-                        CanCollapse      = true,
-                        FlowDirection    = ControlFlowDirection.SingleTopToBottom
-                    };
-
-                    panel.ContentResized += (_, e) => {
-                        wing.Width  = e.CurrentRegion.Width;
-                    };
-
-                    foreach (var encounter in clear.Encounters) {
-
-                        var icon = encounter.Cleared ? _greenTick : _redCross;
-                        var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size16, encounter.Name, true);
-
-                        var encounterItem = new FormattedLabelBuilder()
-                                           .SetWidth(size.X)
-                                           .SetHeight(size.Y + Control.ControlStandard.ControlOffset.Y)
-                                           .CreatePart(encounter.Name, o => { 
-                                                o.SetFontSize(ContentService.FontSize.Size16); 
-                                                o.SetPrefixImage(icon);
-                                            }).Build();
-
-                        encounterItem.Parent = wing;
-                    }
-                }
-                base.Build(buildPanel);
-            }
-
-        }
-
         private sealed class ItemsView : View {
 
             private readonly Profile   _profile;
@@ -279,10 +238,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             protected override void Build(Container buildPanel) {
                 var panel = new FlowPanel {
-                    Parent        = buildPanel,
-                    Width         = buildPanel.ContentRegion.Width,
-                    Height        = buildPanel.ContentRegion.Height,
-                    FlowDirection = ControlFlowDirection.LeftToRight
+                    Parent              = buildPanel,
+                    Width               = buildPanel.ContentRegion.Width,
+                    Height              = buildPanel.ContentRegion.Height,
+                    FlowDirection       = ControlFlowDirection.LeftToRight,
+                    OuterControlPadding = new Vector2(Panel.LEFT_PADDING, Panel.TOP_PADDING)
                 };
 
                 buildPanel.ContentResized += (_, e) => {
@@ -310,12 +270,12 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 }
                 var totals = _profile.Totals;
 
-                var fractalResources = ResourceService.GetItemsForFractals();
+                var fractalResources = ProofLogix.Instance.Resources.GetItemsForFractals();
 
                 var tokens        = totals.GetTokens().ToList();
                 var fractalTokens = tokens.Where(token => fractalResources.Any(res => res.Id == token.Id));
-                var raidTokens = tokens.Where(token => fractalResources.Any(res => res.Id           != token.Id)
-                                                    && ResourceService.ObsoleteItemIds.All(id => id != token.Id));
+                var raidTokens = tokens.Where(token => fractalResources.Any(res => res.Id                         != token.Id)
+                                                    && ProofLogix.Instance.Resources.ObsoleteItemIds.All(id => id != token.Id));
 
                 var fractalResults = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Fractal), fractalTokens);
                 var raidResults    = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Raid),    raidTokens);
@@ -365,7 +325,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                     var text = $"{token.Name} x{token.Amount}";
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size14, text, true);
-                    var icon = ResourceService.GetItem(token.Id)?.Icon ?? ResourceService.GetApiIcon(token.Id);
+                    var icon = ProofLogix.Instance.Resources.GetResource(token.Id)?.Icon ?? ProofLogix.Instance.Resources.GetApiIcon(token.Id);
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)

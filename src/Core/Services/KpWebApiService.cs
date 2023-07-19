@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
@@ -10,7 +11,9 @@ using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
 
 namespace Nekres.ProofLogix.Core.Services {
-    internal class KpWebApiService {
+    internal class KpWebApiService : IDisposable {
+
+        public static event EventHandler<ValueEventArgs<bool>> SubtokenUpdated;
 
         private readonly KpV1Client _v1Client;
         private readonly KpV2Client _v2Client;
@@ -28,13 +31,17 @@ namespace Nekres.ProofLogix.Core.Services {
             _v1Client = new KpV1Client();
             _v2Client = new KpV2Client();
 
-            //ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated += OnSubtokenUpdated;
+            ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated += OnSubtokenUpdated;
+        }
+
+        public void Dispose() {
+            ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated -= OnSubtokenUpdated;
         }
 
         private void OnSubtokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e) {
-            if (e.Value.Intersect(_requires).Count() != _requires.Count) {
-                return;
-            }
+            // Checks token for insufficient permissions.
+            var valid = e.Value.Intersect(_requires).Count() == _requires.Count;
+            SubtokenUpdated?.Invoke(this, new ValueEventArgs<bool>(valid));
         }
 
         public async Task<string> AddKey(string key, bool opener) {

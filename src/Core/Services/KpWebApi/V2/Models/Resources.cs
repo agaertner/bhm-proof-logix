@@ -47,9 +47,8 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public string IconUrl { get; set; }
 
         [JsonIgnore]
-        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl) 
-                                          ? GameService.Content.DatAssetCache.
-                                                        GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
+        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl)
+                                          ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
                                           : ContentService.Textures.TransparentPixel;
 
         [JsonProperty("name")]
@@ -82,6 +81,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             [JsonProperty("events")]
             public List<Event> Events { get; set; }
 
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
             public sealed class Event {
 
                 public enum EventType {
@@ -106,18 +108,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 public List<Resource> Miniatures { get; set; }
 
                 [JsonIgnore]
-                public AsyncTexture2D Icon => this.Miniatures?
-                                                 .FirstOrDefault()?.Icon
+                public AsyncTexture2D Icon => this.Miniatures?.FirstOrDefault()?.Icon
                                            ?? this.Token?.Icon 
                                            ?? GameService.Content.DatAssetCache.GetTextureFromAssetId(1302744);
 
                 public List<Resource> GetTokens() {
 
                     var result = Enumerable.Empty<Resource>().ToList();
-
-                    if (this.Token == null && this.Miniatures == null) {
-                        return result;
-                    }
 
                     if (this.Token != null) {
                         result.Add(this.Token);

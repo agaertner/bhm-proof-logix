@@ -56,9 +56,10 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         #endregion
 
         public bool BelongsTo(string accountName, out Profile linkedProfile) {
-            linkedProfile = this.Accounts?.FirstOrDefault(profile => profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase)) ?? Profile.Empty;
+            linkedProfile = this.Accounts?.FirstOrDefault(profile => !string.IsNullOrEmpty(profile.Name) 
+                                                                  && profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase));
 
-            return !linkedProfile.NotFound;
+            return !(linkedProfile ?? Empty).NotFound;
         }
     }
 

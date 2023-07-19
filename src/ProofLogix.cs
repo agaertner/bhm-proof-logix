@@ -7,11 +7,13 @@ using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
 using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.UI;
+using Nekres.ProofLogix.Core.UI.Home;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Gw2WebApiService = Nekres.ProofLogix.Core.Services.Gw2WebApiService;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Nekres.ProofLogix {
@@ -34,11 +36,14 @@ namespace Nekres.ProofLogix {
         internal ResourceService  Resources;
         internal KpWebApiService  KpWebApi;
         internal PartySyncService PartySync;
+        internal Gw2WebApiService Gw2WebApi;
 
-        private TableConfig    _tableConfig;
-        private LfoConfig      _lfoConfig;
+        private TableConfig _tableConfig;
+        private LfoConfig   _lfoConfig;
 
-        private TabbedWindow2  _window;
+        private TabbedWindow2     _window;
+        private OversizableWindow _table;
+
         private CornerIcon     _cornerIcon;
         private AsyncTexture2D _icon;
 
@@ -53,6 +58,7 @@ namespace Nekres.ProofLogix {
             Resources = new ResourceService();
             KpWebApi  = new KpWebApiService();
             PartySync = new PartySyncService();
+            Gw2WebApi = new Gw2WebApiService();
         }
 
         protected override async Task LoadAsync() {
@@ -84,18 +90,39 @@ namespace Nekres.ProofLogix {
                 Visible = false
             };
 
-            _tableConfig = new TableConfig();
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156407), () => new TableView(_tableConfig), "Squad Tracker"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156407), () => new HomeView(), "Squad Tracker"));
 
             _lfoConfig = new LfoConfig();
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
 
             _window.TabChanged += OnTabChanged;
 
+
+            _table = new OversizableWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                        new Rectangle(40, 26, 913, 691),
+                                        new Rectangle(70, 36, 839, 605)) 
+            {
+                Parent             = GameService.Graphics.SpriteScreen,
+                Width              = 1000,
+                Height             = 500,
+                Id                 = $"{nameof(ProofLogix)}_Table_045b4a5441ac40ea93d98ae2021a8f0c",
+                Title              = string.Empty, // Prevents Title ("No Title") and Subtitle from being drawn.
+                CanResize          = true,
+                SavesSize          = true,
+                SavesPosition      = true,
+                CanCloseWithEscape = false, // Prevents accidental closing as table is treated as part of the HUD.
+                Visible            = false
+            };
+            _tableConfig = new TableConfig();
+
             _cornerIcon.Click += OnCornerIconClick;
 
             // Base handler must be called
             base.OnModuleLoaded(e);
+        }
+
+        public void ToggleTable() {
+            _table.ToggleWindow(new TableView(_tableConfig));
         }
 
         private void OnTabChanged(object sender, ValueChangedEventArgs<Tab> e) {
@@ -115,8 +142,10 @@ namespace Nekres.ProofLogix {
             _cornerIcon.Click  -= OnCornerIconClick;
             _cornerIcon?.Dispose();
             _window?.Dispose();
+            _table?.Dispose();
             _icon?.Dispose();
 
+            KpWebApi.Dispose();
             PartySync.Dispose();
             Resources.Dispose();
 

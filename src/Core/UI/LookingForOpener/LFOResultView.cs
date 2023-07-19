@@ -17,7 +17,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
         protected override void Build(Container buildPanel) {
 
-            var encounter = ResourceService.GetWings().SelectMany(wing => wing.Events).First(ev => ev.Id.Equals(_results.EncounterId));
+            var encounter = ProofLogix.Instance.Resources.GetWings().SelectMany(wing => wing.Events).First(ev => ev.Id.Equals(_results.EncounterId));
 
             var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size32, encounter.Name, true);
             var header = new FormattedLabelBuilder()

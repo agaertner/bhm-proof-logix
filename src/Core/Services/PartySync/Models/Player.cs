@@ -5,80 +5,62 @@ using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
 
 namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
-    public sealed class Player {
+    /// <summary>
+    /// Represents a player driven by <see href="www.killproof.me"/> profile<br/>
+    /// and <see cref="CommonFields.Player"/> agent data if such data sources are attached.
+    /// </summary>
+    public class Player {
 
         public Profile KpProfile     { get; private set; }
-        public string  AccountName   { get; private set; }
-        public bool    IsLocalPlayer { get; private set; }
-        public string  CharacterName { get; private set; }
 
-        public bool           HasAgent     => !string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
-        public bool           HasKpProfile => this.KpProfile != null;
-        public string         Class        => GetClass();
-        public AsyncTexture2D Icon         => GetIcon();
+        public string  AccountName => HasAgent ? _arcDpsPlayer.AccountName : 
+                                      HasKpProfile ? KpProfile.Name : string.Empty;
+
+        public virtual string CharacterName => _arcDpsPlayer.CharacterName;
+
+        public bool HasAgent     => !string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
+        public bool HasKpProfile => this.KpProfile != null;
+
+        public string         Class => GetClass();
+        public AsyncTexture2D Icon  => GetIcon();
+
         
         private CommonFields.Player _arcDpsPlayer;
 
-        private Player() {
+        public Player() {
             /* NOOP */
         }
 
-        public Player(string accountName) : this() {
-            this.AccountName = accountName ?? string.Empty;
+        public Player(CommonFields.Player agent) {
+            _arcDpsPlayer = agent;
         }
 
-        public static Player FromArcDps(CommonFields.Player arcDpsPlayer) {
-            return new Player(arcDpsPlayer.AccountName) {
-                _arcDpsPlayer = arcDpsPlayer,
-                CharacterName = arcDpsPlayer.CharacterName,
-                IsLocalPlayer = arcDpsPlayer.Self
-            };
+        public Player(Profile profile) {
+            this.KpProfile = profile;
         }
 
-        public static Player FromKpProfile(Profile profile, bool isLocalPlayer = false, string accountName = null) {
-            return new Player(string.IsNullOrEmpty(accountName) ? profile.Name : accountName) {
-                KpProfile = profile,
-                IsLocalPlayer = isLocalPlayer,
-                CharacterName = isLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : string.Empty
-            };
+        public void AttachAgent(CommonFields.Player arcDpsPlayer) {
+            _arcDpsPlayer = arcDpsPlayer;
         }
 
-        public bool AttachAgent(CommonFields.Player arcDpsPlayer) {
-            if (!this.AccountName.Equals(arcDpsPlayer.AccountName, StringComparison.InvariantCultureIgnoreCase)) {
-                return false;
-            }
-
-            _arcDpsPlayer      = arcDpsPlayer;
-            this.AccountName   = string.IsNullOrEmpty(arcDpsPlayer.AccountName) ? this.AccountName : arcDpsPlayer.AccountName;
-            this.CharacterName = arcDpsPlayer.CharacterName;
-            this.IsLocalPlayer = this.IsLocalPlayer || arcDpsPlayer.Self;
-
-            return true;
+        public void AttachProfile(Profile kpProfile) {
+            this.KpProfile = kpProfile;
         }
 
-        public bool AttachProfile(Profile kpProfile, bool isLocalPlayer = false) {
-            if (!kpProfile.NotFound && !this.AccountName.Equals(kpProfile.Name, StringComparison.InvariantCultureIgnoreCase)) {
-                return false;
-            }
+        protected virtual int GetSpecialization() {
+            return (int)_arcDpsPlayer.Elite;
+        }
 
-            this.KpProfile     = kpProfile;
-            this.AccountName   = string.IsNullOrEmpty(kpProfile.Name) ? this.AccountName : kpProfile.Name;
-            this.IsLocalPlayer = this.IsLocalPlayer || isLocalPlayer;
-            this.CharacterName = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Name : this.CharacterName;
-
-            return true;
+        protected virtual int GetProfession() {
+            return (int)_arcDpsPlayer.Profession;
         }
 
         private string GetClass() {
-            var elite      = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Specialization : (int)_arcDpsPlayer.Elite;
-            var profession = this.IsLocalPlayer ? (int)GameService.Gw2Mumble.PlayerCharacter.Profession : (int)_arcDpsPlayer.Profession;
-            return ResourceService.GetClassName(profession, elite);
+            return ProofLogix.Instance.Resources.GetClassName(GetProfession(), GetSpecialization());
         }
 
         private AsyncTexture2D GetIcon() {
-            var elite      = this.IsLocalPlayer ? GameService.Gw2Mumble.PlayerCharacter.Specialization : (int)_arcDpsPlayer.Elite;
-            var profession = this.IsLocalPlayer ? (int)GameService.Gw2Mumble.PlayerCharacter.Profession : (int)_arcDpsPlayer.Profession;
-            return ResourceService.GetClassIcon(profession, elite);
+            return ProofLogix.Instance.Resources.GetClassIcon(GetProfession(), GetSpecialization());
         }
     }
 }

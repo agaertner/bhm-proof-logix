@@ -3,25 +3,27 @@ using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
+using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
 
-        private static Dictionary<int, string>         _profNames;
-        private static Dictionary<int, AsyncTexture2D> _profIcons;
-        private static Dictionary<int, string>         _eliteNames;
-        private static Dictionary<int, AsyncTexture2D> _eliteIcons;
+        private Dictionary<int, string>         _profNames;
+        private Dictionary<int, AsyncTexture2D> _profIcons;
+        private Dictionary<int, string>         _eliteNames;
+        private Dictionary<int, AsyncTexture2D> _eliteIcons;
 
-        private static Resources _resources;
+        private Resources _resources;
 
-        private static Dictionary<int, AsyncTexture2D> _apiIcons;
+        private Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        public static IReadOnlyList<int> ObsoleteItemIds;
+        public IReadOnlyList<int> ObsoleteItemIds;
 
         public ResourceService() {
             _profNames  = new Dictionary<int, string>();
@@ -30,7 +32,7 @@ namespace Nekres.ProofLogix.Core.Services {
             _eliteIcons = new Dictionary<int, AsyncTexture2D>();
             _resources  = Resources.Empty;
             _apiIcons   = new Dictionary<int, AsyncTexture2D>();
-            ObsoleteItemIds = new List<int> {
+            this.ObsoleteItemIds = new List<int> {
                 88485, // Legendary Divination
                 81743, // Unstable Cosmic Essence
                 12251, // Banana
@@ -46,28 +48,32 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task LoadResources() {
-            _resources  = await ProofLogix.Instance.KpWebApi.GetResources();
+            _resources = await ProofLogix.Instance.KpWebApi.GetResources();
+
+            foreach (var wing in _resources.Wings) {
+                wing.Name = await GetMapName(wing.MapId);
+            }
         }
 
-        public static string GetClassName(int profession, int elite) {
+        public string GetClassName(int profession, int elite) {
             return _eliteNames.TryGetValue(elite, out var name) ? name :
                    _profNames.TryGetValue(profession, out name) ? name : string.Empty;
         }
 
-        public static AsyncTexture2D GetClassIcon(int profession, int elite) {
+        public AsyncTexture2D GetClassIcon(int profession, int elite) {
             return _eliteIcons.TryGetValue(elite, out var icon) ? icon :
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public static Resource GetItem(int id) {
+        public Resource GetResource(int id) {
             return _resources.Items.FirstOrDefault(item => item.Id == id);
         }
 
-        public static List<Raid.Wing> GetWings() {
+        public List<Raid.Wing> GetWings() {
             return _resources.Wings.ToList();
         }
 
-        public static List<Resource> GetItemsForMap(int mapId) {
+        public List<Resource> GetItemsForMap(int mapId) {
             if (_resources.IsEmpty) {
                 return Enumerable.Empty<Resource>().ToList();
             }
@@ -80,7 +86,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return items.ToList();
         }
 
-        public static List<Resource> GetItemsForFractals(bool includeOld = false) {
+        public List<Resource> GetItemsForFractals(bool includeOld = false) {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
             if (!includeOld) {
                 fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
@@ -88,7 +94,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return fractalItems.ToList();
         }
 
-        public static List<Resource> GetGeneralItems(bool includeOld = false) {
+        public List<Resource> GetGeneralItems(bool includeOld = false) {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             if (!includeOld) {
                 generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
@@ -96,12 +102,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return generalItems.ToList();
         }
 
-        /// <summary>
-        /// Returns the icon for an item not included in <see cref="Resources"/> but in <see cref="Profile"/>.
-        /// </summary>
-        /// <param name="itemId">The id of the item to make an API request with.</param>
-        /// <returns>The icon or <see cref="ContentService.Textures.TransparentPixel"/></returns>
-        public static AsyncTexture2D GetApiIcon(int itemId) {
+        public AsyncTexture2D GetApiIcon(int itemId) {
             if (_apiIcons.TryGetValue(itemId, out var tex)) {
                 return tex;
             }
@@ -118,16 +119,13 @@ namespace Nekres.ProofLogix.Core.Services {
             return icon;
         }
 
+        public async Task<string> GetMapName(int mapId) {
+            var map = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
+            return map?.Name ?? string.Empty;
+        }
+
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
-
-            _eliteNames     = null;
-            _profNames      = null;
-            _eliteIcons     = null;
-            _profIcons      = null;
-            _resources      = null;
-            _apiIcons       = null;
-            ObsoleteItemIds = null;
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
@@ -159,5 +157,14 @@ namespace Nekres.ProofLogix.Core.Services {
             _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
             _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
+
+        public List<Resource> GetItems() {
+            return _resources.Items.ToList();
+        }
+
+        public List<Raid> GetRaids() {
+            return _resources.Raids;
+        }
+
     }
 }

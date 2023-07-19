@@ -72,7 +72,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 menu.Height = e.CurrentRegion.Height;
             };
 
-            var wings = ResourceService.GetWings();
+            var wings = ProofLogix.Instance.Resources.GetWings();
 
             int wingNr = 0;
             foreach (var wing in wings) {

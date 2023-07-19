@@ -247,6 +247,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Extensions\DateTimeExtension.cs" />
+    <Compile Include="Core\Extensions\StringExtensions.cs" />
+    <Compile Include="Core\Services\Gw2WebApiService.cs" />
     <Compile Include="Core\Services\KpWebApiService.cs" />
     <Compile Include="Core\Services\KpWebApi\BaseResponse.cs" />
     <Compile Include="Core\Services\KpWebApi\V1\KpV1Client.cs" />
@@ -265,18 +267,24 @@
     <Compile Include="Core\Services\KpWebApi\V2\Models\Profile.cs" />
     <Compile Include="Core\Services\KpWebApi\V2\Models\Resources.cs" />
     <Compile Include="Core\Services\PartySyncService.cs" />
+    <Compile Include="Core\Services\PartySync\Models\MumblePlayer.cs" />
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Services\ResourceService.cs" />
+    <Compile Include="Core\UI\Clears\ClearsView.cs" />
+    <Compile Include="Core\UI\Home\HomePresenter.cs" />
+    <Compile Include="Core\UI\Home\HomeView.cs" />
     <Compile Include="Core\UI\LoadingView.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOConfig.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOPresenter.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOResultView.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOView.cs" />
+    <Compile Include="Core\UI\ItemWithAmount.cs" />
     <Compile Include="Core\UI\StandardTable.cs" />
     <Compile Include="Core\UI\Profile\ProfileView.cs" />
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
     <Compile Include="Core\UI\Table\TableConfig.cs" />
     <Compile Include="Core\UI\Table\TableView.cs" />
+    <Compile Include="Core\UI\OversizableWindow.cs" />
     <Compile Include="Core\UI\TrackableWindow.cs" />
     <Compile Include="Core\Utils\AssetUtil.cs" />
     <Compile Include="Core\Utils\HttpUtil.cs" />
