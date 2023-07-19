@@ -16,6 +16,9 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         public static void Unset() {
+            if (_windows == null) {
+                return;
+            }
             foreach (var wnd in _windows.Values) {
                 wnd?.Dispose();
             }
