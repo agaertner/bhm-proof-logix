@@ -2,6 +2,7 @@
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
+using Nekres.ProofLogix.Core.UI.KpProfile;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -4,14 +4,16 @@ using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Nekres.ProofLogix.Core.UI.Clears;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using static Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Title;
+using Container = Blish_HUD.Controls.Container;
 using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
 using Title = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Title;
 using Token = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Token;
-
-namespace Nekres.ProofLogix.Core.UI.Table {
+namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
     public class LinkedView : View {
 
@@ -99,13 +101,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         public static void Open(Profile profile) {
+            if (string.IsNullOrEmpty(profile.Name)) {
+                return;
+            }
+
             var key = profile.Name.ToLowerInvariant();
 
             if (TrackableWindow.TryGetById(key, out var wnd)) {
                 wnd.Left = (GameService.Graphics.SpriteScreen.Width  - wnd.Width)  / 2;
                 wnd.Top  = (GameService.Graphics.SpriteScreen.Height - wnd.Height) / 2;
                 wnd.BringWindowToFront();
-                wnd.Show();
+                wnd.Show(new LinkedView(profile));
                 return;
             }
 
@@ -161,6 +167,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             var name = new FormattedLabelBuilder().SetWidth(nameSize.X).SetHeight(nameSize.Y)
                                                   .CreatePart(_profile.Name, o => {
                                                        o.SetFontSize(ContentService.FontSize.Size18);
+                                                       o.SetHyperLink(_profile.ProofUrl);
                                                    }).Build();
             name.Parent = info;
 
@@ -172,6 +179,58 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                                                                   o.MakeItalic();
                                                               }).Build();
             lastRefresh.Parent = info;
+
+            var refreshBttn = new RefreshButton {
+                Parent = info,
+                Width  = 32,
+                Height = 32,
+                NextRefresh = _profile.NextRefresh
+            };
+
+            var isRefreshing = false;
+            refreshBttn.Click += async (_, _) => {
+                if (isRefreshing || _profile.NextRefresh > DateTime.UtcNow) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
+                isRefreshing = true;
+
+                // Don't use this as reference. Changing current view from inside current view like the following is a sin.
+                // A more clean approach would be if this refresh button was outside this view and not be refreshed with it.
+                // However, there is no space so we doing this quick and dirty.
+                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing..."));
+
+                if (!await ProofLogix.Instance.KpWebApi.Refresh(_profile.Id)) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    ProofLogix.Logger.Warn($"Refresh for '{_profile.Id}' failed - perhaps user API key is bad or API is down.");
+                    ScreenNotification.ShowNotification("Refresh failed. Please, try again.", ScreenNotification.NotificationType.Error);
+                    ProfileView.Open(_profile);
+                    return;
+                }
+
+                var retries = 60;
+                var timer = new Timer(1000);
+                timer.Elapsed += async (_, _) => {
+                    if (retries <= 0) {
+                        ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));
+                        timer.Stop();
+                        timer.Dispose();
+                        return;
+                    }
+
+                    retries--;
+
+                    if (await ProofLogix.Instance.KpWebApi.IsProofBusy(_profile.Id)) {
+                        return;
+                    }
+
+                    ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));
+                    timer.Stop();
+                    timer.Dispose();
+                };
+                timer.Start();
+            };
 
             header.ContentResized += (_, e) => {
                 info.Width    = e.CurrentRegion.Width / 2;

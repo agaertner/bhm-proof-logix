@@ -30,18 +30,19 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                               }).Build();
 
             header.Parent = buildPanel;
-            header.Left   = Panel.LEFT_PADDING;
-            header.Top    = Panel.TOP_PADDING;
+            header.Left   = Control.ControlStandard.ControlOffset.X;
+            header.Top    = Control.ControlStandard.ControlOffset.Y;
 
             var flow = new FlowPanel {
                 Parent              = buildPanel,
+                Left                = Panel.LEFT_PADDING,
                 Top                 = header.Bottom,
                 Width               = buildPanel.ContentRegion.Width,
                 Height              = buildPanel.ContentRegion.Height - header.Height - Panel.TOP_PADDING,
-                ControlPadding      = new Vector2(5, 5),
-                OuterControlPadding = new Vector2(5, 5),
+                ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
                 FlowDirection       = ControlFlowDirection.SingleTopToBottom,
-                CanScroll = true
+                CanScroll           = true
             };
 
             buildPanel.ContentResized += (_,e) => {

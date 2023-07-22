@@ -30,6 +30,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("last_refresh")]
         public DateTime LastRefresh { get; set; }
 
+        [JsonProperty("next_refresh")]
+        public DateTime NextRefresh { get; set; }
+
+        [JsonProperty("next_refresh_seconds")]
+        [JsonConverter(typeof(SecondsUntilDateTimeConverter))]
+        [Obsolete("Use NextRefresh instead.", true)]
+        public DateTime NextRefreshFromSeconds { get; set; }
+
         [JsonProperty("kpid")]
         public string Id { get; set; }
 

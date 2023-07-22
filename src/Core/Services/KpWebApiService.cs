@@ -60,6 +60,10 @@ namespace Nekres.ProofLogix.Core.Services {
             return await _v1Client.Refresh(id);
         }
 
+        public async Task<bool> IsProofBusy(string id) {
+            return await _v1Client.CheckProofBusy(id);
+        }
+
         public async Task<Profile> GetProfile(string id) {
             if (string.IsNullOrEmpty(id)) {
                 return Profile.Empty;

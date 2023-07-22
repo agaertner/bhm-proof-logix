@@ -36,8 +36,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
 
         public async Task<bool> Refresh(string id) {
             var response = await HttpUtil.RetryAsync<Refresh>(() => $"https://killproof.me/proof/{id}/refresh".GetAsync());
+            return response?.Status.Equals("ok") ?? false;
+        }
 
-            return response is {Status: HttpStatusCode.OK};
+        public async Task<bool> CheckProofBusy(string id) {
+            var busy = await HttpUtil.RetryAsync<ProofBusy>(() => $"https://killproof.me/proofbusy/{id}".GetAsync());
+            return busy.Busy != 2;
         }
 
         public async Task<Opener> GetOpener(string encounter, Opener.ServerRegion region) {

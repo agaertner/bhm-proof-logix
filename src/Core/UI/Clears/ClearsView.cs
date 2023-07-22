@@ -71,12 +71,14 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
             foreach (var clear in _clears) {
 
                 var wingCategory = new FlowPanel {
-                    Parent = panel,
-                    Width = panel.ContentRegion.Width,
-                    HeightSizingMode = SizingMode.AutoSize,
-                    Title = clear.Name,
-                    CanCollapse = true,
-                    FlowDirection = ControlFlowDirection.SingleTopToBottom
+                    Parent              = panel,
+                    Width               = panel.ContentRegion.Width,
+                    HeightSizingMode    = SizingMode.AutoSize,
+                    Title               = clear.Name,
+                    CanCollapse         = true,
+                    ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                    OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                    FlowDirection       = ControlFlowDirection.SingleTopToBottom
                 };
 
                 panel.ContentResized += (_, e) => {
