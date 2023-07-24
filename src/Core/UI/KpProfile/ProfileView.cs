@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Nekres.ProofLogix.Core.UI.Clears;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Timers;
 using static Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Title;
@@ -105,9 +106,11 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 return;
             }
 
-            var key = profile.Name.ToLowerInvariant();
+            foreach (string name in profile.Accounts.Select(link => link.Name)) {
+                if (!TrackableWindow.TryGetById(name.ToLowerInvariant(), out var wnd)) {
+                    continue;
+                }
 
-            if (TrackableWindow.TryGetById(key, out var wnd)) {
                 wnd.Left = (GameService.Graphics.SpriteScreen.Width  - wnd.Width)  / 2;
                 wnd.Top  = (GameService.Graphics.SpriteScreen.Height - wnd.Height) / 2;
                 wnd.BringWindowToFront();
@@ -115,7 +118,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 return;
             }
 
-            var window = new TrackableWindow(key, GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+            var window = new TrackableWindow(profile.Name.ToLowerInvariant(), GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
                                              new Rectangle(40, 26, 913, 691),
                                              new Rectangle(70, 36, 839, 605)) {
                 Parent    = GameService.Graphics.SpriteScreen,
@@ -147,7 +150,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
             var info = new FlowPanel {
                 Parent              = header,
-                Width               = header.ContentRegion.Width / 2,
+                Width               = (int)(0.4f * header.ContentRegion.Width),
                 Height              = header.ContentRegion.Height,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
@@ -156,8 +159,9 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
             var navMenu = new FlowPanel {
                 Parent              = header,
-                Width               = header.ContentRegion.Width / 2,
+                Width               = (int)(0.6f * header.ContentRegion.Width),
                 Height              = header.ContentRegion.Height,
+                Right               = header.ContentRegion.Width,
                 ControlPadding      = new Vector2(5, 5),
                 OuterControlPadding = new Vector2(5, 5),
                 FlowDirection       = ControlFlowDirection.SingleRightToLeft,
@@ -167,11 +171,14 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
             var name = new FormattedLabelBuilder().SetWidth(nameSize.X).SetHeight(nameSize.Y)
                                                   .CreatePart(_profile.Name, o => {
                                                        o.SetFontSize(ContentService.FontSize.Size18);
-                                                       o.SetHyperLink(_profile.ProofUrl);
+                                                       o.SetLink(() => {
+                                                           GameService.Content.PlaySoundEffectByName("button-click");
+                                                           Process.Start(_profile.ProofUrl);
+                                                       });
                                                    }).Build();
             name.Parent = info;
 
-            var lastRefreshText = _profile.LastRefresh.AsTimeAgo();
+            var lastRefreshText = _profile.LastRefresh.ToLocalTime().AsTimeAgo();
             var size            = LabelUtil.GetLabelSize(ContentService.FontSize.Size11, lastRefreshText);
             var lastRefresh     = new FormattedLabelBuilder().SetWidth(size.X).SetHeight(size.Y)
                                                              .CreatePart(lastRefreshText, o => {
@@ -180,63 +187,12 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                                                               }).Build();
             lastRefresh.Parent = info;
 
-            var refreshBttn = new RefreshButton {
-                Parent = info,
-                Width  = 32,
-                Height = 32,
-                NextRefresh = _profile.NextRefresh
-            };
-
-            var isRefreshing = false;
-            refreshBttn.Click += async (_, _) => {
-                if (isRefreshing || _profile.NextRefresh > DateTime.UtcNow) {
-                    GameService.Content.PlaySoundEffectByName("error");
-                    return;
-                }
-
-                isRefreshing = true;
-
-                // Don't use this as reference. Changing current view from inside current view like the following is a sin.
-                // A more clean approach would be if this refresh button was outside this view and not be refreshed with it.
-                // However, there is no space so we doing this quick and dirty.
-                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing..."));
-
-                if (!await ProofLogix.Instance.KpWebApi.Refresh(_profile.Id)) {
-                    GameService.Content.PlaySoundEffectByName("error");
-                    ProofLogix.Logger.Warn($"Refresh for '{_profile.Id}' failed - perhaps user API key is bad or API is down.");
-                    ScreenNotification.ShowNotification("Refresh failed. Please, try again.", ScreenNotification.NotificationType.Error);
-                    ProfileView.Open(_profile);
-                    return;
-                }
-
-                var retries = 60;
-                var timer = new Timer(1000);
-                timer.Elapsed += async (_, _) => {
-                    if (retries <= 0) {
-                        ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));
-                        timer.Stop();
-                        timer.Dispose();
-                        return;
-                    }
-
-                    retries--;
-
-                    if (await ProofLogix.Instance.KpWebApi.IsProofBusy(_profile.Id)) {
-                        return;
-                    }
-
-                    ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));
-                    timer.Stop();
-                    timer.Dispose();
-                };
-                timer.Start();
-            };
-
             header.ContentResized += (_, e) => {
-                info.Width    = e.CurrentRegion.Width / 2;
-                info.Height   = e.CurrentRegion.Height;
-                navMenu.Width = e.CurrentRegion.Width / 2;
+                info.Width     = (int)(0.4f * header.ContentRegion.Width);
+                info.Height    = e.CurrentRegion.Height;
+                navMenu.Width  = (int)(0.6f * header.ContentRegion.Width);
                 navMenu.Height = e.CurrentRegion.Height;
+                navMenu.Right  = e.CurrentRegion.Width;
             };
 
             var body = new ViewContainer {
@@ -263,6 +219,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
             };
 
             b1.Click += (_, _) => {
+                GameService.Content.PlaySoundEffectByName("button-click");
                 body.Show(new ClearsView(_profile.Clears));
             };
 
@@ -274,7 +231,68 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
             };
 
             b2.Click += (_, _) => {
+                GameService.Content.PlaySoundEffectByName("button-click");
                 body.Show(new ItemsView(_profile));
+            };
+
+            var refreshBttn = new RefreshButton {
+                Parent = navMenu,
+                Width = 32,
+                Height = 32,
+                NextRefresh = _profile.NextRefresh
+            };
+
+            var isRefreshing = false;
+            refreshBttn.Click += async (_, _) => {
+                if (isRefreshing || _profile.NextRefresh > DateTime.UtcNow) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
+                isRefreshing = true;
+
+                // Don't use this as reference. Changing current view from inside current view like the following is a sin.
+                // A more clean approach would be if this refresh button was outside this view and not be refreshed with it.
+                // However, there is no space so we doing this quick and dirty.
+                var loadingText = new AsyncString();
+                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing...", loadingText));
+
+                if (!await ProofLogix.Instance.KpWebApi.Refresh(_profile.Id)) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    ProofLogix.Logger.Warn($"Refresh for '{_profile.Id}' failed - perhaps user API key is bad or API is down.");
+                    ScreenNotification.ShowNotification("Refresh failed. Please, try again.", ScreenNotification.NotificationType.Error);
+                    ProfileView.Open(_profile);
+                    return;
+                }
+
+                var retries = 60;
+                var timer = new Timer(1000);
+                timer.Elapsed += async (_, _) => {
+                    if (retries <= 0) {
+                        ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));
+                        timer.Stop();
+                        timer.Dispose();
+                        return;
+                    }
+
+                    retries--;
+
+                    //var retryStr = $"({60 - retries} / 60)";
+                    //loadingText.String = $"Checking completion.. {retryStr}";
+                    loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
+
+                    if (await ProofLogix.Instance.KpWebApi.IsProofBusy(_profile.Id)) {
+                        return;
+                    }
+
+                    var profile = await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id);
+                    ProofLogix.Instance.PartySync.AddKpProfile(profile);
+                    GameService.Content.PlaySoundEffectByName("color-change");
+                    ProfileView.Open(profile);
+                    timer.Stop();
+                    timer.Dispose();
+                };
+                timer.Start();
             };
 
             base.Build(buildPanel);

@@ -55,24 +55,16 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {
             return response.Volunteers?.Any() ?? false ? response : Opener.Empty;
         }
 
-        public async Task<string> AddKey(string apiKey, bool opener) {
+        public async Task<AddKey> AddKey(string apiKey, bool opener) {
 
             var response = await HttpUtil.RetryAsync<AddKey>(() => _uri.AppendPathSegment("addkey")
                                                                        .PostJsonAsync(new JObject {
                                                                             ["key"]    = apiKey,
                                                                             ["opener"] = Convert.ToInt32(opener)
                                                                         }));
-
-            if (response == null) {
-                return string.Empty;
-            }
-
-            if (response.IsError) {
-                ProofLogix.Logger.Trace(response.Error);
-                return string.Empty;
-            }
-
-            return response.KpId;
+            return response ?? new AddKey {
+                Error = "No response."
+            };
         }
 
         private static List<Clear> FormatClears(JObject response) {

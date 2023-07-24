@@ -196,7 +196,9 @@
       <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Reflection" />
+    <Reference Include="System.Reflection">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Resources.Extensions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Resources.Extensions.6.0.0\lib\net461\System.Resources.Extensions.dll</HintPath>
       <Private>False</Private>
@@ -247,6 +249,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Extensions\DateTimeExtension.cs" />
+    <Compile Include="Core\Extensions\ObjectExtensions.cs" />
     <Compile Include="Core\Extensions\StringExtensions.cs" />
     <Compile Include="Core\Services\Gw2WebApiService.cs" />
     <Compile Include="Core\Services\KpWebApiService.cs" />
@@ -271,6 +274,7 @@
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Services\ResourceService.cs" />
     <Compile Include="Core\UI\Clears\ClearsView.cs" />
+    <Compile Include="Core\UI\FlowPanelWithIcon.cs" />
     <Compile Include="Core\UI\Home\HomeView.cs" />
     <Compile Include="Core\UI\LoadingView.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOConfig.cs" />
@@ -279,6 +283,7 @@
     <Compile Include="Core\UI\LookingForOpener\LFOView.cs" />
     <Compile Include="Core\UI\ItemWithAmount.cs" />
     <Compile Include="Core\UI\KpProfile\RefreshButton.cs" />
+    <Compile Include="Core\UI\Register\Register.cs" />
     <Compile Include="Core\UI\StandardTable.cs" />
     <Compile Include="Core\UI\KpProfile\ProfileView.cs" />
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
@@ -287,6 +292,7 @@
     <Compile Include="Core\UI\OversizableWindow.cs" />
     <Compile Include="Core\UI\TrackableWindow.cs" />
     <Compile Include="Core\Utils\AssetUtil.cs" />
+    <Compile Include="Core\Utils\AsyncString.cs" />
     <Compile Include="Core\Utils\HttpUtil.cs" />
     <Compile Include="Core\Utils\LabelUtil.cs" />
     <Compile Include="Core\Utils\RwLockUtil.cs" />

@@ -2,6 +2,7 @@
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
+using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Utils;
 using System;
@@ -9,7 +10,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using SharpDX;
 using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
+using RandomUtil = Blish_HUD.RandomUtil;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
@@ -25,7 +28,47 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public IReadOnlyList<int> ObsoleteItemIds;
 
+        private IReadOnlyList<SoundEffect> _menuClicks;
+        private SoundEffect                _menuItemClickSfx;
+
+        public SoundEffect MenuItemClickSfx => _menuItemClickSfx;
+        public SoundEffect MenuClickSfx  => _menuClicks[RandomUtil.GetRandom(0, 3)];
+
+        private readonly IReadOnlyList<string> _loadingText = new List<string> {
+            "Turning Bank upside down...",
+            "Borrowing shared bags...",
+            "Tickling characters...",
+            "Asking Deimos if you hurt him...",
+            "Checking if Dhuum is back in his cell...",
+            "Throwing rocks into the Mystic Forge...",
+            "Waiting for echo from the Mystic Forge...",
+            "Lock-picking Ahdashim...",
+            "Trying to mount Gorseval...",
+            "Locating Xera's scarf...",
+            "Checking on the bees...",
+            "Dismantling the White Mantle...",
+            "Chasing Skritt for shinies...",
+            "Ransacking the Mystic Forge...",
+            "Commanding golems...",
+            "Polishing goggles while you wait...",
+            "Running in circles...",
+            "Convincing Skritt not to hoard your shinies...",
+            "Making sense of your inventory...",
+            "Asking for Taimi's technological assistance...",
+            "Convincing Aurene to use her vision...",
+            "Blowing away dust...",
+            "Calling upon the spirits...",
+            "Consulting the Order of Shadows...",
+            "Bribing Pact troops..."
+        };
+
+        public string GetLoadingSubtitle() {
+            return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
+        }
+
         public ResourceService() {
+            LoadSounds();
+
             _profNames  = new Dictionary<int, string>();
             _profIcons  = new Dictionary<int, AsyncTexture2D>();
             _eliteNames = new Dictionary<int, string>();
@@ -43,8 +86,19 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task LoadAsync(bool localeChange = false) {
+
             await LoadProfessions(localeChange);
             await LoadResources();
+        }
+
+        private void LoadSounds() {
+            _menuItemClickSfx = ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-item-click.wav");
+            _menuClicks = new List<SoundEffect> {
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-1.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-2.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-3.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-4.wav")
+            };
         }
 
         private async Task LoadResources() {
@@ -126,6 +180,11 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
+
+            _menuItemClickSfx.Dispose();
+            foreach (var sfx in _menuClicks) {
+                sfx.Dispose();
+            }
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {

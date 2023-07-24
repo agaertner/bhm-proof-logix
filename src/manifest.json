@@ -32,6 +32,10 @@
         "characters": {
             "optional": true,
             "details": "Required for seaching your inventories for kill proofs."
+        },
+        "builds": {
+            "optional": true,
+            "details": "Required for getting your specializations and their icons."
         }
     }
 }

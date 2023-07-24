@@ -43,9 +43,10 @@ namespace Nekres.ProofLogix {
 
         private TabbedWindow2     _window;
         private OversizableWindow _table;
+        private StandardWindow    _registerWindow;
 
-        private CornerIcon     _cornerIcon;
-        private AsyncTexture2D _icon;
+        private CornerIcon        _cornerIcon;
+        private AsyncTexture2D    _icon;
 
         internal SettingEntry<string> Region;
 
@@ -119,6 +120,30 @@ namespace Nekres.ProofLogix {
 
             // Base handler must be called
             base.OnModuleLoaded(e);
+        }
+
+        public void ToggleRegisterWindow() {
+            if (_registerWindow != null) {
+                _registerWindow.Left = (GameService.Graphics.SpriteScreen.Width - _registerWindow.Width) / 2;
+                _registerWindow.Top = (GameService.Graphics.SpriteScreen.Height - _registerWindow.Height) / 2;
+                _registerWindow.BringWindowToFront();
+                _registerWindow.Show();
+                return;
+            }
+            _registerWindow = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                                 new Rectangle(40, 26, 913, 691),
+                                                 new Rectangle(70, 36, 839, 605)) {
+                Parent    = GameService.Graphics.SpriteScreen,
+                Title     = "Not Yet Registered",
+                Subtitle  = "Kill Proof",
+                CanResize = false,
+                Width     = 700,
+                Height    = 550,
+                Left      = (GameService.Graphics.SpriteScreen.Width  - 700) / 2,
+                Top       = (GameService.Graphics.SpriteScreen.Height - 600) / 2,
+                Emblem    = ProofLogix.Instance.ContentsManager.GetTexture("killproof_icon.png")
+            };
+            _registerWindow.Show(new RegisterView());
         }
 
         public void ToggleTable() {

@@ -44,8 +44,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 if (_isHovering) {
                     var minutes = remainingTime.TotalMinutes > 1 ? "minutes" : "minute";
                     var seconds = remainingTime.TotalSeconds > 1 ? "seconds" : "second";
-                    var choose  = remainingTime.TotalMinutes > 0 ? minutes : seconds;
-                    this.BasicTooltipText = $"Refresh\nNext refresh available in {remainingTime:m\\:ss} {choose}.";
+                    var timeSuffix  = remainingTime.TotalMinutes > 0 ? minutes : seconds;
+                    this.BasicTooltipText = $"Refresh\nNext refresh available in {remainingTime:m\\:ss} {timeSuffix}.";
                 }
                 spriteBatch.DrawOnCtrl(this, _blockedTex, bounds);
             } else {

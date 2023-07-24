@@ -4,6 +4,7 @@ using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -22,6 +23,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public bool HasPermissions;
 
+        private Regex _apiKeyPattern = new(@"^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{20}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$");
+
         public Gw2WebApiService() {
             ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated += OnSubtokenUpdated;
         }
@@ -37,18 +40,18 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public async Task<List<AccountItem>> GetBank() {
             var bank = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Bank.GetAsync());
-            return Filter(bank).ToList();
+            return FilterProofs(bank).ToList();
         }
 
         public async Task<List<AccountItem>> GetSharedBags() {
             var sharedBags = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Inventory.GetAsync());
-            return Filter(sharedBags).ToList();
+            return FilterProofs(sharedBags).ToList();
         }
 
-        public async Task<Dictionary<string, List<AccountItem>>> GetBagsByCharacter() {
+        public async Task<Dictionary<Character, List<AccountItem>>> GetBagsByCharacter() {
             var characters = await GetCharacters();
 
-            var bagsByCharacter = new Dictionary<string, List<AccountItem>>();
+            var bagsByCharacter = new Dictionary<Character, List<AccountItem>>();
 
             foreach (var character in characters) {
 
@@ -59,10 +62,20 @@ namespace Nekres.ProofLogix.Core.Services {
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 var bags = character.Bags.Where(bag => bag != null); // bag slots can be empty.
 
-                bagsByCharacter.Add(character.Name, Filter(bags.SelectMany(bag => bag.Inventory)).ToList());
+                var filtered = FilterProofs(bags.SelectMany(bag => bag.Inventory)).ToList();
+
+                if (!filtered.Any()) {
+                    continue;
+                }
+
+                bagsByCharacter.Add(character, filtered);
             }
 
             return bagsByCharacter;
+        }
+
+        public bool HasCorrectFormat(string apiKey) {
+            return !string.IsNullOrWhiteSpace(apiKey) && _apiKeyPattern.IsMatch(apiKey);
         }
 
         private async Task<IEnumerable<Character>> GetCharacters() {
@@ -75,7 +88,7 @@ namespace Nekres.ProofLogix.Core.Services {
             HasPermissions = e.Value.Intersect(_requires).Count() == _requires.Count;
         }
 
-        private IEnumerable<AccountItem> Filter(IEnumerable<AccountItem> items) {
+        private IEnumerable<AccountItem> FilterProofs(IEnumerable<AccountItem> items) {
             var resources = ProofLogix.Instance.Resources.GetItems();
             return items?.Where(item => item != null && resources.Select(res => res.Id).Contains(item.Id))
                 ?? Enumerable.Empty<AccountItem>();

@@ -27,10 +27,8 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("raids")]
         public List<Raid> Raids { get; set; }
 
-        [JsonIgnore]
         public IEnumerable<Raid.Wing> Wings => this.Raids.SelectMany(raid => raid.Wings);
 
-        [JsonIgnore]
         public IEnumerable<Resource> Items => this.Raids
                                                   .SelectMany(raid => raid.Wings)
                                                   .SelectMany(wing => wing.Events)
@@ -42,20 +40,18 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     }
 
     public class Resource {
-
         [JsonProperty("icon")]
         public string IconUrl { get; set; }
-
-        [JsonIgnore]
-        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl)
-                                          ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
-                                          : ContentService.Textures.TransparentPixel;
 
         [JsonProperty("name")]
         public string Name { get; set; }
 
         [JsonProperty("id")]
         public int Id { get; set; }
+
+        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl)
+                                          ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
+                                          : ContentService.Textures.TransparentPixel;
     }
 
     public class Raid {

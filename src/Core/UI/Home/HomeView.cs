@@ -2,10 +2,12 @@
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
+using Gw2Sharp.Models;
 using Gw2Sharp.WebApi.V2.Models;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.UI.Clears;
 using Nekres.ProofLogix.Core.UI.KpProfile;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -63,6 +65,8 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Collapsed = false
             };
 
+            separatorEntry.Click += (_, _) => ProofLogix.Instance.Resources.MenuClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+
             var myProfileEntry = new MenuItem {
                 Parent = separatorEntry,
                 Text   = "My Profile",
@@ -105,20 +109,28 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             proofsEntry.Click += async (_, _) => {
+                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+
                 if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
                     ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
                     return;
                 }
 
-                plyPanel.Show(new LoadingView("Loading items.."));
+                var loadingText = new AsyncString();
+                plyPanel.Show(new LoadingView("Loading items..", loadingText));
 
+                loadingText.String = "Turning Bank upside down.";
                 var bank             = await ProofLogix.Instance.Gw2WebApi.GetBank();
+                loadingText.String = "Borrowing bag slots.";
                 var sharedBags       = await ProofLogix.Instance.Gw2WebApi.GetSharedBags();
+                loadingText.String = "Tickling characters.";
                 var bagsByCharacters = await ProofLogix.Instance.Gw2WebApi.GetBagsByCharacter();
                 plyPanel.Show(new AccountItemsView(bank, sharedBags, bagsByCharacters));
             };
 
             clearsEntry.Click += async (_, _) => {
+                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+
                 if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
                     ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
                     return;
@@ -129,27 +141,40 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             myProfileEntry.Click += (_, _) => {
-                if (!ProofLogix.Instance.PartySync.LocalPlayer.HasKpProfile) {
+                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+
+                var localPlayer = ProofLogix.Instance.PartySync.LocalPlayer;
+
+                if (!localPlayer.HasKpProfile) {
+                    ScreenNotification.ShowNotification("Not yet loaded. Please, try again.", ScreenNotification.NotificationType.Error);
                     return;
                 }
 
-                ProfileView.Open(ProofLogix.Instance.PartySync.LocalPlayer.KpProfile);
+                if (localPlayer.KpProfile.NotFound) {
+                    ProofLogix.Instance.ToggleRegisterWindow();
+                    return;
+                }
+
+                ProfileView.Open(localPlayer.KpProfile);
             };
 
-            squadTableEntry.Click += (_, _) => ProofLogix.Instance.ToggleTable();
+            squadTableEntry.Click += (_, _) => {
+                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                ProofLogix.Instance.ToggleTable();
+            };
 
             base.Build(buildPanel);
         }
 
         private class AccountItemsView : View {
 
-            private readonly List<AccountItem> _bank;
-            private readonly List<AccountItem> _sharedBags;
-            private readonly Dictionary<string, List<AccountItem>> _bags;
+            private readonly List<AccountItem>                        _bank;
+            private readonly List<AccountItem>                        _sharedBags;
+            private readonly Dictionary<Character, List<AccountItem>> _bags;
 
             public AccountItemsView(List<AccountItem> bank,
                                     List<AccountItem> sharedBags,
-                                    Dictionary<string, List<AccountItem>> bags) {
+                                    Dictionary<Character, List<AccountItem>> bags) {
                 _bank = bank;
                 _sharedBags = sharedBags;
                 _bags = bags;
@@ -170,22 +195,31 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     itemsPanel.Height = e.CurrentRegion.Height;
                 };
 
-                AddItems(itemsPanel, _bank, "Bank");
-                AddItems(itemsPanel, _sharedBags, "Shared Bags");
+                AddItems(itemsPanel, _bank,       "Account Vault",          GameService.Content.DatAssetCache.GetTextureFromAssetId(156699));
+                AddItems(itemsPanel, _sharedBags, "Shared Inventory Slots", GameService.Content.DatAssetCache.GetTextureFromAssetId(1314214));
 
                 foreach (var bagsByChar in _bags) {
-                    AddItems(itemsPanel, bagsByChar.Value, bagsByChar.Key);
+
+                    var elite = bagsByChar.Key.BuildTabs?.First(tab => tab.IsActive).Build.Specializations[2].Id ?? 0;
+
+                    if (!Enum.TryParse<ProfessionType>(bagsByChar.Key.Profession, true, out var profession)) {
+                        ProofLogix.Logger.Warn("Unable to cast '{0}' to {1}.", bagsByChar.Key.Profession, nameof(ProfessionType));
+                        continue;
+                    }
+
+                    AddItems(itemsPanel, bagsByChar.Value, bagsByChar.Key.Name, 
+                             ProofLogix.Instance.Resources.GetClassIcon((int)profession, elite));
                 }
 
                 base.Build(buildPanel);
             }
 
-            private void AddItems(FlowPanel parent, List<AccountItem> items, string category) {
+            private void AddItems(FlowPanel parent, List<AccountItem> items, string category, AsyncTexture2D icon) {
                 if (!items.Any()) {
                     return;
                 }
 
-                var slotsCategory = new FlowPanel {
+                var slotsCategory = new FlowPanelWithIcon(icon) {
                     Parent = parent,
                     Width = parent.ContentRegion.Width - 24,
                     HeightSizingMode = SizingMode.AutoSize,

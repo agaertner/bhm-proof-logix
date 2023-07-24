@@ -18,7 +18,7 @@ namespace Nekres.ProofLogix.Core.Services {
         private readonly KpV1Client _v1Client;
         private readonly KpV2Client _v2Client;
 
-        private readonly IReadOnlyList<TokenPermission> _requires = new List<TokenPermission> {
+        public readonly IReadOnlyList<TokenPermission> RequiredPermissions = new List<TokenPermission> {
             TokenPermission.Account,
             TokenPermission.Inventories,
             TokenPermission.Characters,
@@ -40,11 +40,11 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private void OnSubtokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e) {
             // Checks token for insufficient permissions.
-            var valid = e.Value.Intersect(_requires).Count() == _requires.Count;
+            var valid = e.Value.Intersect(RequiredPermissions).Count() == RequiredPermissions.Count;
             SubtokenUpdated?.Invoke(this, new ValueEventArgs<bool>(valid));
         }
 
-        public async Task<string> AddKey(string key, bool opener) {
+        public async Task<AddKey> AddKey(string key, bool opener) {
             return await _v1Client.AddKey(key, opener);
         }
 

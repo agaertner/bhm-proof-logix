@@ -95,6 +95,12 @@ namespace Nekres.ProofLogix.Core.Services {
                 key = existingAccount;
             };
 
+            if (this.LocalPlayer.HasKpProfile && this.LocalPlayer.KpProfile.BelongsTo(key, out _) || 
+                 this.LocalPlayer.AccountName.ToLowerInvariant().Equals(key.ToLowerInvariant())) {
+                this.LocalPlayer.AttachProfile(kpProfile);
+                return;
+            }
+
             var member = _members.AddOrUpdate(key.ToLowerInvariant(), _ => {
 
                 var member = new Player(kpProfile);
