@@ -35,31 +35,32 @@ namespace Nekres.ProofLogix.Core.Services {
         public SoundEffect MenuClickSfx  => _menuClicks[RandomUtil.GetRandom(0, 3)];
 
         private readonly IReadOnlyList<string> _loadingText = new List<string> {
-            "Turning Bank upside down...",
+            "Turning Vault upside down...",
             "Borrowing shared bags...",
             "Tickling characters...",
             "Asking Deimos if you hurt him...",
-            "Checking if Dhuum is back in his cell...",
-            "Throwing rocks into the Mystic Forge...",
-            "Waiting for echo from the Mystic Forge...",
+            "Checking on Dhuum's cage...",
+            "Throwing rocks into Mystic Forge...",
+            "Waiting for echo from Mystic Forge...",
             "Lock-picking Ahdashim...",
             "Trying to mount Gorseval...",
             "Locating Xera's scarf...",
             "Checking on the bees...",
             "Dismantling the White Mantle...",
-            "Chasing Skritt for shinies...",
+            "Chasing Skritt...",
             "Ransacking the Mystic Forge...",
             "Commanding golems...",
-            "Polishing goggles while you wait...",
+            "Polishing monocle while you wait...",
             "Running in circles...",
             "Convincing Skritt not to hoard your shinies...",
             "Making sense of your inventory...",
-            "Asking for Taimi's technological assistance...",
+            "Pleading for Taimi's assistance...",
             "Convincing Aurene to use her vision...",
             "Blowing away dust...",
             "Calling upon the spirits...",
             "Consulting the Order of Shadows...",
-            "Bribing Pact troops..."
+            "Bribing Pact troops...",
+            "Bribing Bankers..."
         };
 
         public string GetLoadingSubtitle() {
