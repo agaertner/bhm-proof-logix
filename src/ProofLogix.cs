@@ -167,6 +167,7 @@ namespace Nekres.ProofLogix {
             _cornerIcon.Click  -= OnCornerIconClick;
             _cornerIcon?.Dispose();
             _window?.Dispose();
+            _registerWindow?.Dispose();
             _table?.Dispose();
             _icon?.Dispose();
 

@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using SharpDX;
 using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 using RandomUtil = Blish_HUD.RandomUtil;
 
