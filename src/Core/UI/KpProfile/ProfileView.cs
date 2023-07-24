@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using static Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models.Title;
 using Container = Blish_HUD.Controls.Container;
@@ -285,10 +286,13 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                         return;
                     }
 
-                    var profile = await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id);
-                    ProofLogix.Instance.PartySync.AddKpProfile(profile);
-                    GameService.Content.PlaySoundEffectByName("color-change");
-                    ProfileView.Open(profile);
+                    await Task.Delay(1000).ContinueWith(async _ => {
+                        var profile = await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id);
+                        ProofLogix.Instance.PartySync.AddKpProfile(profile);
+                        GameService.Content.PlaySoundEffectByName("color-change");
+                        ProfileView.Open(profile);
+                    });
+
                     timer.Stop();
                     timer.Dispose();
                 };
