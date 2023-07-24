@@ -5,13 +5,16 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.UI;
+using Nekres.ProofLogix.Core.UI.Home;
+using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Nekres.ProofLogix.Core.UI.LookingForOpener;
+using Gw2WebApiService = Nekres.ProofLogix.Core.Services.Gw2WebApiService;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
@@ -33,21 +36,30 @@ namespace Nekres.ProofLogix {
         internal ResourceService  Resources;
         internal KpWebApiService  KpWebApi;
         internal PartySyncService PartySync;
+        internal Gw2WebApiService Gw2WebApi;
 
-        private TableConfig    _tableConfig;
-        private LfoConfig      _lfoConfig;
+        private TableConfig _tableConfig;
+        private LfoConfig   _lfoConfig;
 
-        private TabbedWindow2  _window;
-        private CornerIcon     _cornerIcon;
-        private AsyncTexture2D _icon;
+        private TabbedWindow2     _window;
+        private OversizableWindow _table;
+        private StandardWindow    _registerWindow;
+
+        private CornerIcon        _cornerIcon;
+        private AsyncTexture2D    _icon;
+
+        internal SettingEntry<string> Region;
 
         protected override void DefineSettings(SettingCollection settings) {
+            var selfManaged = settings.AddSubCollection("lfo", false, false);
+            Region = selfManaged.DefineSetting("server_region", "EU");
         }
 
         protected override void Initialize() {
             Resources = new ResourceService();
             KpWebApi  = new KpWebApiService();
             PartySync = new PartySyncService();
+            Gw2WebApi = new Gw2WebApiService();
         }
 
         protected override async Task LoadAsync() {
@@ -75,20 +87,74 @@ namespace Nekres.ProofLogix {
                 SavesSize     = true,
                 SavesPosition = true,
                 Width         = 700,
-                Height        = 600
+                Height        = 600,
+                Visible = false
             };
 
-            _tableConfig = new TableConfig();
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156407), () => new TableView(_tableConfig), "Squad Tracker"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(), "Account"));
 
             _lfoConfig = new LfoConfig();
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
 
-            _window.Show();
+            _window.TabChanged += OnTabChanged;
+
+
+            _table = new OversizableWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                        new Rectangle(40, 26, 913, 691),
+                                        new Rectangle(70, 36, 839, 605)) 
+            {
+                Parent             = GameService.Graphics.SpriteScreen,
+                Width              = 1000,
+                Height             = 500,
+                Id                 = $"{nameof(ProofLogix)}_Table_045b4a5441ac40ea93d98ae2021a8f0c",
+                Title              = string.Empty, // Prevents Title ("No Title") and Subtitle from being drawn.
+                CanResize          = true,
+                SavesSize          = true,
+                SavesPosition      = true,
+                CanCloseWithEscape = false, // Prevents accidental closing as table is treated as part of the HUD.
+                Visible            = false
+            };
+            _tableConfig = new TableConfig();
 
             _cornerIcon.Click += OnCornerIconClick;
+
             // Base handler must be called
             base.OnModuleLoaded(e);
+        }
+
+        public void ToggleRegisterWindow() {
+            if (_registerWindow != null) {
+                _registerWindow.Left = (GameService.Graphics.SpriteScreen.Width - _registerWindow.Width) / 2;
+                _registerWindow.Top = (GameService.Graphics.SpriteScreen.Height - _registerWindow.Height) / 2;
+                _registerWindow.BringWindowToFront();
+                _registerWindow.Show();
+                return;
+            }
+            _registerWindow = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                                 new Rectangle(40, 26, 913, 691),
+                                                 new Rectangle(70, 36, 839, 605)) {
+                Parent    = GameService.Graphics.SpriteScreen,
+                Title     = "Not Yet Registered",
+                Subtitle  = "Kill Proof",
+                CanResize = false,
+                Width     = 700,
+                Height    = 550,
+                Left      = (GameService.Graphics.SpriteScreen.Width  - 700) / 2,
+                Top       = (GameService.Graphics.SpriteScreen.Height - 600) / 2,
+                Emblem    = ProofLogix.Instance.ContentsManager.GetTexture("killproof_icon.png")
+            };
+            _registerWindow.Show(new RegisterView());
+        }
+
+        public void ToggleTable() {
+            _table.ToggleWindow(new TableView(_tableConfig));
+        }
+
+        private void OnTabChanged(object sender, ValueChangedEventArgs<Tab> e) {
+            if (sender is not TabbedWindow2 wnd) {
+                return;
+            }
+            wnd.Subtitle = e.NewValue.Name;
         }
 
         private void OnCornerIconClick(object sender, MouseEventArgs e) {
@@ -97,16 +163,21 @@ namespace Nekres.ProofLogix {
 
         /// <inheritdoc />
         protected override void Unload() {
-            _cornerIcon.Click -= OnCornerIconClick;
+            _window.TabChanged -= OnTabChanged;
+            _cornerIcon.Click  -= OnCornerIconClick;
             _cornerIcon?.Dispose();
             _window?.Dispose();
+            _registerWindow?.Dispose();
+            _table?.Dispose();
             _icon?.Dispose();
 
+            KpWebApi.Dispose();
             PartySync.Dispose();
             Resources.Dispose();
 
             // All static members must be manually unset
             Instance = null;
+            TrackableWindow.Unset();
         }
     }
 }

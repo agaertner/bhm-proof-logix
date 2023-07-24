@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 
@@ -13,8 +14,12 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
             return await ProofLogix.Instance.KpWebApi.GetOpener(this.Model.EncounterId, this.Model.Region);
         }
 
-        public void SetRegion(Opener.ServerRegion region) {
-            this.Model.Region = region;
+        public void SetRegion(string serverRegion) {
+            if (!Enum.TryParse<Opener.ServerRegion>(serverRegion, true, out var region)) {
+                return;
+            }
+            ProofLogix.Instance.Region.Value = serverRegion;
+            this.Model.Region                = region;
         }
 
         public void SetEncounterId(string encounterId) {

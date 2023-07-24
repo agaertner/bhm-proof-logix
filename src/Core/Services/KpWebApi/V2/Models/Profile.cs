@@ -12,11 +12,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     public class Profile : Proofs {
 
         public static Profile Empty = new() {
-            IsEmpty = true
+            NotFound = true
         };
 
         [JsonIgnore]
-        public bool IsEmpty { get; private init; }
+        public bool NotFound { get; private init; }
 
         [JsonProperty("account_name")]
         public string Name { get; set; }
@@ -30,6 +30,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("last_refresh")]
         public DateTime LastRefresh { get; set; }
 
+        [JsonProperty("next_refresh")]
+        public DateTime NextRefresh { get; set; }
+
+        [JsonProperty("next_refresh_seconds")]
+        [JsonConverter(typeof(SecondsUntilDateTimeConverter))]
+        [Obsolete("Use NextRefresh instead.", true)]
+        public DateTime NextRefreshFromSeconds { get; set; }
+
         [JsonProperty("kpid")]
         public string Id { get; set; }
 
@@ -39,16 +47,36 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("linked")]
         public List<Profile> Linked { get; set; }
 
+        private Proofs _totals;
         [JsonProperty("linked_totals")]
-        public Proofs LinkedTotals { get; set; }
+        public Proofs Totals { 
+            get => _totals ?? this; 
+            set => _totals = value;
+        }
 
         [JsonIgnore]
         public List<Clear> Clears { get; set; }
 
-        public Proofs Totals => this.LinkedTotals ?? this;
+        #region Shorthands
+        public     List<Profile> Accounts => this.Linked?.Prepend(this).ToList() ?? new List<Profile> { this };
+
+        public new bool          IsEmpty  => this.Totals.IsEmpty;
+        #endregion
+
+        public bool BelongsTo(string accountName, out Profile linkedProfile) {
+            linkedProfile = this.Accounts?.FirstOrDefault(profile => !string.IsNullOrEmpty(profile.Name) 
+                                                                  && profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase));
+
+            return !(linkedProfile ?? Empty).NotFound;
+        }
     }
 
     public class Proofs : BaseResponse {
+
+        public bool IsEmpty => (!GetTokens().Any() || GetTokens().All(t => t.Amount == 0)) 
+                            && (!Titles?.Any() ?? true);
+
+
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
 
@@ -82,7 +110,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 tokens = tokens.Concat(Coffers);
             }
 
-            return tokens;
+            return ProofLogix.Instance.Resources.FilterObsoleteItems(tokens);
         }
     }
 

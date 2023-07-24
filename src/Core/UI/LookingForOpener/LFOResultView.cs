@@ -17,7 +17,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
         protected override void Build(Container buildPanel) {
 
-            var encounter = ResourceService.GetWings().SelectMany(wing => wing.Events).First(ev => ev.Id.Equals(_results.EncounterId));
+            var encounter = ProofLogix.Instance.Resources.GetWings().SelectMany(wing => wing.Events).First(ev => ev.Id.Equals(_results.EncounterId));
 
             var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size32, encounter.Name, true);
             var header = new FormattedLabelBuilder()
@@ -30,18 +30,19 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                               }).Build();
 
             header.Parent = buildPanel;
-            header.Left   = Panel.LEFT_PADDING;
-            header.Top    = Panel.TOP_PADDING;
+            header.Left   = Control.ControlStandard.ControlOffset.X;
+            header.Top    = Control.ControlStandard.ControlOffset.Y;
 
             var flow = new FlowPanel {
                 Parent              = buildPanel,
+                Left                = Panel.LEFT_PADDING,
                 Top                 = header.Bottom,
                 Width               = buildPanel.ContentRegion.Width,
                 Height              = buildPanel.ContentRegion.Height - header.Height - Panel.TOP_PADDING,
-                ControlPadding      = new Vector2(5, 5),
-                OuterControlPadding = new Vector2(5, 5),
+                ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
                 FlowDirection       = ControlFlowDirection.SingleTopToBottom,
-                CanScroll = true
+                CanScroll           = true
             };
 
             buildPanel.ContentResized += (_,e) => {
@@ -51,11 +52,12 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
             if (_results.Opener.IsEmpty) {
                 var text      = "No volunteers found.";
+
                 var fontSize  = ContentService.FontSize.Size24;
                 var labelSize = LabelUtil.GetLabelSize(fontSize, text);
-
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(text, o => {
+                                                            o.SetFontSize(fontSize);
                                                             o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
                                                             o.SetTextColor(Color.Red);
                                                         }).Build();
@@ -73,7 +75,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(volunteer.AccountName, o => {
                                                             o.SetLink(() => CopyText(volunteer.AccountName));
-                                                        }).CreatePart(volunteer.Updated.AsTimeAgo(), o => {
+                                                        }).CreatePart(volunteer.Updated.ToLocalTime().AsTimeAgo(), o => {
                                                             o.SetFontSize(ContentService.FontSize.Size11);
                                                             o.MakeItalic();
                                                         }).Build();

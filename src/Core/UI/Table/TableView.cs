@@ -17,6 +17,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected override void Build(Container buildPanel) {
 
+            ((WindowBase2)buildPanel).Subtitle = "Squad Tracker";
+
             var search = new TextBox {
                 Parent = buildPanel,
                 Width = 200,
@@ -61,11 +63,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                 var profile = await ProofLogix.Instance.KpWebApi.GetProfile(query);
 
-                if (profile.IsEmpty) {
+                if (profile.NotFound) {
                     profile = await ProofLogix.Instance.KpWebApi.GetProfileByCharacter(query);
                 }
 
-                if (profile.IsEmpty) {
+                if (profile.NotFound) {
 
                     loading.Visible = false;
 
@@ -101,8 +103,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 string.Empty, "Character", "Account"
             };
 
-            var tokens = ResourceService.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id)
-                                        .Select(item => item.Icon).Cast<object>();
+            var tokens = ProofLogix.Instance.Resources.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id)
+                                   .Select(item => item.Icon).Cast<object>();
 
             row.AddRange(tokens); 
 
@@ -118,7 +120,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 tableContainer.Height = e.CurrentRegion.Height - search.Height - Panel.TOP_PADDING;
             };
 
-            foreach (var player in PartySyncService.PlayerList) {
+            foreach (var player in ProofLogix.Instance.PartySync.PlayerList) {
                 this.Presenter.AddPlayer(player);
             }
 

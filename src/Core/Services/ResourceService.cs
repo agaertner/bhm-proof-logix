@@ -2,63 +2,136 @@
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
+using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
+using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
+using RandomUtil = Blish_HUD.RandomUtil;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
 
-        private static Dictionary<int, string>         _profNames  = new();
-        private static Dictionary<int, AsyncTexture2D> _profIcons  = new();
-        private static Dictionary<int, string>         _eliteNames = new();
-        private static Dictionary<int, AsyncTexture2D> _eliteIcons = new();
+        private Dictionary<int, string>         _profNames;
+        private Dictionary<int, AsyncTexture2D> _profIcons;
+        private Dictionary<int, string>         _eliteNames;
+        private Dictionary<int, AsyncTexture2D> _eliteIcons;
 
-        private static Resources _resources = Resources.Empty;
+        private Resources _resources;
 
-        private static Dictionary<int, AsyncTexture2D> _apiIcons = new();
+        private Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        public static IReadOnlyList<int> ObsoleteItemIds = new List<int>() {
+        public readonly IReadOnlyList<int> ObsoleteItemIds = new List<int> {
+            88485, // Legendary Divination
             81743, // Unstable Cosmic Essence
             12251, // Banana
             12773, // Bananas in Bulk
         };
 
+        private IReadOnlyList<SoundEffect> _menuClicks;
+        private SoundEffect                _menuItemClickSfx;
+
+        public SoundEffect MenuItemClickSfx => _menuItemClickSfx;
+        public SoundEffect MenuClickSfx  => _menuClicks[RandomUtil.GetRandom(0, 3)];
+
+        private readonly IReadOnlyList<string> _loadingText = new List<string> {
+            "Turning Vault upside down...",
+            "Borrowing wallet...",
+            "Tickling characters...",
+            "Asking Deimos if he's hurt...",
+            "Checking on Dhuum's cage...",
+            "Throwing rocks into the Mystic Forge...",
+            "Waiting for echo from the Mystic Forge...",
+            "Lock-picking Ahdashim...",
+            "Trying to mount Gorseval...",
+            "Locating Xera's scarf...",
+            "Checking on the bees...",
+            "Dismantling the White Mantle...",
+            "Chasing Skritt...",
+            "Ransacking through bags...",
+            "Poking Saul D'Alessio with a stick...",
+            "Commanding golems...",
+            "Polishing monocle...",
+            "Running in circles...",
+            "Convincing Skritt not to hoard shinies...",
+            "Making sense of this inventory...",
+            "Pleading for Taimi's assistance...",
+            "Convincing Aurene to use her vision...",
+            "Blowing away dust...",
+            "Calling upon the spirits...",
+            "Consulting the Order of Shadows...",
+            "Bribing Pact troops...",
+            "Bribing Bankers..."
+        };
+
+        public string GetLoadingSubtitle() {
+            return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
+        }
+
         public ResourceService() {
+            LoadSounds();
+
+            _profNames  = new Dictionary<int, string>();
+            _profIcons  = new Dictionary<int, AsyncTexture2D>();
+            _eliteNames = new Dictionary<int, string>();
+            _eliteIcons = new Dictionary<int, AsyncTexture2D>();
+            _resources  = Resources.Empty;
+            _apiIcons   = new Dictionary<int, AsyncTexture2D>();
+
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 
         public async Task LoadAsync(bool localeChange = false) {
+
             await LoadProfessions(localeChange);
             await LoadResources();
         }
 
-        private async Task LoadResources() {
-            _resources  = await ProofLogix.Instance.KpWebApi.GetResources();
+        private void LoadSounds() {
+            _menuItemClickSfx = ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-item-click.wav");
+            _menuClicks = new List<SoundEffect> {
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-1.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-2.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-3.wav"),
+                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-4.wav")
+            };
         }
 
-        public static string GetClassName(int profession, int elite) {
+        private async Task LoadResources() {
+            _resources = await ProofLogix.Instance.KpWebApi.GetResources();
+
+            foreach (var wing in _resources.Wings) {
+                wing.Name = await GetMapName(wing.MapId);
+            }
+        }
+
+        public List<Token> FilterObsoleteItems(IEnumerable<Token> tokens) {
+            return tokens.Where(token => ObsoleteItemIds.All(id => id != token.Id)).ToList();
+        }
+
+        public string GetClassName(int profession, int elite) {
             return _eliteNames.TryGetValue(elite, out var name) ? name :
                    _profNames.TryGetValue(profession, out name) ? name : string.Empty;
         }
 
-        public static AsyncTexture2D GetClassIcon(int profession, int elite) {
+        public AsyncTexture2D GetClassIcon(int profession, int elite) {
             return _eliteIcons.TryGetValue(elite, out var icon) ? icon :
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public static Resource GetItem(int id) {
+        public Resource GetResource(int id) {
             return _resources.Items.FirstOrDefault(item => item.Id == id);
         }
 
-        public static List<Raid.Wing> GetWings() {
+        public List<Raid.Wing> GetWings() {
             return _resources.Wings.ToList();
         }
 
-        public static List<Resource> GetItemsForMap(int mapId) {
+        public List<Resource> GetItemsForMap(int mapId) {
             if (_resources.IsEmpty) {
                 return Enumerable.Empty<Resource>().ToList();
             }
@@ -71,7 +144,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return items.ToList();
         }
 
-        public static List<Resource> GetItemsForFractals(bool includeOld = false) {
+        public List<Resource> GetItemsForFractals(bool includeOld = false) {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
             if (!includeOld) {
                 fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
@@ -79,7 +152,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return fractalItems.ToList();
         }
 
-        public static List<Resource> GetGeneralItems(bool includeOld = false) {
+        public List<Resource> GetGeneralItems(bool includeOld = false) {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             if (!includeOld) {
                 generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
@@ -87,12 +160,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return generalItems.ToList();
         }
 
-        /// <summary>
-        /// Returns the icon for an item not included in <see cref="Resources"/> but in <see cref="Profile"/>.
-        /// </summary>
-        /// <param name="itemId">The id of the item to make an API request with.</param>
-        /// <returns>The icon or <see cref="ContentService.Textures.TransparentPixel"/></returns>
-        public static AsyncTexture2D GetApiIcon(int itemId) {
+        public AsyncTexture2D GetApiIcon(int itemId) {
             if (_apiIcons.TryGetValue(itemId, out var tex)) {
                 return tex;
             }
@@ -109,16 +177,18 @@ namespace Nekres.ProofLogix.Core.Services {
             return icon;
         }
 
+        public async Task<string> GetMapName(int mapId) {
+            var map = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
+            return map?.Name ?? string.Empty;
+        }
+
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
 
-            _eliteNames     = null;
-            _profNames      = null;
-            _eliteIcons     = null;
-            _profIcons      = null;
-            _resources      = null;
-            _apiIcons       = null;
-            ObsoleteItemIds = null;
+            _menuItemClickSfx.Dispose();
+            foreach (var sfx in _menuClicks) {
+                sfx.Dispose();
+            }
         }
 
         private async void OnUserLocaleChanged(object sender, ValueEventArgs<CultureInfo> e) {
@@ -150,5 +220,14 @@ namespace Nekres.ProofLogix.Core.Services {
             _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
             _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
+
+        public List<Resource> GetItems() {
+            return _resources.Items.ToList();
+        }
+
+        public List<Raid> GetRaids() {
+            return _resources.Raids;
+        }
+
     }
 }
