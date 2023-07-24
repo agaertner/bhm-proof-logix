@@ -26,7 +26,12 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        public IReadOnlyList<int> ObsoleteItemIds;
+        public readonly IReadOnlyList<int> ObsoleteItemIds = new List<int> {
+            88485, // Legendary Divination
+            81743, // Unstable Cosmic Essence
+            12251, // Banana
+            12773, // Bananas in Bulk
+        };
 
         private IReadOnlyList<SoundEffect> _menuClicks;
         private SoundEffect                _menuItemClickSfx;
@@ -76,12 +81,6 @@ namespace Nekres.ProofLogix.Core.Services {
             _eliteIcons = new Dictionary<int, AsyncTexture2D>();
             _resources  = Resources.Empty;
             _apiIcons   = new Dictionary<int, AsyncTexture2D>();
-            this.ObsoleteItemIds = new List<int> {
-                88485, // Legendary Divination
-                81743, // Unstable Cosmic Essence
-                12251, // Banana
-                12773, // Bananas in Bulk
-            };
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
@@ -108,6 +107,10 @@ namespace Nekres.ProofLogix.Core.Services {
             foreach (var wing in _resources.Wings) {
                 wing.Name = await GetMapName(wing.MapId);
             }
+        }
+
+        public List<Token> FilterObsoleteItems(IEnumerable<Token> tokens) {
+            return tokens.Where(token => ObsoleteItemIds.All(id => id != token.Id)).ToList();
         }
 
         public string GetClassName(int profession, int elite) {

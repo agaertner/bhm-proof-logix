@@ -267,7 +267,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 }
 
                 var retries = 60;
-                var timer = new Timer(1000);
+                var timer = new Timer(1250);
                 timer.Elapsed += async (_, _) => {
                     if (retries <= 0) {
                         ProfileView.Open(await ProofLogix.Instance.KpWebApi.GetProfile(_profile.Id));

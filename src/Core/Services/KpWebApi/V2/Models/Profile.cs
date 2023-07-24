@@ -73,10 +73,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
     public class Proofs : BaseResponse {
 
-        public bool IsEmpty => (!this.Tokens?.Any()     ?? true) &&
-                               (!this.Killproofs?.Any() ?? true) &&
-                               (!this.Coffers?.Any()    ?? true) &&
-                               (!this.Titles?.Any()     ?? true);
+        public bool IsEmpty => (!GetTokens().Any() || GetTokens().All(t => t.Amount == 0)) 
+                            && (!Titles?.Any() ?? true);
+
 
         [JsonProperty("tokens")]
         public List<Token> Tokens { get; set; }
@@ -111,7 +110,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 tokens = tokens.Concat(Coffers);
             }
 
-            return tokens;
+            return ProofLogix.Instance.Resources.FilterObsoleteItems(tokens);
         }
     }
 
