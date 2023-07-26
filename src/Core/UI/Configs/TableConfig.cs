@@ -1,4 +1,5 @@
 ﻿using MonoGame.Extended.Collections;
+using Nekres.ProofLogix.Core.Services;
 using Newtonsoft.Json;
 
 namespace Nekres.ProofLogix.Core.UI.Configs {
@@ -9,7 +10,7 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         public int SelectedColumn {
             get => _selectedColumn;
             set {
-                _selectedColumn                       = value;
+                _selectedColumn = value;
                 this.SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
@@ -20,11 +21,7 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         public ObservableCollection<int> TokenIds {
             get => _tokenIds;
             set {
-                if (_tokenIds != null) {
-                    _tokenIds.ItemRemoved -= OnAddOrRemove;
-                    _tokenIds.ItemAdded   -= OnAddOrRemove;
-                }
-                _tokenIds             =  value;
+                _tokenIds             =  value ?? new ObservableCollection<int>();
                 _tokenIds.ItemRemoved += OnAddOrRemove;
                 _tokenIds.ItemAdded   += OnAddOrRemove;
                 this.SaveConfig(ProofLogix.Instance.TableConfig);
@@ -37,12 +34,40 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         public bool OrderDescending {
             get => _orderDescending;
             set {
-                _orderDescending                      = value;
+                _orderDescending = value;
                 this.SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
 
-        private void OnAddOrRemove(object o, ItemEventArgs<int> e) {
+        private PartySyncService.ColorGradingMode _colorGradingMode;
+        [JsonProperty("color_grading_mode")]
+        public PartySyncService.ColorGradingMode ColorGradingMode {
+            get => _colorGradingMode;
+            set {
+                _colorGradingMode = value;
+                this.SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        private ObservableCollection<string> _profileIds;
+
+        [JsonProperty("profile_ids")]
+        public ObservableCollection<string> ProfileIds {
+            get => _profileIds;
+            set {
+                _profileIds             =  value ?? new ObservableCollection<string>();
+                _profileIds.ItemRemoved += OnAddOrRemove;
+                _profileIds.ItemAdded   += OnAddOrRemove;
+                this.SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        public TableConfig() {
+            this.TokenIds   = new ObservableCollection<int>();
+            this.ProfileIds = new ObservableCollection<string>();
+        }
+
+        private void OnAddOrRemove<T>(object o, ItemEventArgs<T> e) {
             this.SaveConfig(ProofLogix.Instance.TableConfig);
         }
     }

@@ -57,6 +57,7 @@ namespace Nekres.ProofLogix {
                 Region = Opener.ServerRegion.EU
             });
             TableConfig = selfManaged.DefineSetting("table_config", new TableConfig {
+                ProfileIds = new ObservableCollection<string>(),
                 TokenIds = new ObservableCollection<int> {
                     77302,
                     94020,
@@ -180,6 +181,7 @@ namespace Nekres.ProofLogix {
             KpWebApi.Dispose();
             PartySync.Dispose();
             Resources.Dispose();
+            Gw2WebApi.Dispose();
 
             // All static members must be manually unset
             Instance = null;

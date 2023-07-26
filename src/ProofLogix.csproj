@@ -249,6 +249,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Extensions\DateTimeExtension.cs" />
+    <Compile Include="Core\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Core\Extensions\ObjectExtensions.cs" />
     <Compile Include="Core\Extensions\StringExtensions.cs" />
     <Compile Include="Core\Services\Gw2WebApiService.cs" />

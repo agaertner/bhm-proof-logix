@@ -2,7 +2,6 @@
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
-using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using System.Linq;
 

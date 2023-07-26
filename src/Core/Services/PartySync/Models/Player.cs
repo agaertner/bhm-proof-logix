@@ -29,7 +29,8 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         private CommonFields.Player _arcDpsPlayer;
 
         public Player() {
-            this.Created = DateTime.UtcNow;
+            this.Created   = DateTime.UtcNow;
+            this.KpProfile = Profile.Empty;
         }
 
         public Player(CommonFields.Player agent) : this() {

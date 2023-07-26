@@ -4,7 +4,9 @@ using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
 using System.Linq;
+using System.Threading.Tasks;
 using Blish_HUD.Controls;
+using Nekres.ProofLogix.Core.UI.KpProfile;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -13,6 +15,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             ProofLogix.Instance.PartySync.PlayerAdded   += PlayerAddedOrChanged;
             ProofLogix.Instance.PartySync.PlayerChanged += PlayerAddedOrChanged;
             ProofLogix.Instance.PartySync.PlayerRemoved += PlayerRemoved;
+        }
+
+        protected override async Task<bool> Load(IProgress<string> progress) {
+            foreach (var id in this.Model.ProfileIds) {
+                var profile = await ProofLogix.Instance.KpWebApi.GetProfile(id);
+                ProofLogix.Instance.PartySync.AddKpProfile(profile);
+            }
+            return await base.Load(progress);
         }
 
         public void AddPlayer(Player player) {
@@ -33,6 +43,28 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Height = 32
             };
 
+            entry.LeftMouseButtonReleased += (_, _) => {
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+                ProfileView.Open(entry.Player.KpProfile);
+            };
+
+            entry.RightMouseButtonReleased += (_, _) => {
+                if (player == ProofLogix.Instance.PartySync.LocalPlayer) {
+                    return;
+                }
+
+                if (entry.Remember) {
+                    GameService.Content.PlaySoundEffectByName("button-click");
+                    this.Model.ProfileIds.Remove(entry.Player.KpProfile.Id);
+                } else {
+                    GameService.Content.PlaySoundEffectByName("color-change");
+                    this.Model.ProfileIds.Add(entry.Player.KpProfile.Id);
+                }
+                entry.Remember = !entry.Remember;
+            };
+
+            entry.Remember = this.Model.ProfileIds.Any(id => id.Equals(entry.Player.KpProfile.Id)) || player == ProofLogix.Instance.PartySync.LocalPlayer;
+
             table.ContentResized += (_, e) => {
                 entry.Width = e.CurrentRegion.Width;
             };
@@ -41,12 +73,19 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
+            if (this.View.Table == null) {
+                return;
+            }
+
             if (TryGetPlayerEntry(e.Value, out var playerEntry)) {
                 this.View.Table.RemoveChild(playerEntry);
             }
         }
 
         private void PlayerAddedOrChanged(object sender, ValueEventArgs<Player> e) {
+            if (this.View.Table == null) {
+                return;
+            }
             AddPlayer(e.Value);
         }
 
@@ -62,13 +101,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         public void SortEntries() {
-            //TODO: Consider fixing the header at the top (excluding it from the FlowPanel)
-            // Skip first entry (header) and sort the rest.
-            var header = this.View.Table.Children.First();
-            var list   = this.View.Table.Children.Skip(1).Cast<TablePlayerEntry>().ToList();
+            var list = this.View.Table.Children.Cast<TablePlayerEntry>().ToList();
             list.Sort(Comparer);
-            // Prepend header again and attach sorted list.
-            this.View.Table.GetPrivateField("_children").SetValue(this.View.Table, new ControlCollection<Control>(list.Prepend(header)));
+            this.View.Table.GetPrivateField("_children").SetValue(this.View.Table, new ControlCollection<Control>(list));
             this.View.Table.Invalidate();
         }
 

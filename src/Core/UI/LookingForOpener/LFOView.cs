@@ -1,5 +1,4 @@
-﻿using Blish_HUD;
-using Blish_HUD.Controls;
+﻿using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
@@ -87,7 +86,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     Text = $"Wing {wingNr}"
                 };
 
-                wingItem.Click += (_, _) => ProofLogix.Instance.Resources.MenuClickSfx.Play(GameService.GameIntegration.Audio.Volume,0,0);
+                wingItem.Click += (_, _) => ProofLogix.Instance.Resources.PlayMenuClick();
 
                 foreach (var encounter in wing.Events) {
 
@@ -99,7 +98,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     };
 
                     encounterItem.Click += async (_, _) => {
-                        ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                        ProofLogix.Instance.Resources.PlayMenuItemClick();
                         resultContainer.Show(new LoadingView("Searching..."));
                         resultContainer
                            .Show(new LfoResultView(new LfoResults(encounter.Id, await this.Presenter.GetOpener(encounter.Id))));

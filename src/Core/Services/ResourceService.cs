@@ -10,8 +10,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
-using RandomUtil = Blish_HUD.RandomUtil;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
@@ -35,42 +33,35 @@ namespace Nekres.ProofLogix.Core.Services {
         private IReadOnlyList<SoundEffect> _menuClicks;
         private SoundEffect                _menuItemClickSfx;
 
-        public SoundEffect MenuItemClickSfx => _menuItemClickSfx;
-        public SoundEffect MenuClickSfx  => _menuClicks[RandomUtil.GetRandom(0, 3)];
-
         private readonly IReadOnlyList<string> _loadingText = new List<string> {
             "Turning Vault upside down...",
             "Borrowing wallet...",
             "Tickling characters...",
-            "Asking Deimos if he's hurt...",
+            "High-fiving Deimos...",
             "Checking on Dhuum's cage...",
-            "Throwing rocks into the Mystic Forge...",
-            "Waiting for echo from the Mystic Forge...",
+            "Throwing rocks into Mystic Forge...",
             "Lock-picking Ahdashim...",
-            "Trying to mount Gorseval...",
-            "Locating Xera's scarf...",
-            "Checking on the bees...",
-            "Dismantling the White Mantle...",
+            "Mounting Gorseval...",
+            "Knitting Xera's ribbon...",
+            "Caring for the bees...",
+            "Dismantling White Mantle...",
             "Chasing Skritt...",
-            "Ransacking through bags...",
-            "Poking Saul D'Alessio with a stick...",
+            "Ransacking bags...",
+            "Poking Saul...",
             "Commanding golems...",
             "Polishing monocle...",
             "Running in circles...",
-            "Convincing Skritt not to hoard shinies...",
-            "Making sense of this inventory...",
-            "Pleading for Taimi's assistance...",
-            "Convincing Aurene to use her vision...",
+            "Scratching Slothasor...",
+            "Cleaning Kitty Golem...",
+            "Making sense of inventory...",
+            "Pleading for Glenna's assistance...",
+            "Counting achievements...",
             "Blowing away dust...",
-            "Calling upon the spirits...",
-            "Consulting the Order of Shadows...",
+            "Calling upon spirits...",
+            "Consulting Order of Shadows...",
             "Bribing Pact troops...",
             "Bribing Bankers..."
         };
-
-        public string GetLoadingSubtitle() {
-            return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
-        }
 
         public ResourceService() {
             LoadSounds();
@@ -83,6 +74,18 @@ namespace Nekres.ProofLogix.Core.Services {
             _apiIcons   = new Dictionary<int, AsyncTexture2D>();
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
+        }
+
+        public string GetLoadingSubtitle() {
+            return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
+        }
+
+        public void PlayMenuItemClick() {
+            _menuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+        }
+
+        public void PlayMenuClick() {
+            _menuClicks[RandomUtil.GetRandom(0, 3)].Play(GameService.GameIntegration.Audio.Volume, 0, 0);
         }
 
         public async Task LoadAsync(bool localeChange = false) {

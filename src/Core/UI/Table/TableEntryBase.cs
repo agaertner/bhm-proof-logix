@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public abstract class TableEntryBase : Control {
@@ -72,6 +71,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override void OnClick(MouseEventArgs e) {
+            base.OnClick(e);
+
             if (_timestampBounds.Contains(this.RelativeMousePosition)) {
                 ColumnClick?.Invoke(this, new ValueEventArgs<int>(0));
                 return;
@@ -100,7 +101,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 }
                 i++;
             }
-            base.OnClick(e);
         }
 
         protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
@@ -126,10 +126,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var tempTokenBounds = new List<Rectangle>();
             var tokenBounds = _accountNameBounds;
-            foreach (var obj in this.GetTokens(ProofLogix.Instance.TableConfig.Value.TokenIds.ToList())) {
+            foreach (var id in ProofLogix.Instance.TableConfig.Value.TokenIds) {
                 tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, 30, bounds.Height);
                 tempTokenBounds.Add(tokenBounds);
-                PaintToken(spriteBatch, tokenBounds, obj);
+                PaintToken(spriteBatch, tokenBounds, id);
             }
             _tokenBounds = tempTokenBounds;
         }
@@ -144,9 +144,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             return result;
         }
 
-        protected abstract IEnumerable<object> GetTokens(List<int> ids);
-
-        protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, object obj);
+        protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId);
 
         protected void UpdateTooltip(Rectangle bounds, string basicTooltipText) {
             if (!bounds.Contains(this.RelativeMousePosition)) {

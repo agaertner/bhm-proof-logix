@@ -6,8 +6,10 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             if (setting?.IsNull ?? true) {
                 return;
             }
-            setting.Value = null;
-            setting.Value = this as T;
+            // unset value first otherwise the references (old vs. new) would
+            // be the same and thus not pass as a property change required to invoke a save.
+            setting.Value = null; 
+            setting.Value = this as T; 
         }
     }
 }

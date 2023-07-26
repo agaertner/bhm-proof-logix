@@ -1,12 +1,10 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePlayerEntry : TableEntryBase {
@@ -17,8 +15,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _player, value);
         }
 
+        private bool _remember;
+        public bool Remember {
+            get => _remember;
+            set {
+                SetProperty(ref _remember, value);
+                SetBackgroundColor();
+            }
+        }
+
         public TablePlayerEntry(Player player) : base() {
-            _player = player;
+            _player  = player;
         }
 
         protected override string         Timestamp     => this.Player.Created.ToLocalTime().AsTimeAgo();
@@ -26,16 +33,30 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected override string         CharacterName => this.Player.CharacterName;
         protected override string         AccountName   => this.Player.AccountName;
 
-        protected override IEnumerable<object> GetTokens(List<int> ids) {
-            if (!this.Player.HasKpProfile) {
-                return Enumerable.Empty<object>().ToList();
-            }
-            return ids.Select(this.Player.KpProfile.GetToken);
+        protected override void OnMouseLeft(MouseEventArgs e) {
+            base.OnMouseLeft(e);
+            SetBackgroundColor();
         }
 
-        protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, object obj) {
-            var token = (Token)obj;
-            spriteBatch.DrawStringOnCtrl(this, token.Amount.ToString(), this.Font, bounds, Color.White, false, true, 2, HorizontalAlignment.Center);
+        protected override void OnMouseEntered(MouseEventArgs e) {
+            base.OnMouseEntered(e);
+            SetBackgroundColor();
+        }
+
+        private void SetBackgroundColor() {
+            if (this.IsHovering) {
+                this.BackgroundColor = (this.Remember ? Color.LightCyan : Color.LightBlue) * 0.2f;
+            } else {
+                this.BackgroundColor = this.Remember ? Color.LightGreen * 0.2f : Color.Transparent;
+            }
+        }
+
+        protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {
+            var token = this.Player.KpProfile.GetToken(tokenId);
+
+            var color = ProofLogix.Instance.PartySync.GetTokenAmountColor(tokenId, token.Amount, ProofLogix.Instance.TableConfig.Value.ColorGradingMode);
+
+            spriteBatch.DrawStringOnCtrl(this, token.Amount.ToString(), this.Font, bounds, color, false, true, 2, HorizontalAlignment.Center);
             UpdateTooltip(bounds, token.Name);
         }
     }
