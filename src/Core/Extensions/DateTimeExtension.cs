@@ -3,7 +3,7 @@
 namespace Nekres.ProofLogix.Core {
     public static class DateTimeExtensions {
         public static string AsTimeAgo(this DateTime dateTime) {
-            TimeSpan timeSpan = DateTime.Now.Subtract(dateTime);
+            var timeSpan = DateTime.Now.Subtract(dateTime);
 
             return timeSpan.TotalSeconds switch {
                 <= 2  => "just now",

@@ -87,7 +87,7 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var key = kpProfile.Name;
 
-            if (string.IsNullOrEmpty(key)) {
+            if (string.IsNullOrWhiteSpace(key)) {
                 return; // No account name to use as key.
             }
 
@@ -98,6 +98,7 @@ namespace Nekres.ProofLogix.Core.Services {
             if (this.LocalPlayer.HasKpProfile && this.LocalPlayer.KpProfile.BelongsTo(key, out _) || 
                  this.LocalPlayer.AccountName.ToLowerInvariant().Equals(key.ToLowerInvariant())) {
                 this.LocalPlayer.AttachProfile(kpProfile);
+                PlayerChanged?.Invoke(this, new ValueEventArgs<Player>(this.LocalPlayer));
                 return;
             }
 

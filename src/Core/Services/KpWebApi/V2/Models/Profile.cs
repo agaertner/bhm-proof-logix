@@ -92,7 +92,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public Token GetToken(int id) {
             return Tokens?.FirstOrDefault(x => x.Id == id) ??
                    Killproofs?.FirstOrDefault(x => x.Id == id) ??
-                   Coffers?.FirstOrDefault(x => x.Id    == id);
+                   Coffers?.FirstOrDefault(x => x.Id    == id) ?? Token.Empty;
         }
 
         public IEnumerable<Token> GetTokens() {
@@ -136,6 +136,10 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     }
 
     public sealed class Token {
+
+        public static Token Empty = new() {
+            Name = string.Empty
+        };
 
         [JsonProperty("id")]
         public int Id { get; set; }

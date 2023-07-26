@@ -88,7 +88,7 @@ namespace Nekres.ProofLogix.Core.Services {
         public async Task LoadAsync(bool localeChange = false) {
 
             await LoadProfessions(localeChange);
-            await LoadResources();
+            await LoadResources(localeChange);
         }
 
         private void LoadSounds() {
@@ -101,11 +101,17 @@ namespace Nekres.ProofLogix.Core.Services {
             };
         }
 
-        private async Task LoadResources() {
+        private async Task LoadResources(bool localeChange = false) {
             _resources = await ProofLogix.Instance.KpWebApi.GetResources();
 
             foreach (var wing in _resources.Wings) {
                 wing.Name = await GetMapName(wing.MapId);
+            }
+
+            if (!localeChange) {
+                foreach (var res in _resources.Items) {
+                    _apiIcons.Add(res.Id, res.Icon);
+                }
             }
         }
 
@@ -131,7 +137,7 @@ namespace Nekres.ProofLogix.Core.Services {
             return _resources.Wings.ToList();
         }
 
-        public List<Resource> GetItemsForMap(int mapId) {
+        public List<Resource> GetResourcesForMap(int mapId) {
             if (_resources.IsEmpty) {
                 return Enumerable.Empty<Resource>().ToList();
             }

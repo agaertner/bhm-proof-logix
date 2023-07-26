@@ -2,14 +2,14 @@
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
-using Nekres.ProofLogix.Core.Services;
-using System.Collections.Generic;
+using Nekres.ProofLogix.Core.UI.Configs;
+using System;
 using System.Linq;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
 
-        public StandardTable<string> Table;
+        public FlowPanel Table;
 
         public TableView(TableConfig config) {
             this.WithPresenter(new TablePresenter(this, config));
@@ -91,40 +91,46 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 notFoundLabel.Visible = false;
             };
 
-            var tableContainer = new Panel {
+            this.Table = new FlowPanel {
                 Parent = buildPanel,
                 Top = search.Bottom + Panel.TOP_PADDING,
                 Width  = buildPanel.ContentRegion.Width,
                 Height = buildPanel.ContentRegion.Height - search.Height - Panel.TOP_PADDING,
-                CanScroll = true
-            };
-
-            var row = new List<object> {
-                string.Empty, "Character", "Account"
-            };
-
-            var tokens = ProofLogix.Instance.Resources.GetItemsForMap(GameService.Gw2Mumble.CurrentMap.Id)
-                                   .Select(item => item.Icon).Cast<object>();
-
-            row.AddRange(tokens); 
-
-            this.Table = new StandardTable<string>(row.ToArray()) {
-                Parent = tableContainer,
-                Width  = tableContainer.Width,
-                Height = tableContainer.Height,
-                Font   = GameService.Content.DefaultFont16
+                CanScroll = true,
+                ControlPadding = new Vector2(5,5),
+                OuterControlPadding = new Vector2(5,5),
+                FlowDirection = ControlFlowDirection.SingleTopToBottom
             };
 
             buildPanel.ContentResized += (_, e) => {
-                tableContainer.Width  = e.CurrentRegion.Width;
-                tableContainer.Height = e.CurrentRegion.Height - search.Height - Panel.TOP_PADDING;
+                this.Table.Width  = e.CurrentRegion.Width;
+                this.Table.Height = e.CurrentRegion.Height - search.Height - Panel.TOP_PADDING;
             };
 
+            var headerEntry = new TableHeaderEntry {
+                Parent = this.Table,
+                Width  = this.Table.ContentRegion.Width,
+                Height = 32
+            };
+
+            this.Table.ContentResized += (_, e) => {
+                headerEntry.Width = e.CurrentRegion.Width;
+            };
+
+            headerEntry.ColumnClick += HeaderEntry_ColumnClick;
+            this.Presenter.AddPlayer(ProofLogix.Instance.PartySync.LocalPlayer);
             foreach (var player in ProofLogix.Instance.PartySync.PlayerList) {
                 this.Presenter.AddPlayer(player);
             }
+            this.Presenter.SortEntries();
 
             base.Build(buildPanel);
+        }
+
+        private void HeaderEntry_ColumnClick(object sender, ValueEventArgs<int> e) {
+            this.Presenter.Model.SelectedColumn  = e.Value;
+            this.Presenter.Model.OrderDescending = !this.Presenter.Model.OrderDescending;
+            this.Presenter.SortEntries();
         }
     }
 }
