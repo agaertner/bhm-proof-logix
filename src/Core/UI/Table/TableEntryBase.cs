@@ -1,14 +1,13 @@
-﻿using System;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public abstract class TableEntryBase : Control {
@@ -132,7 +131,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 tempTokenBounds.Add(tokenBounds);
                 PaintToken(spriteBatch, tokenBounds, obj);
             }
-            Interlocked.Exchange(ref _tokenBounds, tempTokenBounds);
+            _tokenBounds = tempTokenBounds;
         }
 
         private string Cut(string text, int maxWidth) {
