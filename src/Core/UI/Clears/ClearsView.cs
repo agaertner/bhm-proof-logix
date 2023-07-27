@@ -32,7 +32,7 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
         /// Display encounter weekly clear states from <see cref="Services.Gw2WebApiService"/> like<br/>
         /// clears from <see cref="Services.KpWebApiService"/>.
         /// </summary>
-        /// <param name="clears">Cleared encounter ids</param>
+        /// <param name="clears">Cleared encounter ids like they are reported by <see cref="Services.Gw2WebApiService.GetClears"/></param>
         public ClearsView(List<string> clears) : this() {
             var raids = ProofLogix.Instance.Resources.GetRaids();
             _clears = (from wing in raids.SelectMany(raid => raid.Wings)

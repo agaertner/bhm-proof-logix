@@ -1,9 +1,8 @@
 ﻿using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
-using Nekres.ProofLogix.Core.Services;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
+using Nekres.ProofLogix.Core.UI.Configs;
 using System;
-using Blish_HUD;
 
 namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
     public class LfoView : View<LfoPresenter>{
@@ -54,7 +53,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
             foreach (var region in Enum.GetNames(typeof(Opener.ServerRegion))) {
                 regionSelect.Items.Add(region);
             }
-            regionSelect.SelectedItem =  ProofLogix.Instance.Region.Value;
+            regionSelect.SelectedItem =  ProofLogix.Instance.LfoConfig.Value.Region.ToString();
             regionSelect.ValueChanged += (_, e) => this.Presenter.SetRegion(e.CurrentValue);
 
             buildPanel.ContentResized += (_, e) => {
@@ -87,7 +86,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     Text = $"Wing {wingNr}"
                 };
 
-                wingItem.Click += (_, _) => ProofLogix.Instance.Resources.MenuClickSfx.Play(GameService.GameIntegration.Audio.Volume,0,0);
+                wingItem.Click += (_, _) => ProofLogix.Instance.Resources.PlayMenuClick();
 
                 foreach (var encounter in wing.Events) {
 
@@ -99,11 +98,10 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     };
 
                     encounterItem.Click += async (_, _) => {
-                        ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
-                        this.Presenter.SetEncounterId(encounter.Id);
+                        ProofLogix.Instance.Resources.PlayMenuItemClick();
                         resultContainer.Show(new LoadingView("Searching..."));
                         resultContainer
-                           .Show(new LfoResultView(new LfoResults(this.Presenter.Model.EncounterId, await this.Presenter.GetOpener())));
+                           .Show(new LfoResultView(new LfoResults(encounter.Id, await this.Presenter.GetOpener(encounter.Id))));
                     };
                 }
             }

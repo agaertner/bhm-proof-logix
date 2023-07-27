@@ -5,8 +5,11 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
+using MonoGame.Extended.Collections;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.UI;
+using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.Home;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
@@ -24,10 +27,10 @@ namespace Nekres.ProofLogix {
         internal static ProofLogix Instance { get; private set; }
 
         #region Service Managers
-        internal SettingsManager SettingsManager => this.ModuleParameters.SettingsManager;
-        internal ContentsManager ContentsManager => this.ModuleParameters.ContentsManager;
-        internal DirectoriesManager DirectoriesManager => this.ModuleParameters.DirectoriesManager;
-        internal Gw2ApiManager Gw2ApiManager => this.ModuleParameters.Gw2ApiManager;
+        internal SettingsManager    SettingsManager     => this.ModuleParameters.SettingsManager;
+        internal ContentsManager    ContentsManager     => this.ModuleParameters.ContentsManager;
+        internal DirectoriesManager DirectoriesManager  => this.ModuleParameters.DirectoriesManager;
+        internal Gw2ApiManager      Gw2ApiManager       => this.ModuleParameters.Gw2ApiManager;
         #endregion
 
         [ImportingConstructor]
@@ -38,9 +41,6 @@ namespace Nekres.ProofLogix {
         internal PartySyncService PartySync;
         internal Gw2WebApiService Gw2WebApi;
 
-        private TableConfig _tableConfig;
-        private LfoConfig   _lfoConfig;
-
         private TabbedWindow2     _window;
         private OversizableWindow _table;
         private StandardWindow    _registerWindow;
@@ -48,11 +48,22 @@ namespace Nekres.ProofLogix {
         private CornerIcon        _cornerIcon;
         private AsyncTexture2D    _icon;
 
-        internal SettingEntry<string> Region;
+        internal SettingEntry<LfoConfig>  LfoConfig;
+        internal SettingEntry<TableConfig> TableConfig;
 
         protected override void DefineSettings(SettingCollection settings) {
-            var selfManaged = settings.AddSubCollection("lfo", false, false);
-            Region = selfManaged.DefineSetting("server_region", "EU");
+            var selfManaged = settings.AddSubCollection("configs", false, false);
+            LfoConfig       = selfManaged.DefineSetting("lfo_config", new LfoConfig {
+                Region = Opener.ServerRegion.EU
+            });
+            TableConfig = selfManaged.DefineSetting("table_config", new TableConfig {
+                ProfileIds = new ObservableCollection<string>(),
+                TokenIds = new ObservableCollection<int> {
+                    77302,
+                    94020,
+                    93781
+                }
+            });
         }
 
         protected override void Initialize() {
@@ -91,10 +102,8 @@ namespace Nekres.ProofLogix {
                 Visible = false
             };
 
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(), "Account"));
-
-            _lfoConfig = new LfoConfig();
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(_lfoConfig), "Looking for Opener"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(),          "Account"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(LfoConfig.Value), "Looking for Opener"));
 
             _window.TabChanged += OnTabChanged;
 
@@ -114,8 +123,6 @@ namespace Nekres.ProofLogix {
                 CanCloseWithEscape = false, // Prevents accidental closing as table is treated as part of the HUD.
                 Visible            = false
             };
-            _tableConfig = new TableConfig();
-
             _cornerIcon.Click += OnCornerIconClick;
 
             // Base handler must be called
@@ -147,7 +154,7 @@ namespace Nekres.ProofLogix {
         }
 
         public void ToggleTable() {
-            _table.ToggleWindow(new TableView(_tableConfig));
+            _table.ToggleWindow(new TableView(TableConfig.Value));
         }
 
         private void OnTabChanged(object sender, ValueChangedEventArgs<Tab> e) {
@@ -174,6 +181,7 @@ namespace Nekres.ProofLogix {
             KpWebApi.Dispose();
             PartySync.Dispose();
             Resources.Dispose();
+            Gw2WebApi.Dispose();
 
             // All static members must be manually unset
             Instance = null;

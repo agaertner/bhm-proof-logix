@@ -1,5 +1,4 @@
-﻿using Blish_HUD;
-using Blish_HUD.ArcDps.Common;
+﻿using Blish_HUD.ArcDps.Common;
 using Blish_HUD.Content;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
@@ -13,6 +12,8 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
 
         public Profile KpProfile     { get; private set; }
 
+        public DateTime Created { get; private set; }
+
         public string  AccountName => HasAgent ? _arcDpsPlayer.AccountName : 
                                       HasKpProfile ? KpProfile.Name : string.Empty;
 
@@ -24,19 +25,25 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         public string         Class => GetClass();
         public AsyncTexture2D Icon  => GetIcon();
 
-        
+
         private CommonFields.Player _arcDpsPlayer;
 
         public Player() {
-            /* NOOP */
+            this.Created   = DateTime.UtcNow;
+            this.KpProfile = Profile.Empty;
         }
 
-        public Player(CommonFields.Player agent) {
+        public Player(CommonFields.Player agent) : this() {
             _arcDpsPlayer = agent;
         }
 
-        public Player(Profile profile) {
+        public Player(Profile profile) : this() {
             this.KpProfile = profile;
+        }
+
+        public bool Equals(Player other) {
+            return this.AccountName.Equals(other.AccountName, StringComparison.InvariantCultureIgnoreCase)
+                || this.HasKpProfile && this.KpProfile.BelongsTo(other.AccountName, out _);
         }
 
         public void AttachAgent(CommonFields.Player arcDpsPlayer) {

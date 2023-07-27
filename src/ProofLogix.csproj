@@ -249,6 +249,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Extensions\DateTimeExtension.cs" />
+    <Compile Include="Core\Extensions\EnumerableExtensions.cs" />
     <Compile Include="Core\Extensions\ObjectExtensions.cs" />
     <Compile Include="Core\Extensions\StringExtensions.cs" />
     <Compile Include="Core\Services\Gw2WebApiService.cs" />
@@ -274,20 +275,23 @@
     <Compile Include="Core\Services\PartySync\Models\Player.cs" />
     <Compile Include="Core\Services\ResourceService.cs" />
     <Compile Include="Core\UI\Clears\ClearsView.cs" />
+    <Compile Include="Core\UI\Configs\ConfigBase.cs" />
     <Compile Include="Core\UI\FlowPanelWithIcon.cs" />
     <Compile Include="Core\UI\Home\HomeView.cs" />
     <Compile Include="Core\UI\LoadingView.cs" />
-    <Compile Include="Core\UI\LookingForOpener\LFOConfig.cs" />
+    <Compile Include="Core\UI\Configs\LFOConfig.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOPresenter.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOResultView.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOView.cs" />
     <Compile Include="Core\UI\ItemWithAmount.cs" />
     <Compile Include="Core\UI\KpProfile\RefreshButton.cs" />
     <Compile Include="Core\UI\Register\Register.cs" />
-    <Compile Include="Core\UI\StandardTable.cs" />
     <Compile Include="Core\UI\KpProfile\ProfileView.cs" />
+    <Compile Include="Core\UI\Table\TableEntryBase.cs" />
+    <Compile Include="Core\UI\Table\TableHeaderEntry.cs" />
+    <Compile Include="Core\UI\Table\TablePlayerEntry.cs" />
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
-    <Compile Include="Core\UI\Table\TableConfig.cs" />
+    <Compile Include="Core\UI\Configs\TableConfig.cs" />
     <Compile Include="Core\UI\Table\TableView.cs" />
     <Compile Include="Core\UI\OversizableWindow.cs" />
     <Compile Include="Core\UI\TrackableWindow.cs" />

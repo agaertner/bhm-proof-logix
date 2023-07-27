@@ -36,7 +36,7 @@ namespace Nekres.ProofLogix.Core.UI {
         public override void PaintBeforeChildren(SpriteBatch spriteBatch, Rectangle bounds) {
             base.PaintBeforeChildren(spriteBatch, bounds); // Draw header layout first.
 
-            // Don't draw icon when we don't have a header layout eg. when there is no title.
+            // Don't draw icon when no header layout was drawn eg. when there is no title.
             if (!string.IsNullOrEmpty(_title) && _icon is {HasSwapped: true, HasTexture: true}) {
                 spriteBatch.DrawOnCtrl(this, _icon, _layoutHeaderIconBounds, Color.White);
             }

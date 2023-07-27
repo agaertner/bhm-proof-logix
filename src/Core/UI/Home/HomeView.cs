@@ -65,7 +65,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Collapsed = false
             };
 
-            separatorEntry.Click += (_, _) => ProofLogix.Instance.Resources.MenuClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+            separatorEntry.Click += (_, _) => ProofLogix.Instance.Resources.PlayMenuClick();
 
             var myProfileEntry = new MenuItem {
                 Parent = separatorEntry,
@@ -109,7 +109,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             proofsEntry.Click += async (_, _) => {
-                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
                     ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
@@ -129,7 +129,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             clearsEntry.Click += async (_, _) => {
-                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
                     ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
@@ -141,7 +141,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             myProfileEntry.Click += (_, _) => {
-                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var localPlayer = ProofLogix.Instance.PartySync.LocalPlayer;
 
@@ -159,7 +159,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             squadTableEntry.Click += (_, _) => {
-                ProofLogix.Instance.Resources.MenuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
                 ProofLogix.Instance.ToggleTable();
             };
 
@@ -242,7 +242,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                         name = $"{item.Count}x {name}";
                     }
 
-                    var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetResource(item.Id).Icon) {
+                    var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetItem(item.Id).Icon) {
                         Parent = slotsCategory,
                         Width = 64,
                         Height = 64,

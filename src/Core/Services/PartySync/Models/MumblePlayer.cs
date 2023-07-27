@@ -14,5 +14,9 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         protected override int GetProfession() {
             return (int)GameService.Gw2Mumble.PlayerCharacter.Profession;
         }
+
+        public MumblePlayer() : base() {
+            /* NOOP */
+        }
     }
 }

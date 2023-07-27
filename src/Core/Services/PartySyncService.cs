@@ -1,5 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.ArcDps.Common;
+using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
 namespace Nekres.ProofLogix.Core.Services {
-    internal class PartySyncService : IDisposable {
+    public class PartySyncService : IDisposable {
 
         public event EventHandler<ValueEventArgs<Player>> PlayerAdded;
         public event EventHandler<ValueEventArgs<Player>> PlayerRemoved;
@@ -29,6 +30,15 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private const int MAX_HISTORY_LENGTH = 100;
 
+        private readonly Color _redShift = new(255, 57, 57);
+
+        public enum ColorGradingMode {
+            LocalPlayerComparison,
+            MedianComparison,
+            LargestComparison
+            //CustomComparison
+        }
+
         public PartySyncService() {
             this.LocalPlayer = new MumblePlayer();
 
@@ -41,6 +51,29 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.ArcDps.Common.PlayerRemoved += OnPlayerLeft;
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
+        }
+
+        public Color GetTokenAmountColor(int id, int amount, ColorGradingMode gradingMode) {
+            float maxAmount = amount;
+            switch (gradingMode) {
+                case ColorGradingMode.LocalPlayerComparison:
+                    maxAmount = this.LocalPlayer.KpProfile.GetToken(id).Amount;
+                    break;
+                case ColorGradingMode.MedianComparison:
+                    // Players can have wildly different amounts and as such the distribution can be far from symmetrically.
+                    // We use median here because extreme outliers don't affect it.
+                    maxAmount = _members.Count > 0 ? (float)_members.Values.Median(member => member.KpProfile.GetToken(id).Amount) : amount;
+                    break;
+                case ColorGradingMode.LargestComparison:
+                    maxAmount = GetLargestAmount(id);
+                    break;
+            }
+            var diff = maxAmount - amount;
+            return diff <= 0 ? Color.White : Color.Lerp(Color.White, _redShift, diff / maxAmount);
+        }
+
+        private int GetLargestAmount(int id) {
+            return _members.Values.Max(x => x.KpProfile.GetToken(id).Amount);
         }
 
         /// <summary>
@@ -87,7 +120,7 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var key = kpProfile.Name;
 
-            if (string.IsNullOrEmpty(key)) {
+            if (string.IsNullOrWhiteSpace(key)) {
                 return; // No account name to use as key.
             }
 
@@ -98,6 +131,7 @@ namespace Nekres.ProofLogix.Core.Services {
             if (this.LocalPlayer.HasKpProfile && this.LocalPlayer.KpProfile.BelongsTo(key, out _) || 
                  this.LocalPlayer.AccountName.ToLowerInvariant().Equals(key.ToLowerInvariant())) {
                 this.LocalPlayer.AttachProfile(kpProfile);
+                PlayerChanged?.Invoke(this, new ValueEventArgs<Player>(this.LocalPlayer));
                 return;
             }
 
@@ -148,6 +182,12 @@ namespace Nekres.ProofLogix.Core.Services {
                 key = existingAccount;
             };
 
+            if (arcDpsPlayer.Self) {
+                this.LocalPlayer.AttachAgent(arcDpsPlayer);
+                PlayerChanged?.Invoke(this, new ValueEventArgs<Player>(this.LocalPlayer));
+                return;
+            }
+
             var member = _members.AddOrUpdate(key.ToLowerInvariant(), _ => {
 
                 var member = new Player(arcDpsPlayer);
@@ -186,12 +226,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
         #region ArcDps Player Events
         private async void OnPlayerJoin(CommonFields.Player player) {
-
-            if (player.Self) {
-                this.LocalPlayer.AttachAgent(player);
-                return;
-            }
-
             AddArcDpsAgent(player);
             AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName));
         }
