@@ -24,6 +24,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("fractals")]
         public List<Resource> Fractals { get; set; }
 
+        [JsonProperty("strikes")]
+        public List<Resource> Strikes { get; set; }
+
         [JsonProperty("raids")]
         public List<Raid> Raids { get; set; }
 
@@ -35,8 +38,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                                                   .SelectMany(ev => ev.GetTokens())
                                                   .Concat(this.Fractals)
                                                   .Concat(this.GeneralTokens)
+                                                  .Concat(this.Strikes)
                                                   .GroupBy(resource => resource.Id)
                                                   .Select(group => group.First());
+
+        public Resources() {
+            this.Strikes = new List<Resource>();
+        }
     }
 
     public class Resource {
@@ -49,9 +57,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("id")]
         public int Id { get; set; }
 
-        public AsyncTexture2D Icon => !string.IsNullOrEmpty(this.IconUrl)
+        public AsyncTexture2D Icon => !string.IsNullOrWhiteSpace(this.IconUrl)
                                           ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
-                                          : ContentService.Textures.TransparentPixel;
+                                          : ProofLogix.Instance.Resources.GetApiIcon(this.Id);
     }
 
     public class Raid {
@@ -114,10 +122,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
                     if (this.Token != null) {
                         result.Add(this.Token);
-                    }
-
-                    if (this.Miniatures != null) {
-                        result.AddRange(this.Miniatures);
                     }
 
                     return result;

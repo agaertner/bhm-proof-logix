@@ -65,14 +65,14 @@ namespace Nekres.ProofLogix.Core.Services {
                     maxAmount = _members.Count > 0 ? (float)_members.Values.Median(member => member.KpProfile.GetToken(id).Amount) : amount;
                     break;
                 case ColorGradingMode.LargestComparison:
-                    maxAmount = GetBiggestAmount(id);
+                    maxAmount = GetLargestAmount(id);
                     break;
             }
             var diff = maxAmount - amount;
             return diff <= 0 ? Color.White : Color.Lerp(Color.White, _redShift, diff / maxAmount);
         }
 
-        private int GetBiggestAmount(int id) {
+        private int GetLargestAmount(int id) {
             return _members.Values.Max(x => x.KpProfile.GetToken(id).Amount);
         }
 

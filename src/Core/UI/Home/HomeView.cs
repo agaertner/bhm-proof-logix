@@ -242,7 +242,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                         name = $"{item.Count}x {name}";
                     }
 
-                    var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetResource(item.Id).Icon) {
+                    var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetItem(item.Id).Icon) {
                         Parent = slotsCategory,
                         Width = 64,
                         Height = 64,

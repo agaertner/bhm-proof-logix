@@ -7,6 +7,7 @@ using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
@@ -21,12 +22,19 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             ((WindowBase2)buildPanel).Subtitle = "Squad Tracker";
 
-            var search = new TextBox {
+            var cogWheel = new Image(GameService.Content.DatAssetCache.GetTextureFromAssetId(155052)) {
                 Parent = buildPanel,
-                Width = 200,
-                Height = 32,
-                Font = GameService.Content.DefaultFont18,
-                PlaceholderText = "Search..",
+                Width = 32,
+                Height = 32
+            };
+
+            var search = new TextBox {
+                Parent           = buildPanel,
+                Width            = 200,
+                Height           = 32,
+                Left             = cogWheel.Right + Control.ControlStandard.ControlOffset.X,
+                Font             = GameService.Content.DefaultFont18,
+                PlaceholderText  = "Search..",
                 BasicTooltipText = "Guild Wars 2 account, character name or \nKillproof.me identifier."
             };
 
@@ -124,14 +132,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             }
             this.Presenter.SortEntries();
 
-            var cogWheel = new Image(GameService.Content.DatAssetCache.GetTextureFromAssetId(155052)) {
-                Parent = buildPanel,
-                Left = notFoundLabel.Right + Control.ControlStandard.ControlOffset.X,
-                Top = search.Top
-            };
-
-            cogWheel.Click += (_, _) => GameService.Content.PlaySoundEffectByName("button-click");
-
             var menu = new ContextMenuStrip {
                 Parent = buildPanel,
                 ClipsBounds = false
@@ -146,8 +146,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             foreach (var mode in Enum.GetValues(typeof(PartySyncService.ColorGradingMode)).Cast<PartySyncService.ColorGradingMode>()) {
 
                 var suffixTooltip = mode switch {
-                    PartySyncService.ColorGradingMode.LocalPlayerComparison => "your own.",
-                    PartySyncService.ColorGradingMode.MedianComparison      => "the median of the party.",
+                    PartySyncService.ColorGradingMode.LocalPlayerComparison => "your own",
+                    PartySyncService.ColorGradingMode.MedianComparison      => "the median of the party",
                     PartySyncService.ColorGradingMode.LargestComparison     => "the player with the largest amount",
                     _                                                       => string.Empty
                 };
@@ -156,32 +156,95 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                     Parent   = colorGradingModeCategory.Submenu,
                     CanCheck = true,
                     Checked = this.Presenter.Model.ColorGradingMode == mode,
-                    BasicTooltipText = $"Highlight amounts by comparison to {suffixTooltip}"
+                    BasicTooltipText = $"Highlight low amounts by comparison to {suffixTooltip}."
                 };
 
                 colorGradingMode.CheckedChanged += (o, e) => {
                     if (!e.Checked) {
-                        // Immediatelly rechecks on uncheck which visually disables unchecking.
+                        // Immediately rechecks on uncheck which visually disables unchecking.
                         // CheckedChanged is invoked twice due to this lazyness but it gets the job done.
                         if (colorGradingModeEntries.All(x => !x.Checked)) {
                             // If all are unchecked here we know that this was the sole one and needs to be rechecked.
                             colorGradingMode.Checked = true;
                         }
-                        return;
+                        return; // Do nothing for the forced unchecks.
                     }
-                    // Uncheck all except the clicked mode.
+                    // Force uncheck all except click sender.
                     foreach (var entry in colorGradingModeEntries.Where(x => x != o)) {
                         entry.Checked = false;
                     }
                     this.Presenter.Model.ColorGradingMode = mode;
                     GameService.Content.PlaySoundEffectByName("color-change");
                 };
-
                 colorGradingModeEntries.Add(colorGradingMode);
             }
 
-            cogWheel.Click += (_, _) => menu.Show(GameService.Input.Mouse.Position);
+            var proofsCategory = new ContextMenuStripItem("Proofs") {
+                Parent  = menu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            var generalCategory = new ContextMenuStripItem("General") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(generalCategory, ProofLogix.Instance.Resources.GetGeneralItems());
+
+            var raidsCategory = new ContextMenuStripItem("Raids") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            var i = 1;
+            foreach (var wing in ProofLogix.Instance.Resources.GetWings()) {
+                var wingEntry = new ContextMenuStripItem($"Wing {i++}") {
+                    Parent  = raidsCategory.Submenu,
+                    Submenu = new ContextMenuStrip()
+                };
+
+                AddProofEntries(wingEntry, wing.Events.Where(ev => ev.Token != null).Select(ev => ev.Token));
+            }
+
+            var strikesCategory = new ContextMenuStripItem("Strikes") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(strikesCategory, ProofLogix.Instance.Resources.GetItemsForStrikes());
+
+            var fractalsCategory = new ContextMenuStripItem("Fractals") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(fractalsCategory, ProofLogix.Instance.Resources.GetItemsForFractals());
+
+            cogWheel.Click += (_, _) => {
+                GameService.Content.PlaySoundEffectByName("button-click");
+                menu.Show(GameService.Input.Mouse.Position);
+            };
+
             base.Build(buildPanel);
+        }
+
+        private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources) {
+            foreach (var resource in resources) {
+                var tokenEntry = new ContextMenuStripItem(resource.Name) {
+                    Parent   = parent.Submenu,
+                    CanCheck = true,
+                    Checked  = this.Presenter.Model.TokenIds.Any(id => id == resource.Id)
+                };
+                tokenEntry.CheckedChanged += (_, e) => {
+                    if (e.Checked) {
+                        this.Presenter.Model.TokenIds.Add(resource.Id);
+                        GameService.Content.PlaySoundEffectByName("color-change");
+                    } else {
+                        this.Presenter.Model.TokenIds.Remove(resource.Id);
+                        ProofLogix.Instance.Resources.PlayMenuItemClick();
+                    }
+                };
+            }
         }
 
         private void HeaderEntry_ColumnClick(object sender, ValueEventArgs<int> e) {

@@ -16,7 +16,6 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         }
 
         private ObservableCollection<int> _tokenIds;
-
         [JsonProperty("token_ids")]
         public ObservableCollection<int> TokenIds {
             get => _tokenIds;
@@ -29,7 +28,6 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         }
 
         private bool _orderDescending;
-
         [JsonProperty("order_descending")]
         public bool OrderDescending {
             get => _orderDescending;
@@ -50,7 +48,6 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         }
 
         private ObservableCollection<string> _profileIds;
-
         [JsonProperty("profile_ids")]
         public ObservableCollection<string> ProfileIds {
             get => _profileIds;

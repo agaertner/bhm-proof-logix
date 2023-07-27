@@ -1,12 +1,11 @@
-﻿using System;
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
+using Nekres.ProofLogix.Core.UI.KpProfile;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Blish_HUD.Controls;
-using Nekres.ProofLogix.Core.UI.KpProfile;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
@@ -27,7 +26,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         public void AddPlayer(Player player) {
             if (TryGetPlayerEntry(player, out var playerEntry)) {
-                playerEntry.Player = player;
+                playerEntry.Player = player; // Reassign just in case it's a new player.
                 return;
             }
 
@@ -40,7 +39,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             var entry = new TablePlayerEntry(player) {
                 Parent = table,
                 Width = table.ContentRegion.Width,
-                Height = 32
+                Height = 32,
+                Remember = this.Model.ProfileIds.Any(id => id.Equals(player.KpProfile.Id))
+                        || player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)
             };
 
             entry.LeftMouseButtonReleased += (_, _) => {
@@ -49,10 +50,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             entry.RightMouseButtonReleased += (_, _) => {
-                if (player == ProofLogix.Instance.PartySync.LocalPlayer) {
+                if (player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)) {
                     return;
                 }
-
                 if (entry.Remember) {
                     GameService.Content.PlaySoundEffectByName("button-click");
                     this.Model.ProfileIds.Remove(entry.Player.KpProfile.Id);
@@ -63,8 +63,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 entry.Remember = !entry.Remember;
             };
 
-            entry.Remember = this.Model.ProfileIds.Any(id => id.Equals(entry.Player.KpProfile.Id)) || player == ProofLogix.Instance.PartySync.LocalPlayer;
-
             table.ContentResized += (_, e) => {
                 entry.Width = e.CurrentRegion.Width;
             };
@@ -73,42 +71,29 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
-            if (this.View.Table == null) {
-                return;
-            }
-
-            if (TryGetPlayerEntry(e.Value, out var playerEntry)) {
+            if (this.View.Table != null && TryGetPlayerEntry(e.Value, out var playerEntry)) {
                 this.View.Table.RemoveChild(playerEntry);
             }
         }
 
         private void PlayerAddedOrChanged(object sender, ValueEventArgs<Player> e) {
-            if (this.View.Table == null) {
-                return;
+            if (this.View.Table != null) {
+                AddPlayer(e.Value);
             }
-            AddPlayer(e.Value);
         }
 
         private bool TryGetPlayerEntry(Player player, out TablePlayerEntry playerEntry) {
-            var key = player.AccountName?.ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(key)) {
-                playerEntry = null;
-                return false;
-            }
-            playerEntry = this.View.Table.GetDescendants().FirstOrDefault(x => x is TablePlayerEntry ctrl && ctrl.Player.AccountName.ToLowerInvariant().Equals(key)) 
+            playerEntry = this.View.Table.GetDescendants().FirstOrDefault(x => x is TablePlayerEntry ctrl && ctrl.Player.Equals(player)) 
                               as TablePlayerEntry;
             return playerEntry != null;
         }
 
         public void SortEntries() {
-            var list = this.View.Table.Children.Cast<TablePlayerEntry>().ToList();
-            list.Sort(Comparer);
-            this.View.Table.GetPrivateField("_children").SetValue(this.View.Table, new ControlCollection<Control>(list));
-            this.View.Table.Invalidate();
+            this.View.Table.SortChildren<TablePlayerEntry>(Comparer);
         }
 
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
-            var column     = this.Model.SelectedColumn;
+            var column = this.Model.SelectedColumn;
             var comparison = 0;
             if (column == 0) {
                 comparison = x.Player.Created.CompareTo(y.Player.Created);
@@ -126,6 +111,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 comparison = string.Compare(x.Player.AccountName, y.Player.AccountName, StringComparison.InvariantCultureIgnoreCase);
             }
 
+            // All trailing columns are known to be tokens.
             if (column >= 4) {
                 var id = ProofLogix.Instance.TableConfig.Value.TokenIds[column - 4];
                 comparison = x.Player.KpProfile.GetToken(id).Amount.CompareTo(y.Player.KpProfile.GetToken(id).Amount);

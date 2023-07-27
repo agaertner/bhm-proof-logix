@@ -88,10 +88,22 @@ namespace Nekres.ProofLogix.Core.Services {
             _menuClicks[RandomUtil.GetRandom(0, 3)].Play(GameService.GameIntegration.Audio.Volume, 0, 0);
         }
 
-        public async Task LoadAsync(bool localeChange = false) {
+        public void AddNewResources(Profile profile) {
+            if (_resources.IsEmpty || profile.IsEmpty) {
+                return;
+            }
 
+            foreach (var token in profile.GetTokens().Where(token => _resources.Items.All(x => x.Id != token.Id))) {
+                _resources.Strikes.Add(new Resource {
+                    Id   = token.Id,
+                    Name = token.Name
+                });
+            }
+        }
+
+        public async Task LoadAsync(bool localeChange = false) {
             await LoadProfessions(localeChange);
-            await LoadResources(localeChange);
+            await LoadResources();
         }
 
         private void LoadSounds() {
@@ -104,18 +116,13 @@ namespace Nekres.ProofLogix.Core.Services {
             };
         }
 
-        private async Task LoadResources(bool localeChange = false) {
+        private async Task LoadResources() {
             _resources = await ProofLogix.Instance.KpWebApi.GetResources();
-
             foreach (var wing in _resources.Wings) {
                 wing.Name = await GetMapName(wing.MapId);
             }
 
-            if (!localeChange) {
-                foreach (var res in _resources.Items) {
-                    _apiIcons.Add(res.Id, res.Icon);
-                }
-            }
+            AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
         }
 
         public List<Token> FilterObsoleteItems(IEnumerable<Token> tokens) {
@@ -130,43 +137,6 @@ namespace Nekres.ProofLogix.Core.Services {
         public AsyncTexture2D GetClassIcon(int profession, int elite) {
             return _eliteIcons.TryGetValue(elite, out var icon) ? icon :
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
-        }
-
-        public Resource GetResource(int id) {
-            return _resources.Items.FirstOrDefault(item => item.Id == id);
-        }
-
-        public List<Raid.Wing> GetWings() {
-            return _resources.Wings.ToList();
-        }
-
-        public List<Resource> GetResourcesForMap(int mapId) {
-            if (_resources.IsEmpty) {
-                return Enumerable.Empty<Resource>().ToList();
-            }
-
-            var items = _resources.Raids.SelectMany(x => x.Wings)
-                                   .Where(x => x.MapId == mapId)
-                                   .SelectMany(x => x.Events)
-                                   .SelectMany(x => x.GetTokens());
-
-            return items.ToList();
-        }
-
-        public List<Resource> GetItemsForFractals(bool includeOld = false) {
-            var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
-            if (!includeOld) {
-                fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
-            return fractalItems.ToList();
-        }
-
-        public List<Resource> GetGeneralItems(bool includeOld = false) {
-            var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
-            if (!includeOld) {
-                generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
-            return generalItems.ToList();
         }
 
         public AsyncTexture2D GetApiIcon(int itemId) {
@@ -230,13 +200,53 @@ namespace Nekres.ProofLogix.Core.Services {
             _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
         }
 
+        public Resource GetItem(int id) {
+            return _resources.Items.FirstOrDefault(item => item.Id == id);
+        }
+
         public List<Resource> GetItems() {
             return _resources.Items.ToList();
+        }
+
+        public List<Resource> GetItemsForStrikes() {
+            return _resources.Strikes;
+        }
+
+        public List<Resource> GetItemsForFractals(bool includeOld = false) {
+            var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
+            if (!includeOld) {
+                fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
+            }
+            return fractalItems.ToList();
+        }
+
+        public List<Resource> GetGeneralItems(bool includeOld = false) {
+            var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
+            if (!includeOld) {
+                generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
+            }
+            return generalItems.ToList();
+        }
+
+        public List<Resource> GetItemsForMap(int mapId) {
+            if (_resources.IsEmpty) {
+                return Enumerable.Empty<Resource>().ToList();
+            }
+
+            var items = _resources.Raids.SelectMany(x => x.Wings)
+                                  .Where(x => x.MapId == mapId)
+                                  .SelectMany(x => x.Events)
+                                  .SelectMany(x => x.GetTokens());
+
+            return items.ToList();
+        }
+
+        public List<Raid.Wing> GetWings() {
+            return _resources.Wings.ToList();
         }
 
         public List<Raid> GetRaids() {
             return _resources.Raids;
         }
-
     }
 }

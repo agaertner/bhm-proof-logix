@@ -255,8 +255,9 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 // Don't use this as reference. Changing current view from inside current view like the following is a sin.
                 // A more clean approach would be if this refresh button was outside this view and not be refreshed with it.
                 // However, there is no space so we doing this quick and dirty.
-                var loadingText = new AsyncString();
-                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing...", loadingText));
+                var basicTooltipText = new AsyncString();
+                var loadingText      = new AsyncString();
+                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing...", loadingText, basicTooltipText));
 
                 if (!await ProofLogix.Instance.KpWebApi.Refresh(_profile.Id)) {
                     GameService.Content.PlaySoundEffectByName("error");
@@ -278,8 +279,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
                     retries--;
 
-                    //var retryStr = $"({60 - retries} / 60)";
-                    //loadingText.String = $"Checking completion.. {retryStr}";
+                    var retryStr = $"({60 - retries} / 60)";
+                    basicTooltipText.String = $"Checking completion.. {retryStr}";
                     loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
 
                     if (await ProofLogix.Instance.KpWebApi.IsProofBusy(_profile.Id)) {
@@ -406,7 +407,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
                     var text = $"{token.Name} x{token.Amount}";
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size14, text, true);
-                    var icon = ProofLogix.Instance.Resources.GetResource(token.Id)?.Icon ?? ProofLogix.Instance.Resources.GetApiIcon(token.Id);
+                    var icon = ProofLogix.Instance.Resources.GetItem(token.Id)?.Icon ?? ProofLogix.Instance.Resources.GetApiIcon(token.Id);
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)

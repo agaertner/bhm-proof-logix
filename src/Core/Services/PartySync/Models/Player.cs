@@ -41,6 +41,11 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
             this.KpProfile = profile;
         }
 
+        public bool Equals(Player other) {
+            return this.AccountName.Equals(other.AccountName, StringComparison.InvariantCultureIgnoreCase)
+                || this.HasKpProfile && this.KpProfile.BelongsTo(other.AccountName, out _);
+        }
+
         public void AttachAgent(CommonFields.Player arcDpsPlayer) {
             _arcDpsPlayer = arcDpsPlayer;
         }

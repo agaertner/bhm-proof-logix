@@ -8,21 +8,27 @@ namespace Nekres.ProofLogix.Core.UI {
 
         private AsyncString _title;
         private AsyncString _subtitle;
+        private AsyncString _basicTooltipText;
 
         private Label _titleLbl;
         private Label _subTitleLbl;
 
-        public LoadingView(AsyncString title = null, AsyncString subtitle = null) {
-            _title            =  title ?? string.Empty;
-            _subtitle         =  subtitle ?? string.Empty;
+        private Container _buildPanel;
 
-            _title.Changed += OnTitleChanged;
-            _subtitle.Changed += OnSubtitleChanged;
+        public LoadingView(AsyncString title = null, AsyncString subtitle = null, AsyncString basicTooltipText = null) {
+            _title            = title            ?? string.Empty;
+            _subtitle         = subtitle         ?? string.Empty;
+            _basicTooltipText = basicTooltipText ?? string.Empty;
+
+            _title.Changed            += OnTitleChanged;
+            _subtitle.Changed         += OnSubtitleChanged;
+            _basicTooltipText.Changed += OnBasicTooltipChanged;
         }
 
         protected override void Unload() {
-            _title.Changed    -= OnTitleChanged;
-            _subtitle.Changed -= OnSubtitleChanged;
+            _title.Changed            -= OnTitleChanged;
+            _subtitle.Changed         -= OnSubtitleChanged;
+            _basicTooltipText.Changed -= OnBasicTooltipChanged;
             base.Unload();
         }
 
@@ -40,7 +46,16 @@ namespace Nekres.ProofLogix.Core.UI {
             _subTitleLbl.Text = _subtitle;
         }
 
+        private void OnBasicTooltipChanged(object sender, EventArgs e) {
+            if (_buildPanel == null) {
+                return;
+            }
+            _buildPanel.BasicTooltipText = _basicTooltipText;
+        }
+
         protected override void Build(Container buildPanel) {
+
+            _buildPanel = buildPanel;
 
             var spinner = new LoadingSpinner {
                 Parent = buildPanel,
