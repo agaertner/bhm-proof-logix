@@ -95,7 +95,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                    Coffers?.FirstOrDefault(x => x.Id    == id) ?? Token.Empty;
         }
 
-        public IEnumerable<Token> GetTokens() {
+        public IEnumerable<Token> GetTokens(bool excludeCoffers = false) {
             var tokens = Enumerable.Empty<Token>();
 
             if (Tokens != null) {
@@ -106,7 +106,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 tokens = tokens.Concat(Killproofs);
             }
 
-            if (Coffers != null) {
+            if (Coffers != null && !excludeCoffers) {
                 tokens = tokens.Concat(Coffers);
             }
 

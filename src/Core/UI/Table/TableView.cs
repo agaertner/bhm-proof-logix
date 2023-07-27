@@ -191,6 +191,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             AddProofEntries(generalCategory, ProofLogix.Instance.Resources.GetGeneralItems());
 
+            var coffersCategory = new ContextMenuStripItem("Coffers") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(coffersCategory, ProofLogix.Instance.Resources.GetCofferItems());
+
             var raidsCategory = new ContextMenuStripItem("Raids") {
                 Parent  = proofsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
@@ -205,13 +212,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                 AddProofEntries(wingEntry, wing.Events.Where(ev => ev.Token != null).Select(ev => ev.Token));
             }
-
-            var strikesCategory = new ContextMenuStripItem("Strikes") {
-                Parent  = proofsCategory.Submenu,
-                Submenu = new ContextMenuStrip()
-            };
-
-            AddProofEntries(strikesCategory, ProofLogix.Instance.Resources.GetItemsForStrikes());
 
             var fractalsCategory = new ContextMenuStripItem("Fractals") {
                 Parent  = proofsCategory.Submenu,
