@@ -73,7 +73,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private int GetLargestAmount(int id) {
-            return _members.Values.Max(x => x.KpProfile.GetToken(id).Amount);
+            return _members.Count > 0 ? _members.Values.Max(x => x.KpProfile.GetToken(id).Amount) : this.LocalPlayer.KpProfile.GetToken(id).Amount;
         }
 
         /// <summary>

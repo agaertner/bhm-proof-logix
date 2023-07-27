@@ -93,8 +93,17 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
-            foreach (var token in profile.GetTokens().Where(token => _resources.Items.All(x => x.Id != token.Id))) {
-                _resources.Strikes.Add(new Resource {
+            var coffers = profile.Totals.Coffers ?? Enumerable.Empty<Token>();
+            foreach (var token in coffers.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
+                _resources.Coffers.Add(new Resource {
+                    Id   = token.Id,
+                    Name = token.Name
+                });
+            }
+
+            var tokens = profile.Totals.GetTokens(excludeCoffers: true);
+            foreach (var token in tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
+                _resources.GeneralTokens.Add(new Resource {
                     Id   = token.Id,
                     Name = token.Name
                 });
@@ -208,10 +217,6 @@ namespace Nekres.ProofLogix.Core.Services {
             return _resources.Items.ToList();
         }
 
-        public List<Resource> GetItemsForStrikes() {
-            return _resources.Strikes;
-        }
-
         public List<Resource> GetItemsForFractals(bool includeOld = false) {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
             if (!includeOld) {
@@ -226,6 +231,14 @@ namespace Nekres.ProofLogix.Core.Services {
                 generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
             }
             return generalItems.ToList();
+        }
+
+        public List<Resource> GetCofferItems(bool includeOld = false) {
+            var cofferItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Coffers;
+            if (!includeOld) {
+                cofferItems = cofferItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
+            }
+            return cofferItems.ToList();
         }
 
         public List<Resource> GetItemsForMap(int mapId) {

@@ -24,11 +24,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("fractals")]
         public List<Resource> Fractals { get; set; }
 
-        [JsonProperty("strikes")]
-        public List<Resource> Strikes { get; set; }
-
         [JsonProperty("raids")]
         public List<Raid> Raids { get; set; }
+
+        [JsonProperty("coffers")]
+        public List<Resource> Coffers { get; set; }
 
         public IEnumerable<Raid.Wing> Wings => this.Raids.SelectMany(raid => raid.Wings);
 
@@ -38,12 +38,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                                                   .SelectMany(ev => ev.GetTokens())
                                                   .Concat(this.Fractals)
                                                   .Concat(this.GeneralTokens)
-                                                  .Concat(this.Strikes)
+                                                  .Concat(this.Coffers)
                                                   .GroupBy(resource => resource.Id)
                                                   .Select(group => group.First());
 
         public Resources() {
-            this.Strikes = new List<Resource>();
+            this.Coffers = new List<Resource>(); // Retroactively adding these from profile responses.
         }
     }
 
