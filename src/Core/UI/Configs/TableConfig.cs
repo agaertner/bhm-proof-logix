@@ -58,21 +58,21 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             }
         }
 
-        private ObservableCollection<int> _tokenIds;
+        private ObservableCollection<int> _tokenIds = new();
         [JsonProperty("token_ids")]
         public ObservableCollection<int> TokenIds {
             get => _tokenIds;
             set => _tokenIds = ResetDelegates(_tokenIds, value);
         }
 
-        private ObservableCollection<string> _profileIds;
+        private ObservableCollection<string> _profileIds = new();
         [JsonProperty("profile_ids")]
         public ObservableCollection<string> ProfileIds {
             get => _profileIds;
             set => _profileIds = ResetDelegates(_profileIds, value);
         }
 
-        private ObservableCollection<Column> _columns;
+        private ObservableCollection<Column> _columns = new();
         [JsonProperty("columns")]
         public ObservableCollection<Column> Columns {
             get => _columns;
