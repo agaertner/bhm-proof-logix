@@ -1,6 +1,6 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Extended;
 using Gw2Sharp.WebApi.V2.Models;
-using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,17 +34,17 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<List<string>> GetClears() {
-            var clears = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Raids.GetAsync());
+            var clears = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Raids.GetAsync());
             return (clears ?? Enumerable.Empty<string>()).ToList();
         }
 
         public async Task<List<AccountItem>> GetBank() {
-            var bank = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Bank.GetAsync());
+            var bank = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Bank.GetAsync());
             return FilterProofs(bank).ToList();
         }
 
         public async Task<List<AccountItem>> GetSharedBags() {
-            var sharedBags = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Inventory.GetAsync());
+            var sharedBags = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Inventory.GetAsync());
             return FilterProofs(sharedBags).ToList();
         }
 
@@ -79,7 +79,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task<IEnumerable<Character>> GetCharacters() {
-            var characters = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Characters.AllAsync());
+            var characters = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Characters.AllAsync());
             return characters ?? Enumerable.Empty<Character>();
         }
 

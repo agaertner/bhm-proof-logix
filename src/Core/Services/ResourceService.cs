@@ -1,15 +1,14 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
+using Blish_HUD.Extended;
 using Gw2Sharp.Models;
 using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
-using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Blish_HUD.Extended;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
@@ -137,12 +136,12 @@ namespace Nekres.ProofLogix.Core.Services {
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public AsyncTexture2D GetApiIcon(int itemId) {
+        public async Task<AsyncTexture2D> GetApiIcon(int itemId) {
             if (_apiIcons.TryGetValue(itemId, out var tex)) {
                 return tex;
             }
 
-            var response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
+            var response = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId));
 
             if (response?.Icon == null) {
                 return ContentService.Textures.TransparentPixel;
@@ -155,7 +154,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<string> GetMapName(int mapId) {
-            var map = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
+            var map = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
             return map?.Name ?? string.Empty;
         }
 
