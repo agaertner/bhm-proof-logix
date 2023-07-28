@@ -98,7 +98,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
-            var i = Enum.GetValues(typeof(TableConfig.Column)).Length - 1;
+            var i = Enum.GetValues(typeof(TableConfig.Column)).Length;
             foreach (var tokenBound in _tokenBounds) {
                 if (tokenBound.Contains(this.RelativeMousePosition)) {
                     ColumnClick?.Invoke(this, new ValueEventArgs<int>(i));
@@ -126,7 +126,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 32, 32);
                 spriteBatch.DrawOnCtrl(this, this.ClassIcon, _classIconBounds);
             } else {
-                _classIconBounds = Rectangle.Empty;
+                _classIconBounds = new Rectangle(_timestampBounds.Right, 0, 0, 0);
             }
 
             // Character Name
@@ -136,7 +136,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 spriteBatch.DrawStringOnCtrl(this, characterName, this.Font, _characterNameBounds, Color.White, false, true, 2);
                 UpdateTooltip(_characterNameBounds, string.Empty);
             } else {
-                _characterNameBounds = Rectangle.Empty;
+                _characterNameBounds = new Rectangle(_classIconBounds.Right, 0, 0, 0);
             }
 
             // Account Name
@@ -146,7 +146,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 spriteBatch.DrawStringOnCtrl(this, accountName, this.Font, _accountNameBounds, Color.White, false, true, 2);
                 UpdateTooltip(_accountNameBounds, string.Empty);
             } else {
-                _accountNameBounds = Rectangle.Empty;
+                _accountNameBounds = new Rectangle(_characterNameBounds.Right, 0, 0, 0);
             }
 
             // Tokens (dynamic amount of trailing columns)

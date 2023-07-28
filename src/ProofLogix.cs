@@ -5,9 +5,7 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using MonoGame.Extended.Collections;
 using Nekres.ProofLogix.Core.Services;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.UI;
 using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.Home;
@@ -18,7 +16,6 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Gw2WebApiService = Nekres.ProofLogix.Core.Services.Gw2WebApiService;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
     public class ProofLogix : Module {
@@ -53,8 +50,8 @@ namespace Nekres.ProofLogix {
 
         protected override void DefineSettings(SettingCollection settings) {
             var selfManaged = settings.AddSubCollection("configs", false, false);
-            LfoConfig       = selfManaged.DefineSetting("lfo_config", new LfoConfig());
-            TableConfig = selfManaged.DefineSetting("table_config", new TableConfig());
+            LfoConfig   = selfManaged.DefineSetting("lfo_config",   Core.UI.Configs.LfoConfig.Default);
+            TableConfig = selfManaged.DefineSetting("table_config", Core.UI.Configs.TableConfig.Default);
         }
 
         protected override void Initialize() {

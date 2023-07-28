@@ -29,5 +29,29 @@ namespace Nekres.ProofLogix.Core {
             }
             return Convert.ToDouble(source.ElementAt(midpoint));
         }
+
+        public static void RemoveAll<T>(this IList<T> collection, Func<T, bool> condition) {
+            for (int i = collection.Count - 1; i >= 0; i--) {
+                if (condition(collection[i])) {
+                    collection.RemoveAt(i);
+                }
+            }
+        }
+
+        public static void RemoveAll<T>(this IList<T> collection, T obj) where T : IEquatable<T> {
+            for (int i = collection.Count - 1; i >= 0; i--) {
+                if (collection[i].Equals(obj)) {
+                    collection.RemoveAt(i);
+                }
+            }
+        }
+
+        public static void RemoveAll<T>(this IList<T> collection, Enum @enum) {
+            for (int i = collection.Count - 1; i >= 0; i--) {
+                if (collection[i].Equals(@enum)) {
+                    collection.RemoveAt(i);
+                }
+            }
+        }
     }
 }
