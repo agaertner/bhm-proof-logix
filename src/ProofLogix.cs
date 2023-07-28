@@ -69,7 +69,7 @@ namespace Nekres.ProofLogix {
         protected override void OnModuleLoaded(EventArgs e) {
             GameService.ArcDps.Common.Activate();
 
-            _icon = ContentsManager.GetTexture("killproof_icon.png");
+            _icon = ContentsManager.GetTexture("killproof_corner_icon.png");
             _cornerIcon = new CornerIcon(_icon, "Kill Proof") {
                 Priority = 236278055 // Arbitrary value that should be unique to this module.
             };
