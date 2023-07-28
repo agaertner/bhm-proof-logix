@@ -4,6 +4,10 @@ using Newtonsoft.Json;
 namespace Nekres.ProofLogix.Core.UI.Configs {
     public class LfoConfig : ConfigBase {
 
+        public static LfoConfig Default => new() {
+            _region = Opener.ServerRegion.EU
+        };
+
         private Opener.ServerRegion _region;
         [JsonProperty("region")]
         public Opener.ServerRegion Region {

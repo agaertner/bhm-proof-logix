@@ -73,7 +73,10 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(volunteer.AccountName, o => {
-                                                            o.SetLink(() => CopyText(volunteer.AccountName));
+                                                            o.SetLink(() => {
+                                                                GameService.Content.PlaySoundEffectByName("button-click");
+                                                                CopyText(volunteer.AccountName);
+                                                            });
                                                         }).CreatePart(volunteer.Updated.ToLocalTime().AsTimeAgo(), o => {
                                                             o.SetFontSize(ContentService.FontSize.Size11);
                                                             o.MakeItalic();

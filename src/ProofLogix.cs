@@ -5,9 +5,7 @@ using Blish_HUD.Input;
 using Blish_HUD.Modules;
 using Blish_HUD.Modules.Managers;
 using Blish_HUD.Settings;
-using MonoGame.Extended.Collections;
 using Nekres.ProofLogix.Core.Services;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.UI;
 using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.Home;
@@ -18,7 +16,6 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Gw2WebApiService = Nekres.ProofLogix.Core.Services.Gw2WebApiService;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
-
 namespace Nekres.ProofLogix {
     [Export(typeof(Module))]
     public class ProofLogix : Module {
@@ -45,25 +42,17 @@ namespace Nekres.ProofLogix {
         private OversizableWindow _table;
         private StandardWindow    _registerWindow;
 
-        private CornerIcon        _cornerIcon;
-        private AsyncTexture2D    _icon;
+        private CornerIcon     _cornerIcon;
+        private AsyncTexture2D _icon;
+        private AsyncTexture2D _hoverIcon;
 
-        internal SettingEntry<LfoConfig>  LfoConfig;
+        internal SettingEntry<LfoConfig>   LfoConfig;
         internal SettingEntry<TableConfig> TableConfig;
 
         protected override void DefineSettings(SettingCollection settings) {
             var selfManaged = settings.AddSubCollection("configs", false, false);
-            LfoConfig       = selfManaged.DefineSetting("lfo_config", new LfoConfig {
-                Region = Opener.ServerRegion.EU
-            });
-            TableConfig = selfManaged.DefineSetting("table_config", new TableConfig {
-                ProfileIds = new ObservableCollection<string>(),
-                TokenIds = new ObservableCollection<int> {
-                    77302,
-                    94020,
-                    93781
-                }
-            });
+            LfoConfig   = selfManaged.DefineSetting("lfo_config",   Core.UI.Configs.LfoConfig.Default);
+            TableConfig = selfManaged.DefineSetting("table_config", Core.UI.Configs.TableConfig.Default);
         }
 
         protected override void Initialize() {
@@ -81,8 +70,10 @@ namespace Nekres.ProofLogix {
         protected override void OnModuleLoaded(EventArgs e) {
             GameService.ArcDps.Common.Activate();
 
-            _icon = ContentsManager.GetTexture("killproof_icon.png");
-            _cornerIcon = new CornerIcon(_icon, "Kill Proof") {
+            _icon = ContentsManager.GetTexture("icon.png");
+            _hoverIcon = ContentsManager.GetTexture("hover_icon.png");
+            _cornerIcon = new CornerIcon(_icon, _hoverIcon,"Kill Proof") {
+                MouseInHouse = true,
                 Priority = 236278055 // Arbitrary value that should be unique to this module.
             };
 
@@ -176,6 +167,7 @@ namespace Nekres.ProofLogix {
             _window?.Dispose();
             _registerWindow?.Dispose();
             _table?.Dispose();
+            _hoverIcon?.Dispose();
             _icon?.Dispose();
 
             KpWebApi.Dispose();

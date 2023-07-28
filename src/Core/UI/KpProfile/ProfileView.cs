@@ -356,8 +356,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
                 var tokens        = totals.GetTokens().ToList();
                 var fractalTokens = tokens.Where(token => fractalResources.Any(res => res.Id == token.Id));
-                var raidTokens = tokens.Where(token => fractalResources.Any(res => res.Id                         != token.Id)
-                                                    && ProofLogix.Instance.Resources.ObsoleteItemIds.All(id => id != token.Id));
+                var raidTokens = tokens.Where(token => fractalResources.Any(res => res.Id != token.Id));
 
                 var fractalResults = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Fractal), fractalTokens);
                 var raidResults    = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Raid),    raidTokens);
@@ -369,21 +368,20 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
             }
 
             private void CreateItemPanel(Container parent, ProfileItems items, string panelTitle) {
-                var padding = 5;
                 var flow = new FlowPanel {
-                    Parent = parent,
-                    Width = parent.ContentRegion.Width / 2 - padding,
-                    Height = parent.ContentRegion.Height - padding,
-                    ControlPadding = new Vector2(0, padding),
-                    OuterControlPadding = new Vector2(0, padding),
-                    FlowDirection = ControlFlowDirection.SingleTopToBottom,
-                    CanScroll = true,
-                    Title = panelTitle
+                    Parent              = parent,
+                    Width               = parent.ContentRegion.Width / 2 - Panel.RIGHT_PADDING,
+                    Height              = parent.ContentRegion.Height    - Panel.RIGHT_PADDING,
+                    ControlPadding      = new Vector2(0, Panel.RIGHT_PADDING),
+                    OuterControlPadding = new Vector2(0, Panel.RIGHT_PADDING),
+                    FlowDirection       = ControlFlowDirection.SingleTopToBottom,
+                    CanScroll           = true,
+                    Title               = panelTitle
                 };
 
                 parent.ContentResized += (_, e) => {
-                    flow.Height = e.CurrentRegion.Height - padding;
-                    flow.Width = e.CurrentRegion.Width / 2 - padding;
+                    flow.Height = e.CurrentRegion.Height    - Panel.RIGHT_PADDING;
+                    flow.Width  = e.CurrentRegion.Width / 2 - Panel.RIGHT_PADDING;
                 };
 
                 foreach (var title in items.Titles) {

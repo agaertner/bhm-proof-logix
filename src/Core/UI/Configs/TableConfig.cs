@@ -5,25 +5,36 @@ using Newtonsoft.Json;
 namespace Nekres.ProofLogix.Core.UI.Configs {
     public class TableConfig : ConfigBase {
 
+        public static TableConfig Default => new() {
+            _colorGradingMode = PartySyncService.ColorGradingMode.MedianComparison,
+            _profileIds = new ObservableCollection<string>(),
+            _tokenIds = new ObservableCollection<int> {
+                77302,
+                94020,
+                93781
+            },
+            _columns = new ObservableCollection<Column> {
+                Column.Timestamp,
+                Column.Class,
+                Column.Character,
+                Column.Account
+            }
+        };
+
+        public enum Column {
+            Timestamp,
+            Class,
+            Character,
+            Account
+        }
+
         private int _selectedColumn;
         [JsonProperty("selected_column")]
         public int SelectedColumn {
             get => _selectedColumn;
             set {
                 _selectedColumn = value;
-                this.SaveConfig(ProofLogix.Instance.TableConfig);
-            }
-        }
-
-        private ObservableCollection<int> _tokenIds;
-        [JsonProperty("token_ids")]
-        public ObservableCollection<int> TokenIds {
-            get => _tokenIds;
-            set {
-                _tokenIds             =  value ?? new ObservableCollection<int>();
-                _tokenIds.ItemRemoved += OnAddOrRemove;
-                _tokenIds.ItemAdded   += OnAddOrRemove;
-                this.SaveConfig(ProofLogix.Instance.TableConfig);
+                SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
 
@@ -33,7 +44,7 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             get => _orderDescending;
             set {
                 _orderDescending = value;
-                this.SaveConfig(ProofLogix.Instance.TableConfig);
+                SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
 
@@ -43,29 +54,44 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             get => _colorGradingMode;
             set {
                 _colorGradingMode = value;
-                this.SaveConfig(ProofLogix.Instance.TableConfig);
+                SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
 
-        private ObservableCollection<string> _profileIds;
+        private ObservableCollection<int> _tokenIds = new();
+        [JsonProperty("token_ids")]
+        public ObservableCollection<int> TokenIds {
+            get => _tokenIds;
+            set => _tokenIds = ResetDelegates(_tokenIds, value);
+        }
+
+        private ObservableCollection<string> _profileIds = new();
         [JsonProperty("profile_ids")]
         public ObservableCollection<string> ProfileIds {
             get => _profileIds;
-            set {
-                _profileIds             =  value ?? new ObservableCollection<string>();
-                _profileIds.ItemRemoved += OnAddOrRemove;
-                _profileIds.ItemAdded   += OnAddOrRemove;
-                this.SaveConfig(ProofLogix.Instance.TableConfig);
-            }
+            set => _profileIds = ResetDelegates(_profileIds, value);
         }
 
-        public TableConfig() {
-            this.TokenIds   = new ObservableCollection<int>();
-            this.ProfileIds = new ObservableCollection<string>();
+        private ObservableCollection<Column> _columns = new();
+        [JsonProperty("columns")]
+        public ObservableCollection<Column> Columns {
+            get => _columns;
+            set => _columns = ResetDelegates(_columns, value);
+        }
+
+        private ObservableCollection<T> ResetDelegates<T>(ObservableCollection<T> oldCollection, ObservableCollection<T> newCollection) {
+            if (oldCollection != null) {
+                oldCollection.ItemRemoved -= OnAddOrRemove;
+                oldCollection.ItemAdded   -= OnAddOrRemove;
+            }
+            newCollection             ??= new ObservableCollection<T>();
+            newCollection.ItemRemoved +=  OnAddOrRemove;
+            newCollection.ItemAdded   +=  OnAddOrRemove;
+            return newCollection;
         }
 
         private void OnAddOrRemove<T>(object o, ItemEventArgs<T> e) {
-            this.SaveConfig(ProofLogix.Instance.TableConfig);
+            SaveConfig(ProofLogix.Instance.TableConfig);
         }
     }
 }

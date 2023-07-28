@@ -3,11 +3,11 @@ using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
@@ -126,9 +126,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             headerEntry.ColumnClick += HeaderEntry_ColumnClick;
 
-            this.Presenter.AddPlayer(ProofLogix.Instance.PartySync.LocalPlayer);
+            this.Presenter.CreatePlayerEntry(ProofLogix.Instance.PartySync.LocalPlayer);
             foreach (var player in ProofLogix.Instance.PartySync.PlayerList) {
-                this.Presenter.AddPlayer(player);
+                this.Presenter.CreatePlayerEntry(player);
             }
             this.Presenter.SortEntries();
 
@@ -147,8 +147,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                 var suffixTooltip = mode switch {
                     PartySyncService.ColorGradingMode.LocalPlayerComparison => "your own",
-                    PartySyncService.ColorGradingMode.MedianComparison      => "the median of the party",
-                    PartySyncService.ColorGradingMode.LargestComparison     => "the player with the largest amount",
+                    PartySyncService.ColorGradingMode.MedianComparison      => "the median",
+                    PartySyncService.ColorGradingMode.LargestComparison     => "the largest",
                     _                                                       => string.Empty
                 };
 
@@ -179,8 +179,35 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 colorGradingModeEntries.Add(colorGradingMode);
             }
 
-            var proofsCategory = new ContextMenuStripItem("Proofs") {
+            var columnsCategory = new ContextMenuStripItem("Columns") {
                 Parent  = menu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            var identityCategory = new ContextMenuStripItem("Identifier") {
+                Parent  = columnsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            foreach (var col in Enum.GetValues(typeof(TableConfig.Column)).Cast<TableConfig.Column>()) {
+                var colEntry = new ContextMenuStripItem(col.ToString().SplitCamelCase()) {
+                    Parent   = identityCategory.Submenu,
+                    CanCheck = true,
+                    Checked  = this.Presenter.Model.Columns.Any(c => c == col)
+                };
+                colEntry.CheckedChanged += (_, e) => {
+                    if (e.Checked) {
+                        this.Presenter.Model.Columns.Add(col);
+                        GameService.Content.PlaySoundEffectByName("color-change");
+                    } else {
+                        this.Presenter.Model.Columns.RemoveAll(col);
+                        ProofLogix.Instance.Resources.PlayMenuItemClick();
+                    }
+                };
+            }
+
+            var proofsCategory = new ContextMenuStripItem("Proofs") {
+                Parent  = columnsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
             };
 
@@ -240,7 +267,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         this.Presenter.Model.TokenIds.Add(resource.Id);
                         GameService.Content.PlaySoundEffectByName("color-change");
                     } else {
-                        this.Presenter.Model.TokenIds.Remove(resource.Id);
+                        this.Presenter.Model.TokenIds.RemoveAll(resource.Id);
                         ProofLogix.Instance.Resources.PlayMenuItemClick();
                     }
                 };
@@ -248,6 +275,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void HeaderEntry_ColumnClick(object sender, ValueEventArgs<int> e) {
+            ProofLogix.Instance.Resources.PlayMenuItemClick();
             this.Presenter.Model.SelectedColumn  = e.Value;
             this.Presenter.Model.OrderDescending = !this.Presenter.Model.OrderDescending;
             this.Presenter.SortEntries();

@@ -4,7 +4,6 @@ using Blish_HUD.Extended;
 using Gw2Sharp.Models;
 using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
-using Nekres.ProofLogix.Core.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,13 +21,6 @@ namespace Nekres.ProofLogix.Core.Services {
         private Resources _resources;
 
         private Dictionary<int, AsyncTexture2D> _apiIcons;
-
-        public readonly IReadOnlyList<int> ObsoleteItemIds = new List<int> {
-            88485, // Legendary Divination
-            81743, // Unstable Cosmic Essence
-            12251, // Banana
-            12773, // Bananas in Bulk
-        };
 
         private IReadOnlyList<SoundEffect> _menuClicks;
         private SoundEffect                _menuItemClickSfx;
@@ -134,10 +126,6 @@ namespace Nekres.ProofLogix.Core.Services {
             AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
         }
 
-        public List<Token> FilterObsoleteItems(IEnumerable<Token> tokens) {
-            return tokens.Where(token => ObsoleteItemIds.All(id => id != token.Id)).ToList();
-        }
-
         public string GetClassName(int profession, int elite) {
             return _eliteNames.TryGetValue(elite, out var name) ? name :
                    _profNames.TryGetValue(profession, out name) ? name : string.Empty;
@@ -166,7 +154,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<string> GetMapName(int mapId) {
-            var map = await HttpUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
+            var map = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
             return map?.Name ?? string.Empty;
         }
 
@@ -217,27 +205,18 @@ namespace Nekres.ProofLogix.Core.Services {
             return _resources.Items.ToList();
         }
 
-        public List<Resource> GetItemsForFractals(bool includeOld = false) {
+        public List<Resource> GetItemsForFractals() {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
-            if (!includeOld) {
-                fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return fractalItems.ToList();
         }
 
         public List<Resource> GetGeneralItems(bool includeOld = false) {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
-            if (!includeOld) {
-                generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return generalItems.ToList();
         }
 
         public List<Resource> GetCofferItems(bool includeOld = false) {
             var cofferItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Coffers;
-            if (!includeOld) {
-                cofferItems = cofferItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return cofferItems.ToList();
         }
 
