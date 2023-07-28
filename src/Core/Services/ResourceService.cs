@@ -1,6 +1,5 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
-using Blish_HUD.Extended;
 using Gw2Sharp.Models;
 using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Blish_HUD.Extended;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
@@ -173,13 +173,13 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task LoadProfessions(bool localeChange = false) {
-            var professions = await HttpUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
+            var professions = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
 
             if (professions == null) {
                 return;
             }
 
-            var specializations = await HttpUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Specializations.AllAsync());
+            var specializations = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Specializations.AllAsync());
 
             if (specializations == null) {
                 return;
