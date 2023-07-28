@@ -71,9 +71,15 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
-            if (this.View.Table != null && TryGetPlayerEntry(e.Value, out var playerEntry)) {
-                this.View.Table.RemoveChild(playerEntry);
+            if (this.View.Table == null || !TryGetPlayerEntry(e.Value, out var playerEntry)) {
+                return;
             }
+
+            if (playerEntry.Remember) {
+                return; // Don't remove remembered entries.
+            }
+
+            this.View.Table.RemoveChild(playerEntry);
         }
 
         private void PlayerAddedOrChanged(object sender, ValueEventArgs<Player> e) {
