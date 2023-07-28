@@ -110,7 +110,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 tokens = tokens.Concat(Coffers);
             }
 
-            return ProofLogix.Instance.Resources.FilterObsoleteItems(tokens);
+            return tokens;
         }
     }
 

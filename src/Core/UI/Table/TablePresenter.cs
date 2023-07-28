@@ -101,24 +101,25 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
             var column = this.Model.SelectedColumn;
             var comparison = 0;
-            if (column == 0) {
+
+            if (column == (int)TableConfig.Column.Timestamp) {
                 comparison = x.Player.Created.CompareTo(y.Player.Created);
             }
 
-            if (column == 1) {
+            if (column == (int)TableConfig.Column.Class) {
                 comparison = string.Compare(x.Player.Class, y.Player.Class, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            if (column == 2) {
+            if (column == (int)TableConfig.Column.Character) {
                 comparison = string.Compare(x.Player.CharacterName, y.Player.CharacterName, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            if (column == 3) {
+            if (column == (int)TableConfig.Column.Account) {
                 comparison = string.Compare(x.Player.AccountName, y.Player.AccountName, StringComparison.InvariantCultureIgnoreCase);
             }
 
             // All trailing columns are known to be tokens.
-            if (column >= 4) {
+            if (column >= Enum.GetValues(typeof(TableConfig.Column)).Length - 1) {
                 var id = ProofLogix.Instance.TableConfig.Value.TokenIds[column - 4];
                 comparison = x.Player.KpProfile.GetToken(id).Amount.CompareTo(y.Player.KpProfile.GetToken(id).Amount);
             }

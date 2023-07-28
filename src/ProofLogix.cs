@@ -53,17 +53,8 @@ namespace Nekres.ProofLogix {
 
         protected override void DefineSettings(SettingCollection settings) {
             var selfManaged = settings.AddSubCollection("configs", false, false);
-            LfoConfig       = selfManaged.DefineSetting("lfo_config", new LfoConfig {
-                Region = Opener.ServerRegion.EU
-            });
-            TableConfig = selfManaged.DefineSetting("table_config", new TableConfig {
-                ProfileIds = new ObservableCollection<string>(),
-                TokenIds = new ObservableCollection<int> {
-                    77302,
-                    94020,
-                    93781
-                }
-            });
+            LfoConfig       = selfManaged.DefineSetting("lfo_config", new LfoConfig());
+            TableConfig = selfManaged.DefineSetting("table_config", new TableConfig());
         }
 
         protected override void Initialize() {

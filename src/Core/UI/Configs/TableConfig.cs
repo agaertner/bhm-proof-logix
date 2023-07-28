@@ -5,6 +5,13 @@ using Newtonsoft.Json;
 namespace Nekres.ProofLogix.Core.UI.Configs {
     public class TableConfig : ConfigBase {
 
+        public enum Column {
+            Timestamp,
+            Class,
+            Character,
+            Account
+        }
+
         private int _selectedColumn;
         [JsonProperty("selected_column")]
         public int SelectedColumn {
@@ -59,9 +66,32 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             }
         }
 
+        private ObservableCollection<Column> _columns;
+        [JsonProperty("columns")]
+        public ObservableCollection<Column> Columns {
+            get => _columns;
+            set {
+                _columns             =  value ?? new ObservableCollection<Column>();
+                _columns.ItemRemoved += OnAddOrRemove;
+                _columns.ItemAdded   += OnAddOrRemove;
+                this.SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
         public TableConfig() {
-            this.TokenIds   = new ObservableCollection<int>();
-            this.ProfileIds = new ObservableCollection<string>();
+            ColorGradingMode = PartySyncService.ColorGradingMode.MedianComparison;
+            ProfileIds = new ObservableCollection<string>();
+            TokenIds = new ObservableCollection<int> {
+                77302,
+                94020,
+                93781
+            };
+            Columns = new ObservableCollection<Column> {
+                Column.Timestamp,
+                Column.Class,
+                Column.Character,
+                Column.Account
+            };
         }
 
         private void OnAddOrRemove<T>(object o, ItemEventArgs<T> e) {

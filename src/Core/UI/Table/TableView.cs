@@ -179,8 +179,35 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 colorGradingModeEntries.Add(colorGradingMode);
             }
 
-            var proofsCategory = new ContextMenuStripItem("Proofs") {
+            var columnsCategory = new ContextMenuStripItem("Columns") {
                 Parent  = menu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            var identityCategory = new ContextMenuStripItem("Identifier") {
+                Parent  = columnsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            foreach (var col in Enum.GetValues(typeof(TableConfig.Column)).Cast<TableConfig.Column>()) {
+                var colEntry = new ContextMenuStripItem(col.ToString().SplitCamelCase()) {
+                    Parent   = identityCategory.Submenu,
+                    CanCheck = true,
+                    Checked  = this.Presenter.Model.Columns.Any(c => c == col)
+                };
+                colEntry.CheckedChanged += (_, e) => {
+                    if (e.Checked) {
+                        this.Presenter.Model.Columns.Add(col);
+                        GameService.Content.PlaySoundEffectByName("color-change");
+                    } else {
+                        this.Presenter.Model.Columns.Remove(col);
+                        ProofLogix.Instance.Resources.PlayMenuItemClick();
+                    }
+                };
+            }
+
+            var proofsCategory = new ContextMenuStripItem("Proofs") {
+                Parent  = columnsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
             };
 

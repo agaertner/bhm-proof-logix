@@ -5,6 +5,7 @@ using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.BitmapFonts;
+using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Generic;
 
@@ -56,7 +57,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private List<Rectangle> _tokenBounds;
 
         protected TableEntryBase() {
-            /* NOOP */
+            _timestampBounds = Rectangle.Empty;
+            _classIconBounds = Rectangle.Empty;
+            _characterNameBounds = Rectangle.Empty;
+            _accountNameBounds = Rectangle.Empty;
+            _tokenBounds = new List<Rectangle>();
         }
 
         protected override void OnMouseLeft(MouseEventArgs e) {
@@ -74,26 +79,26 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             base.OnClick(e);
 
             if (_timestampBounds.Contains(this.RelativeMousePosition)) {
-                ColumnClick?.Invoke(this, new ValueEventArgs<int>(0));
+                ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Timestamp));
                 return;
             }
 
             if (_classIconBounds.Contains(this.RelativeMousePosition)) {
-                ColumnClick?.Invoke(this, new ValueEventArgs<int>(1));
+                ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Class));
                 return;
             }
 
             if (_characterNameBounds.Contains(this.RelativeMousePosition)) {
-                ColumnClick?.Invoke(this, new ValueEventArgs<int>(2));
+                ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Character));
                 return;
             }
 
             if (_accountNameBounds.Contains(this.RelativeMousePosition)) {
-                ColumnClick?.Invoke(this, new ValueEventArgs<int>(3));
+                ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Account));
                 return;
             }
 
-            var i = 4;
+            var i = Enum.GetValues(typeof(TableConfig.Column)).Length - 1;
             foreach (var tokenBound in _tokenBounds) {
                 if (tokenBound.Contains(this.RelativeMousePosition)) {
                     ColumnClick?.Invoke(this, new ValueEventArgs<int>(i));
@@ -105,25 +110,46 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected override void Paint(SpriteBatch spriteBatch, Rectangle bounds) {
 
-            var timestamp = Cut(this.Timestamp, this.MaxTimestampCellWidth);
-            _timestampBounds = new Rectangle(0, 0, this.MaxTimestampCellWidth, bounds.Height);
-            spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
+            var columns = ProofLogix.Instance.TableConfig.Value.Columns;
 
-            _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 32, 32);
-            spriteBatch.DrawOnCtrl(this, this.ClassIcon, _classIconBounds);
+            // Timestamp
+            if (columns.Contains(TableConfig.Column.Timestamp)) {
+                var timestamp = Cut(this.Timestamp, this.MaxTimestampCellWidth);
+                _timestampBounds = new Rectangle(0, 0, this.MaxTimestampCellWidth, bounds.Height);
+                spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
+            } else {
+                _timestampBounds = Rectangle.Empty;
+            }
 
-            var characterName       = Cut(this.CharacterName, this.MaxCharacterNameCellWidth);
-            _characterNameBounds = new Rectangle(_classIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxCharacterNameCellWidth, bounds.Height);
-            spriteBatch.DrawStringOnCtrl(this, characterName, this.Font, _characterNameBounds, Color.White, false, true, 2);
+            // Class Icon
+            if (columns.Contains(TableConfig.Column.Class)) {
+                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 32, 32);
+                spriteBatch.DrawOnCtrl(this, this.ClassIcon, _classIconBounds);
+            } else {
+                _classIconBounds = Rectangle.Empty;
+            }
 
-            UpdateTooltip(_characterNameBounds, string.Empty);
+            // Character Name
+            if (columns.Contains(TableConfig.Column.Character)) {
+                var characterName = Cut(this.CharacterName, this.MaxCharacterNameCellWidth);
+                _characterNameBounds = new Rectangle(_classIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxCharacterNameCellWidth, bounds.Height);
+                spriteBatch.DrawStringOnCtrl(this, characterName, this.Font, _characterNameBounds, Color.White, false, true, 2);
+                UpdateTooltip(_characterNameBounds, string.Empty);
+            } else {
+                _characterNameBounds = Rectangle.Empty;
+            }
 
-            var accountName = Cut(this.AccountName, this.MaxAccountNameCellWidth);
-            _accountNameBounds = new Rectangle(_characterNameBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxAccountNameCellWidth, bounds.Height);
-            spriteBatch.DrawStringOnCtrl(this, accountName, this.Font, _accountNameBounds, Color.White, false, true, 2);
+            // Account Name
+            if (columns.Contains(TableConfig.Column.Account)) {
+                var accountName = Cut(this.AccountName, this.MaxAccountNameCellWidth);
+                _accountNameBounds = new Rectangle(_characterNameBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxAccountNameCellWidth, bounds.Height);
+                spriteBatch.DrawStringOnCtrl(this, accountName, this.Font, _accountNameBounds, Color.White, false, true, 2);
+                UpdateTooltip(_accountNameBounds, string.Empty);
+            } else {
+                _accountNameBounds = Rectangle.Empty;
+            }
 
-            UpdateTooltip(_accountNameBounds, string.Empty);
-
+            // Tokens (dynamic amount of trailing columns)
             var tempTokenBounds = new List<Rectangle>();
             var tokenBounds = _accountNameBounds;
             foreach (var id in ProofLogix.Instance.TableConfig.Value.TokenIds) {

@@ -13,5 +13,9 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
                 this.SaveConfig(ProofLogix.Instance.LfoConfig);
             }
         }
+
+        public LfoConfig() {
+            Region = Opener.ServerRegion.EU;
+        }
     }
 }

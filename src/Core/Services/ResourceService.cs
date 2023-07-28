@@ -23,13 +23,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        public readonly IReadOnlyList<int> ObsoleteItemIds = new List<int> {
-            88485, // Legendary Divination
-            81743, // Unstable Cosmic Essence
-            12251, // Banana
-            12773, // Bananas in Bulk
-        };
-
         private IReadOnlyList<SoundEffect> _menuClicks;
         private SoundEffect                _menuItemClickSfx;
 
@@ -134,10 +127,6 @@ namespace Nekres.ProofLogix.Core.Services {
             AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
         }
 
-        public List<Token> FilterObsoleteItems(IEnumerable<Token> tokens) {
-            return tokens.Where(token => ObsoleteItemIds.All(id => id != token.Id)).ToList();
-        }
-
         public string GetClassName(int profession, int elite) {
             return _eliteNames.TryGetValue(elite, out var name) ? name :
                    _profNames.TryGetValue(profession, out name) ? name : string.Empty;
@@ -184,13 +173,13 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task LoadProfessions(bool localeChange = false) {
-            var professions = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
+            var professions = await HttpUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Professions.AllAsync());
 
             if (professions == null) {
                 return;
             }
 
-            var specializations = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Specializations.AllAsync());
+            var specializations = await HttpUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Specializations.AllAsync());
 
             if (specializations == null) {
                 return;
@@ -217,27 +206,18 @@ namespace Nekres.ProofLogix.Core.Services {
             return _resources.Items.ToList();
         }
 
-        public List<Resource> GetItemsForFractals(bool includeOld = false) {
+        public List<Resource> GetItemsForFractals() {
             var fractalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Fractals;
-            if (!includeOld) {
-                fractalItems = fractalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return fractalItems.ToList();
         }
 
         public List<Resource> GetGeneralItems(bool includeOld = false) {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
-            if (!includeOld) {
-                generalItems = generalItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return generalItems.ToList();
         }
 
         public List<Resource> GetCofferItems(bool includeOld = false) {
             var cofferItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Coffers;
-            if (!includeOld) {
-                cofferItems = cofferItems.Where(item => !ObsoleteItemIds.Contains(item.Id));
-            }
             return cofferItems.ToList();
         }
 
