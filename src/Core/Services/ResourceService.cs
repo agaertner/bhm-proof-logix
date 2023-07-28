@@ -136,12 +136,12 @@ namespace Nekres.ProofLogix.Core.Services {
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public async Task<AsyncTexture2D> GetApiIcon(int itemId) {
+        public AsyncTexture2D GetApiIcon(int itemId) {
             if (_apiIcons.TryGetValue(itemId, out var tex)) {
                 return tex;
             }
 
-            var response = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId));
+            var response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
 
             if (response?.Icon == null) {
                 return ContentService.Textures.TransparentPixel;

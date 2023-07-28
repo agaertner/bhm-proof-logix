@@ -59,7 +59,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
         public AsyncTexture2D Icon => !string.IsNullOrWhiteSpace(this.IconUrl)
                                           ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
-                                          : ProofLogix.Instance.Resources.GetApiIcon(this.Id).Result;
+                                          : ProofLogix.Instance.Resources.GetApiIcon(this.Id);
     }
 
     public class Raid {

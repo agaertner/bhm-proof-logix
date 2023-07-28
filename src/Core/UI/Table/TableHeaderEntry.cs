@@ -21,7 +21,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected override string         AccountName   => ACCOUNT_TITLE;
 
         protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {
-            spriteBatch.DrawOnCtrl(this, ProofLogix.Instance.Resources.GetApiIcon(tokenId).Result, bounds);
+            spriteBatch.DrawOnCtrl(this, ProofLogix.Instance.Resources.GetApiIcon(tokenId), bounds);
         }
     }
 }
