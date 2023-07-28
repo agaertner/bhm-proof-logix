@@ -62,18 +62,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         public void CreatePlayerEntry(Player player) {
+            var table = this.View.Table;
+            if (table == null) {
+                return;
+            }
+
             if (TryGetPlayerEntry(player, out var playerEntry)) {
                 playerEntry.Player = player; // Reassign just in case it's a new player.
                 return;
             }
 
             if (!player.HasKpProfile) {
-                return;
-            }
-
-            var table = this.View.Table;
-
-            if (table == null) {
                 return;
             }
 
@@ -163,8 +162,9 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             }
 
             // All trailing columns are known to be tokens.
-            if (column >= Enum.GetValues(typeof(TableConfig.Column)).Length) {
-                var id = ProofLogix.Instance.TableConfig.Value.TokenIds.ElementAtOrDefault(column - 4);
+            var len = Enum.GetValues(typeof(TableConfig.Column)).Length;
+            if (column >= len) {
+                var id = ProofLogix.Instance.TableConfig.Value.TokenIds.ElementAtOrDefault(column - len);
                 comparison = x.Player.KpProfile.GetToken(id).Amount.CompareTo(y.Player.KpProfile.GetToken(id).Amount);
             }
             return this.Model.OrderDescending ? comparison : -comparison;
