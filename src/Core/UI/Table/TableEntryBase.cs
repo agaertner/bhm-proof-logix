@@ -44,7 +44,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _maxAccountNameCellWidth, value);
         }
 
-        private int _maxTokenCellWidth = 45;
+        private int _maxTokenCellWidth = 50;
         public int MaxTokenCellWidth {
             get => _maxTokenCellWidth;
             set => SetProperty(ref _maxTokenCellWidth, value);

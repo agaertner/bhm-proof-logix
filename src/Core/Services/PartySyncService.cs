@@ -3,7 +3,6 @@ using Blish_HUD.ArcDps.Common;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

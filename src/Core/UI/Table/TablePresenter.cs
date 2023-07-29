@@ -15,12 +15,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private readonly Timer _bulkLoadTimer;
 
         private const int BULKLOAD_INTERVAL = 1000;
-
         private readonly SynchronizedCollection<TablePlayerEntry> _bulk;
 
         public TablePresenter(TableView view, TableConfig model) : base(view, model) {
-            _bulk = new SynchronizedCollection<TablePlayerEntry>();
-            _bulkLoadTimer         =  new Timer(1000) { AutoReset = false };
+            _bulk                  =  new SynchronizedCollection<TablePlayerEntry>();
+            _bulkLoadTimer         =  new Timer(BULKLOAD_INTERVAL) { AutoReset = false };
             _bulkLoadTimer.Elapsed += OnBulkLoadTimerElapsed;
 
             ProofLogix.Instance.PartySync.PlayerAdded   += PlayerAddedOrChanged;
@@ -53,12 +52,12 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         public void CreatePlayerEntry(Player player) {
-            if (TryGetPlayerEntry(player, out var playerEntry)) {
-                playerEntry.Player = player; // Reassign just in case it's a new player.
+            if (!player.HasKpProfile) {
                 return;
             }
 
-            if (!player.HasKpProfile) {
+            if (TryGetPlayerEntry(player, out var playerEntry)) {
+                playerEntry.Player = player; // Reassign just in case it's a new player.
                 return;
             }
 
@@ -118,7 +117,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private bool TryGetPlayerEntry(Player player, out TablePlayerEntry playerEntry) {
-            playerEntry = _bulk.FirstOrDefault(ctrl => ctrl.Player.Equals(player));
+            playerEntry = _bulk.ToList().FirstOrDefault(ctrl => ctrl.Player.Equals(player));
             return playerEntry != null;
         }
 

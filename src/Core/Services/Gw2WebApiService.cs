@@ -21,11 +21,15 @@ namespace Nekres.ProofLogix.Core.Services {
             TokenPermission.Characters
         };
 
-        public bool HasPermissions;
+        public bool HasSubtoken;
+
+        public IReadOnlyList<TokenPermission> MissingPermissions;
 
         private Regex _apiKeyPattern = new(@"^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{20}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$");
 
         public Gw2WebApiService() {
+            MissingPermissions = new List<TokenPermission>();
+
             ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated += OnSubtokenUpdated;
         }
 
@@ -84,8 +88,8 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnSubtokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e) {
-            // Checks token for insufficient permissions.
-            HasPermissions = e.Value.Intersect(_requires).Count() == _requires.Count;
+            HasSubtoken        = true;
+            MissingPermissions = e.Value.Intersect(_requires).Except(_requires).ToList();
         }
 
         private IEnumerable<AccountItem> FilterProofs(IEnumerable<AccountItem> items) {

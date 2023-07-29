@@ -13,9 +13,7 @@ using Nekres.ProofLogix.Core.UI.Home;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading.Tasks;
 using Gw2WebApiService = Nekres.ProofLogix.Core.Services.Gw2WebApiService;
 using MouseEventArgs = Blish_HUD.Input.MouseEventArgs;
@@ -43,7 +41,7 @@ namespace Nekres.ProofLogix {
         internal Gw2WebApiService Gw2WebApi;
 
         private TabbedWindow2     _window;
-        private OversizableWindow _table;
+        private LockableAxisWindow _table;
         private StandardWindow    _registerWindow;
 
         private CornerIcon     _cornerIcon;
@@ -112,7 +110,7 @@ namespace Nekres.ProofLogix {
             _window.TabChanged += OnTabChanged;
 
 
-            _table = new OversizableWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+            _table = new LockableAxisWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
                                         new Rectangle(40, 26, 913, 691),
                                         new Rectangle(70, 36, 839, 605)) 
             {

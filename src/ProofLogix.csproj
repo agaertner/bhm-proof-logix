@@ -293,7 +293,7 @@
     <Compile Include="Core\UI\Table\TablePresenter.cs" />
     <Compile Include="Core\UI\Configs\TableConfig.cs" />
     <Compile Include="Core\UI\Table\TableView.cs" />
-    <Compile Include="Core\UI\OversizableWindow.cs" />
+    <Compile Include="Core\UI\LockableAxisWindow.cs" />
     <Compile Include="Core\UI\TrackableWindow.cs" />
     <Compile Include="Core\Utils\AssetUtil.cs" />
     <Compile Include="Core\Utils\AsyncString.cs" />
