@@ -19,7 +19,7 @@ namespace Nekres.ProofLogix.Core.UI {
         /// unlocks unrestricted resizing to fit arbitrarily scaling children (eg. tables).
         /// </summary>
         protected override Point HandleWindowResize(Point newSize) {
-            return newSize;
+            return new Point(_size.X, newSize.Y); // Disable width resizing by the user.
         }
 
     }

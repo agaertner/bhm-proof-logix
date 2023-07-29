@@ -1,4 +1,5 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
@@ -14,8 +15,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         public FlowPanel Table;
 
+        private AsyncTexture2D _cogWheelIcon;
+        private AsyncTexture2D _cogWheelIconHover;
+        private AsyncTexture2D _cogWheelIconClick;
+
+        private const int SCROLLBAR_WIDTH = 12;
+
         public TableView(TableConfig config) {
             this.WithPresenter(new TablePresenter(this, config));
+            _cogWheelIcon      = GameService.Content.DatAssetCache.GetTextureFromAssetId(155052);
+            _cogWheelIconHover = GameService.Content.DatAssetCache.GetTextureFromAssetId(157110);
+            _cogWheelIconClick = GameService.Content.DatAssetCache.GetTextureFromAssetId(157109);
         }
 
         protected override void Build(Container buildPanel) {
@@ -23,6 +33,22 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Parent = buildPanel,
                 Width = 32,
                 Height = 32
+            };
+
+            cogWheel.MouseEntered += (_, _) => {
+                cogWheel.Texture = _cogWheelIconHover;
+            };
+
+            cogWheel.MouseLeft += (_, _) => {
+                cogWheel.Texture = _cogWheelIcon;
+            };
+
+            cogWheel.LeftMouseButtonPressed += (_, _) => {
+                cogWheel.Texture = _cogWheelIconClick;
+            };
+
+            cogWheel.LeftMouseButtonReleased += (_, _) => {
+                cogWheel.Texture = _cogWheelIconHover;
             };
 
             var search = new TextBox {
@@ -115,19 +141,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 FlowDirection  = ControlFlowDirection.SingleTopToBottom
             };
 
-            buildPanel.ContentResized += (_, e) => {
-                // Fixed width while dragging.
-                buildPanel.Width  = this.Table.Width;
-
-                this.Table.Height = e.CurrentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y;
-            };
-
             headerEntry.Resized += (_, e) => {
-                this.Table.Width = e.CurrentSize.X + (int)Math.Round(headerEntry.MaxTokenCellWidth * 1.5f);
+                this.Table.Width = e.CurrentSize.X  + SCROLLBAR_WIDTH;
+                buildPanel.Width = this.Table.Width + (buildPanel.Width - buildPanel.ContentRegion.Width) - SCROLLBAR_WIDTH / 2;
             };
 
-            this.Table.Resized += (_, e) => {
-                buildPanel.Width = e.CurrentSize.X;
+            buildPanel.ContentResized += (_, e) => {
+                this.Table.Height = e.CurrentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y;
             };
 
             headerEntry.ColumnClick += (_, e) => {
