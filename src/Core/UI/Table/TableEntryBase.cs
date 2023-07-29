@@ -44,6 +44,12 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _maxAccountNameCellWidth, value);
         }
 
+        private int _maxTokenCellWidth = 45;
+        public int MaxTokenCellWidth {
+            get => _maxTokenCellWidth;
+            set => SetProperty(ref _maxTokenCellWidth, value);
+        }
+
         protected abstract string         Timestamp     { get; }
         protected abstract AsyncTexture2D ClassIcon     { get; }
         protected abstract string         CharacterName { get; }
@@ -115,7 +121,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             // Timestamp
             if (columns.Contains(TableConfig.Column.Timestamp)) {
                 var timestamp = Cut(this.Timestamp, this.MaxTimestampCellWidth);
-                _timestampBounds = new Rectangle(0, 0, this.MaxTimestampCellWidth, bounds.Height);
+                _timestampBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxTimestampCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
             } else {
                 _timestampBounds = Rectangle.Empty;
@@ -153,11 +159,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             var tempTokenBounds = new List<Rectangle>();
             var tokenBounds = _accountNameBounds;
             foreach (var id in ProofLogix.Instance.TableConfig.Value.TokenIds) {
-                tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, 30, bounds.Height);
+                tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, this.MaxTokenCellWidth, bounds.Height);
                 tempTokenBounds.Add(tokenBounds);
                 PaintToken(spriteBatch, tokenBounds, id);
             }
             _tokenBounds = tempTokenBounds;
+
+            this.Width = tokenBounds.Right + ControlStandard.ControlOffset.X;
         }
 
         private string Cut(string text, int maxWidth) {

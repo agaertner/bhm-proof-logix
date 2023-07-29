@@ -7,7 +7,6 @@ using Nekres.ProofLogix.Core.UI.KpProfile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
@@ -53,20 +52,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             table.Invalidate();
         }
 
-        protected override async Task<bool> Load(IProgress<string> progress) {
-            foreach (var id in this.Model.ProfileIds) {
-                var profile = await ProofLogix.Instance.KpWebApi.GetProfile(id);
-                ProofLogix.Instance.PartySync.AddKpProfile(profile);
-            }
-            return await base.Load(progress);
-        }
-
         public void CreatePlayerEntry(Player player) {
-            var table = this.View.Table;
-            if (table == null) {
-                return;
-            }
-
             if (TryGetPlayerEntry(player, out var playerEntry)) {
                 playerEntry.Player = player; // Reassign just in case it's a new player.
                 return;
@@ -79,7 +65,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             _bulkLoadTimer.Stop();
 
             var entry = new TablePlayerEntry(player) {
-                Width = table.ContentRegion.Width,
                 Height = 32,
                 Remember = this.Model.ProfileIds.Any(id => id.Equals(player.KpProfile.Id))
                         || player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)
@@ -106,10 +91,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                     this.Model.ProfileIds.Add(entry.Player.KpProfile.Id);
                 }
                 entry.Remember = !entry.Remember;
-            };
-
-            table.ContentResized += (_, e) => {
-                entry.Width = e.CurrentRegion.Width;
             };
         }
 

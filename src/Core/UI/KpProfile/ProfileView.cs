@@ -123,8 +123,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                                              new Rectangle(40, 26, 913, 691),
                                              new Rectangle(70, 36, 839, 605)) {
                 Parent    = GameService.Graphics.SpriteScreen,
-                Title     = $"Profile: {profile.Name}",
-                Subtitle  = "Kill Proof",
+                Title     = "Profile",
+                Subtitle  = profile.Id,
                 Id        = $"{nameof(ProofLogix)}_Profile_a32c972dd9fe4025a01d3256025ab1dc",
                 CanResize = true,
                 SavesSize = true,
@@ -132,7 +132,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 Height    = 600,
                 Left      = (GameService.Graphics.SpriteScreen.Width  - 700) / 2,
                 Top       = (GameService.Graphics.SpriteScreen.Height - 600) / 2,
-                Emblem    = GameService.Content.GetTexture("common/733268")
+                Emblem    = ProofLogix.Instance.Emblem
             };
 
             window.Show(new LinkedView(profile));

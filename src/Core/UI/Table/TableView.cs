@@ -19,9 +19,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override void Build(Container buildPanel) {
-
-            ((WindowBase2)buildPanel).Subtitle = "Squad Tracker";
-
             var cogWheel = new Image(GameService.Content.DatAssetCache.GetTextureFromAssetId(155052)) {
                 Parent = buildPanel,
                 Width = 32,
@@ -119,12 +116,26 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             buildPanel.ContentResized += (_, e) => {
-                this.Table.Width  = e.CurrentRegion.Width;
+                // Fixed width while dragging.
+                buildPanel.Width  = this.Table.Width;
+
                 this.Table.Height = e.CurrentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y;
-                headerEntry.Width = e.CurrentRegion.Width;
             };
 
-            headerEntry.ColumnClick += HeaderEntry_ColumnClick;
+            headerEntry.Resized += (_, e) => {
+                this.Table.Width = e.CurrentSize.X + (int)Math.Round(headerEntry.MaxTokenCellWidth * 1.5f);
+            };
+
+            this.Table.Resized += (_, e) => {
+                buildPanel.Width = e.CurrentSize.X;
+            };
+
+            headerEntry.ColumnClick += (_, e) => {
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+                this.Presenter.Model.SelectedColumn  = e.Value;
+                this.Presenter.Model.OrderDescending = !this.Presenter.Model.OrderDescending;
+                this.Presenter.SortEntries();
+            };
 
             this.Presenter.CreatePlayerEntry(ProofLogix.Instance.PartySync.LocalPlayer);
             foreach (var player in ProofLogix.Instance.PartySync.PlayerList) {
@@ -255,6 +266,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             base.Build(buildPanel);
         }
 
+
         private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources) {
             foreach (var resource in resources) {
                 var tokenEntry = new ContextMenuStripItem(resource.Name) {
@@ -272,13 +284,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                     }
                 };
             }
-        }
-
-        private void HeaderEntry_ColumnClick(object sender, ValueEventArgs<int> e) {
-            ProofLogix.Instance.Resources.PlayMenuItemClick();
-            this.Presenter.Model.SelectedColumn  = e.Value;
-            this.Presenter.Model.OrderDescending = !this.Presenter.Model.OrderDescending;
-            this.Presenter.SortEntries();
         }
     }
 }

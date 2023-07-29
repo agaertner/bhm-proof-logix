@@ -3,6 +3,7 @@ using Blish_HUD.ArcDps.Common;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
+using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -85,6 +86,11 @@ namespace Nekres.ProofLogix.Core.Services {
             // Squad will be empty until map change if ArcDps just got activated.
             foreach (var player in GameService.ArcDps.Common.PlayersInSquad.Values) {
                 AddArcDpsAgent(player);
+            }
+
+            foreach (var id in ProofLogix.Instance.TableConfig.Value.ProfileIds) {
+                var profile = await ProofLogix.Instance.KpWebApi.GetProfile(id);
+                AddKpProfile(profile);
             }
         }
 
