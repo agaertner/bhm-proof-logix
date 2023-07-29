@@ -109,12 +109,13 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             proofsEntry.Click += async (_, _) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
-                if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
-                    ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
+                if (!IsApiAvailable()) {
+                    GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
+
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var loadingText = new AsyncString();
                 plyPanel.Show(new LoadingView("Loading items..", loadingText));
@@ -129,26 +130,29 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             clearsEntry.Click += async (_, _) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
-                if (!ProofLogix.Instance.Gw2WebApi.HasPermissions) {
-                    ScreenNotification.ShowNotification("Insufficient permissions.", ScreenNotification.NotificationType.Error);
+                if (!IsApiAvailable()) {
+                    GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
+
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 plyPanel.Show(new LoadingView("Loading clears.."));
                 plyPanel.Show(new ClearsView(await ProofLogix.Instance.Gw2WebApi.GetClears()));
             };
 
             myProfileEntry.Click += (_, _) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var localPlayer = ProofLogix.Instance.PartySync.LocalPlayer;
 
                 if (!localPlayer.HasKpProfile) {
+                    GameService.Content.PlaySoundEffectByName("error");
                     ScreenNotification.ShowNotification("Not yet loaded. Please, try again.", ScreenNotification.NotificationType.Error);
                     return;
                 }
+
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 if (localPlayer.KpProfile.NotFound) {
                     ProofLogix.Instance.ToggleRegisterWindow();
@@ -164,6 +168,25 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             base.Build(buildPanel);
+        }
+
+        private bool IsApiAvailable() {
+            if (string.IsNullOrWhiteSpace(GameService.Gw2Mumble.PlayerCharacter.Name)) {
+                ScreenNotification.ShowNotification("API unavailable. Please, login to a character.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+
+            if (!ProofLogix.Instance.Gw2WebApi.HasSubtoken) {
+                ScreenNotification.ShowNotification("Missing API key. Please, add an API key to BlishHUD.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+
+            if (ProofLogix.Instance.Gw2WebApi.MissingPermissions.Any()) {
+                var missing = string.Join(", ", ProofLogix.Instance.Gw2WebApi.MissingPermissions);
+                ScreenNotification.ShowNotification($"Insufficient API permissions.\nRequired: {missing}", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            return true;
         }
 
         private class AccountItemsView : View {

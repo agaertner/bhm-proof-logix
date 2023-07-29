@@ -126,18 +126,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var headerEntry = new TableHeaderEntry {
                 Parent = buildPanel,
-                Top = search.Bottom + Panel.TOP_PADDING,
-                Width  = buildPanel.ContentRegion.Width,
+                Top    = search.Bottom + Panel.TOP_PADDING,
                 Height = 32
             };
 
             this.Table = new FlowPanel {
                 Parent         = buildPanel,
-                Top            = headerEntry.Bottom + Control.ControlStandard.ControlOffset.Y,
-                Width          = buildPanel.ContentRegion.Width,
+                Top            = headerEntry.Bottom              + Control.ControlStandard.ControlOffset.Y,
+                Width          = headerEntry.Width               + SCROLLBAR_WIDTH,
                 Height         = buildPanel.ContentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y,
                 CanScroll      = true,
-                ControlPadding = new Vector2(5, 5),
+                ControlPadding = new Vector2(0,Panel.BOTTOM_PADDING),
                 FlowDirection  = ControlFlowDirection.SingleTopToBottom
             };
 

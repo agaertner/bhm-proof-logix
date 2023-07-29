@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Blish_HUD;
+using Gw2Sharp.WebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Blish_HUD;
-using Gw2Sharp.WebApi.V2.Models;
-using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
 using Profile = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Profile;
 
 namespace Nekres.ProofLogix.Core.Services {
