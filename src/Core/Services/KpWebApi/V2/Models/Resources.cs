@@ -48,6 +48,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     }
 
     public class Resource {
+
+        public static Resource Empty = new() {
+            IconUrl = string.Empty,
+            Name = string.Empty
+        };
+
         [JsonProperty("icon")]
         public string IconUrl { get; set; }
 

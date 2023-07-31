@@ -123,6 +123,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 var timestamp = Cut(this.Timestamp, this.MaxTimestampCellWidth);
                 _timestampBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxTimestampCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
+                UpdateTooltip(_timestampBounds, GetTimestampTooltip());
             } else {
                 _timestampBounds = Rectangle.Empty;
             }
@@ -182,11 +183,21 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             return result;
         }
 
-        protected abstract string GetClassTooltip();
+        protected virtual string GetTimestampTooltip() {
+            return string.Empty;
+        }
 
-        protected abstract string GetCharacterTooltip();
+        protected virtual string GetClassTooltip() {
+            return string.Empty;
+        }
 
-        protected abstract string GetAccountTooltip();
+        protected virtual string GetCharacterTooltip() {
+            return string.Empty;
+        }
+
+        protected virtual string GetAccountTooltip() {
+            return string.Empty;
+        }
 
         protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId);
 

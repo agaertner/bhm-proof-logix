@@ -51,6 +51,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             }
         }
 
+        protected override string GetTimestampTooltip() {
+            return this.Player.Created.ToLocalTime().AsRelativeTime();
+        }
+
         protected override string GetClassTooltip() {
             return this.Player.Class;
         }

@@ -405,7 +405,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
                     var text = $"{token.Name} x{token.Amount}";
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size14, text, true);
-                    var icon = ProofLogix.Instance.Resources.GetItem(token.Id)?.Icon ?? ProofLogix.Instance.Resources.GetApiIcon(token.Id);
+                    var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)
