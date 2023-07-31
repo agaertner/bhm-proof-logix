@@ -17,7 +17,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         public string  AccountName => HasAgent ? _arcDpsPlayer.AccountName : 
                                       HasKpProfile ? KpProfile.Name : string.Empty;
 
-        public virtual string CharacterName => _arcDpsPlayer.CharacterName;
+        public virtual string CharacterName => _arcDpsPlayer.CharacterName ?? string.Empty;
 
         public bool HasAgent     => !string.IsNullOrEmpty(_arcDpsPlayer.AccountName);
         public bool HasKpProfile => this.KpProfile is {NotFound: false};

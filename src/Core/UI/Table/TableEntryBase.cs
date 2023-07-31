@@ -62,6 +62,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private Rectangle       _accountNameBounds;
         private List<Rectangle> _tokenBounds;
 
+        private const char ELLIPSIS = '\u2026';
+
         protected TableEntryBase() {
             _timestampBounds = Rectangle.Empty;
             _classIconBounds = Rectangle.Empty;
@@ -180,7 +182,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 result = result.Substring(0, result.Length - 1);
                 width  = (int)this.Font.MeasureString(result).Width;
             }
-            return result;
+            return result.Length < text.Length ? result.TrimEnd() + ELLIPSIS : result;
         }
 
         protected virtual string GetTimestampTooltip() {
