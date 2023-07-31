@@ -1,4 +1,5 @@
 ﻿using Blish_HUD;
+using Blish_HUD.Controls;
 using Blish_HUD.Extended;
 using Gw2Sharp.WebApi.V2.Models;
 using System;
@@ -35,6 +36,25 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public void Dispose() {
             ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated -= OnSubtokenUpdated;
+        }
+
+        public bool IsApiAvailable() {
+            if (string.IsNullOrWhiteSpace(GameService.Gw2Mumble.PlayerCharacter.Name)) {
+                ScreenNotification.ShowNotification("API unavailable. Please, login to a character.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+
+            if (!HasSubtoken) {
+                ScreenNotification.ShowNotification("Missing API key. Please, add an API key to BlishHUD.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+
+            if (MissingPermissions.Any()) {
+                var missing = string.Join(", ", ProofLogix.Instance.Gw2WebApi.MissingPermissions);
+                ScreenNotification.ShowNotification($"Insufficient API permissions.\nRequired: {missing}", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            return true;
         }
 
         public async Task<List<string>> GetClears() {

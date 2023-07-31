@@ -129,8 +129,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             // Class Icon
             if (columns.Contains(TableConfig.Column.Class)) {
-                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 32, 32);
-                spriteBatch.DrawOnCtrl(this, this.ClassIcon, _classIconBounds);
+                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 36, bounds.Height);
+                // Keep aspect ratio and center.
+                var centered = new Rectangle(_classIconBounds.X + (_classIconBounds.Width - _classIconBounds.Height) / 2, _classIconBounds.Y, _classIconBounds.Height, _classIconBounds.Height);
+                spriteBatch.DrawOnCtrl(this, this.ClassIcon, centered);
             } else {
                 _classIconBounds = new Rectangle(_timestampBounds.Right, 0, 0, 0);
             }

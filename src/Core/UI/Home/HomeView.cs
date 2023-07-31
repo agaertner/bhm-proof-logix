@@ -48,14 +48,16 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Parent = navMenu,
                 Text   = "Owned Proofs",
                 Width  = navMenu.ContentRegion.Width,
-                Icon = GameService.Content.DatAssetCache.GetTextureFromAssetId(156699)
+                Icon = GameService.Content.DatAssetCache.GetTextureFromAssetId(156699),
+                BasicTooltipText = "Shows the current snapshot of your inventories.\nEnables you to verify if recent rewarded proofs are\nalready available to be recorded by killproof.me."
             };
 
             var clearsEntry = new MenuItem {
-                Parent = navMenu,
-                Text   = "Weekly Clears",
-                Width  = navMenu.ContentRegion.Width,
-                Icon   = GameService.Content.DatAssetCache.GetTextureFromAssetId(1234912)
+                Parent           = navMenu,
+                Text             = "Weekly Clears",
+                Width            = navMenu.ContentRegion.Width,
+                Icon             = GameService.Content.DatAssetCache.GetTextureFromAssetId(1234912),
+                BasicTooltipText = "Shows the current snapshot of your clears.\nEnables you to verify if recent completed encounters are\nalready available to be recorded by killproof.me."
             };
 
             var separatorEntry = new MenuItem {
@@ -86,8 +88,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Left             = menuPanel.Right,
                 Width            = buildPanel.ContentRegion.Width - menuPanel.Width,
                 Height           = buildPanel.ContentRegion.Height,
-                ShowBorder       = true,
-                BasicTooltipText = "Shows the current snapshot of your account data.\nEnables you to verify if newly acquired progress is\nalready available for tracking by third-parties."
+                ShowBorder       = true
             };
 
             buildPanel.ContentResized += (_, e) => {
@@ -110,7 +111,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
 
             proofsEntry.Click += async (_, _) => {
 
-                if (!IsApiAvailable()) {
+                if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
@@ -131,7 +132,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
 
             clearsEntry.Click += async (_, _) => {
 
-                if (!IsApiAvailable()) {
+                if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
@@ -168,25 +169,6 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             base.Build(buildPanel);
-        }
-
-        private bool IsApiAvailable() {
-            if (string.IsNullOrWhiteSpace(GameService.Gw2Mumble.PlayerCharacter.Name)) {
-                ScreenNotification.ShowNotification("API unavailable. Please, login to a character.", ScreenNotification.NotificationType.Error);
-                return false;
-            }
-
-            if (!ProofLogix.Instance.Gw2WebApi.HasSubtoken) {
-                ScreenNotification.ShowNotification("Missing API key. Please, add an API key to BlishHUD.", ScreenNotification.NotificationType.Error);
-                return false;
-            }
-
-            if (ProofLogix.Instance.Gw2WebApi.MissingPermissions.Any()) {
-                var missing = string.Join(", ", ProofLogix.Instance.Gw2WebApi.MissingPermissions);
-                ScreenNotification.ShowNotification($"Insufficient API permissions.\nRequired: {missing}", ScreenNotification.NotificationType.Error);
-                return false;
-            }
-            return true;
         }
 
         private class AccountItemsView : View {
