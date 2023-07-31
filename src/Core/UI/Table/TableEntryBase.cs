@@ -168,14 +168,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, this.MaxTokenCellWidth, bounds.Height);
                 tempTokenBounds.Add(tokenBounds);
                 PaintToken(spriteBatch, tokenBounds, id);
-                UpdateTooltip(tokenBounds, ProofLogix.Instance.Resources.GetItem(id).Name);
+                UpdateTooltip(tokenBounds, GetTokenTooltip(id));
             }
             _tokenBounds = tempTokenBounds;
 
             this.Width = tokenBounds.Right + ControlStandard.ControlOffset.X;
         }
 
-        private string Cut(string text, int maxWidth) {
+        protected string Cut(string text, int maxWidth) {
             var result = text;
             var width  = (int)this.Font.MeasureString(result).Width;
             while (width > maxWidth) {
@@ -199,6 +199,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected virtual string GetAccountTooltip() {
             return string.Empty;
+        }
+
+        protected virtual string GetTokenTooltip(int tokenId) {
+            return ProofLogix.Instance.Resources.GetItem(tokenId).Name;
         }
 
         protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId);
