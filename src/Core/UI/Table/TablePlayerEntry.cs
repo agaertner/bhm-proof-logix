@@ -67,10 +67,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             return this.Player.AccountName;
         }
 
+        protected override string GetTokenTooltip(int tokenId) {
+            return this.Player.KpProfile.GetToken(tokenId).Amount.ToString();
+        }
+
         protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {
             var token = this.Player.KpProfile.GetToken(tokenId);
             var color = ProofLogix.Instance.PartySync.GetTokenAmountColor(tokenId, token.Amount, ProofLogix.Instance.TableConfig.Value.ColorGradingMode);
-            spriteBatch.DrawStringOnCtrl(this, token.Amount.ToString(), this.Font, bounds, color, false, true, 2, HorizontalAlignment.Center);
+            spriteBatch.DrawStringOnCtrl(this, Cut(token.Amount.ToString(), this.MaxTokenCellWidth), this.Font, bounds, color, false, true, 2, HorizontalAlignment.Center);
         }
     }
 }
