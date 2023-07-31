@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using Blish_HUD;
 
 namespace Nekres.ProofLogix.Core {
     public static class DateTimeExtensions {
@@ -25,6 +27,18 @@ namespace Nekres.ProofLogix.Core {
                         }
                     }
                 }
+            };
+        }
+
+        public static string AsRelativeTime(this DateTime dateTime) {
+            var now = dateTime.Kind == DateTimeKind.Utc ? DateTime.UtcNow : DateTime.Now;
+
+            var timePattern = CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern;
+
+            return (now - dateTime).TotalDays switch {
+                < 1 => $"Today at {dateTime.ToString(timePattern)}",
+                < 2 => $"{(dateTime.Date > now.Date ? "Tomorrow" : "Yesterday")} at {dateTime.ToString(timePattern)}",
+                _   => dateTime.ToString($"{CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern} {timePattern}")
             };
         }
     }

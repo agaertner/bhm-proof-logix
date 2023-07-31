@@ -92,7 +92,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public Token GetToken(int id) {
             return Tokens?.FirstOrDefault(x => x.Id == id) ??
                    Killproofs?.FirstOrDefault(x => x.Id == id) ??
-                   Coffers?.FirstOrDefault(x => x.Id    == id) ?? Token.Empty;
+                   Coffers?.FirstOrDefault(x => x.Id == id) ?? Token.Empty;
         }
 
         public IEnumerable<Token> GetTokens(bool excludeCoffers = false) {

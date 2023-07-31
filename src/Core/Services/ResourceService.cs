@@ -137,6 +137,10 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public AsyncTexture2D GetApiIcon(int itemId) {
+            if (itemId == 0) {
+                return ContentService.Textures.TransparentPixel;
+            }
+
             if (_apiIcons.TryGetValue(itemId, out var tex)) {
                 return tex;
             }
@@ -198,7 +202,7 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public Resource GetItem(int id) {
-            return _resources.Items.FirstOrDefault(item => item.Id == id);
+            return _resources.Items.FirstOrDefault(item => item.Id == id) ?? Resource.Empty;
         }
 
         public List<Resource> GetItems() {

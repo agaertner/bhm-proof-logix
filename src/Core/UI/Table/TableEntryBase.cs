@@ -123,14 +123,18 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 var timestamp = Cut(this.Timestamp, this.MaxTimestampCellWidth);
                 _timestampBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxTimestampCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
+                UpdateTooltip(_timestampBounds, GetTimestampTooltip());
             } else {
                 _timestampBounds = Rectangle.Empty;
             }
 
             // Class Icon
             if (columns.Contains(TableConfig.Column.Class)) {
-                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 32, 32);
-                spriteBatch.DrawOnCtrl(this, this.ClassIcon, _classIconBounds);
+                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 36, bounds.Height);
+                // Keep aspect ratio and center.
+                var centered = new Rectangle(_classIconBounds.X + (_classIconBounds.Width - _classIconBounds.Height) / 2, _classIconBounds.Y, _classIconBounds.Height, _classIconBounds.Height);
+                spriteBatch.DrawOnCtrl(this, this.ClassIcon, centered);
+                UpdateTooltip(_classIconBounds, GetClassTooltip());
             } else {
                 _classIconBounds = new Rectangle(_timestampBounds.Right, 0, 0, 0);
             }
@@ -140,7 +144,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 var characterName = Cut(this.CharacterName, this.MaxCharacterNameCellWidth);
                 _characterNameBounds = new Rectangle(_classIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxCharacterNameCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, characterName, this.Font, _characterNameBounds, Color.White, false, true, 2);
-                UpdateTooltip(_characterNameBounds, string.Empty);
+                UpdateTooltip(_characterNameBounds, GetCharacterTooltip());
             } else {
                 _characterNameBounds = new Rectangle(_classIconBounds.Right, 0, 0, 0);
             }
@@ -150,7 +154,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 var accountName = Cut(this.AccountName, this.MaxAccountNameCellWidth);
                 _accountNameBounds = new Rectangle(_characterNameBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxAccountNameCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, accountName, this.Font, _accountNameBounds, Color.White, false, true, 2);
-                UpdateTooltip(_accountNameBounds, string.Empty);
+                UpdateTooltip(_accountNameBounds, GetAccountTooltip());
             } else {
                 _accountNameBounds = new Rectangle(_characterNameBounds.Right, 0, 0, 0);
             }
@@ -162,6 +166,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, this.MaxTokenCellWidth, bounds.Height);
                 tempTokenBounds.Add(tokenBounds);
                 PaintToken(spriteBatch, tokenBounds, id);
+                UpdateTooltip(tokenBounds, ProofLogix.Instance.Resources.GetItem(id).Name);
             }
             _tokenBounds = tempTokenBounds;
 
@@ -178,9 +183,25 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             return result;
         }
 
+        protected virtual string GetTimestampTooltip() {
+            return string.Empty;
+        }
+
+        protected virtual string GetClassTooltip() {
+            return string.Empty;
+        }
+
+        protected virtual string GetCharacterTooltip() {
+            return string.Empty;
+        }
+
+        protected virtual string GetAccountTooltip() {
+            return string.Empty;
+        }
+
         protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId);
 
-        protected void UpdateTooltip(Rectangle bounds, string basicTooltipText) {
+        private void UpdateTooltip(Rectangle bounds, string basicTooltipText) {
             if (!bounds.Contains(this.RelativeMousePosition)) {
                 return;
             }
