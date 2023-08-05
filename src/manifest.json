@@ -4,7 +4,7 @@
   "namespace": "KillProofModule",
   "package": "ProofLogix.dll",
   "manifest_version": 1,
-  "description": "Check someone's kills for raiding. Uses ArcDPS Bridge service if available.\n\nPowered by www.killproof.me",
+  "description": "Check the raid related progress of yourself and others.\n\nSupports\n• Killproof.me\n• ArcDPS Bridge (ArcDPS Blish HUD Integration)",
   "dependencies": {
     "bh.blishhud": ">=1.0.0"
   },
@@ -35,7 +35,7 @@
     },
     "builds": {
       "optional": true,
-      "details": "Required for getting your specializations and their icons."
+      "details": "Required for displaying your specializations."
     }
   }
 }
