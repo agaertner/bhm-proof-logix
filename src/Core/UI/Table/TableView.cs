@@ -29,7 +29,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override void Build(Container buildPanel) {
-            var cogWheel = new Image(GameService.Content.DatAssetCache.GetTextureFromAssetId(155052)) {
+            var cogWheel = new Image(_cogWheelIcon) {
                 Parent = buildPanel,
                 Width = 32,
                 Height = 32

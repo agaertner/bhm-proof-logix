@@ -34,12 +34,12 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
         protected override void Build(Container buildPanel) {
 
-            var cogWheel = new Image(GameService.Content.DatAssetCache.GetTextureFromAssetId(155052)) {
+            var cogWheel = new Image(_cogWheelIcon) {
                 Parent = buildPanel,
                 Width  = 32,
                 Height = 32,
                 Top    = (buildPanel.ContentRegion.Height - 32) / 2
-        };
+            };
 
             cogWheel.MouseEntered += (_, _) => {
                 cogWheel.Texture = _cogWheelIconHover;
@@ -79,7 +79,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 Top           = labelPanel.Top   + (labelPanel.Height - 32) / 2,
                 SpriteEffects = SpriteEffects.FlipHorizontally,
                 Tint          = Color.White * 0.8f,
-                BasicTooltipText = "Send to Chat"
+                BasicTooltipText = "Send to Chat\nMouse 1: As item with adjusted quantity portion.\nMouse 2: As message."
             };
 
             sendBttn.MouseEntered += (_, _) => {
@@ -110,17 +110,12 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             var currentValue         = 0;
             var currentRepetitions   = 0;
 
-            sendBttn.Click += (_, _) => {
+            sendBttn.LeftMouseButtonReleased += (_, _) => {
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
 
-                if (!GameService.Gw2Mumble.IsAvailable) {
-                    ScreenNotification.ShowNotification("Chat unavailable.", ScreenNotification.NotificationType.Error);
-                    GameService.Content.PlaySoundEffectByName("error");
-                    return;
-                }
+                var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
-                if (DateTime.UtcNow.Subtract(lastTotalReachedTime).TotalSeconds < 1) {
-                    ScreenNotification.ShowNotification("Your total has been reached. Cooling down.", ScreenNotification.NotificationType.Error);
+                if (!CanSend(total, lastTotalReachedTime)) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
@@ -138,14 +133,6 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     ItemId = _config.SelectedToken
                 };
 
-                var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
-
-                if (total == 0) {
-                    ScreenNotification.ShowNotification("No amounts recorded.", ScreenNotification.NotificationType.Error);
-                    GameService.Content.PlaySoundEffectByName("error");
-                    return;
-                }
-
                 chatLink.Quantity = Convert.ToByte(total <= 250 ? total : GetNext(total, 
                                                                                   ref currentReduction, 
                                                                                   ref currentValue, 
@@ -153,6 +140,20 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                                                                                   ref lastTotalReachedTime));
 
                 ChatUtil.Send(chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
+            };
+
+            sendBttn.RightMouseButtonReleased += (_, _) => {
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+
+                var token = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken);
+
+                if (!CanSend(token.Amount, lastTotalReachedTime)) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
+                ChatUtil.Send($"{BRACKET_LEFT}{token.Amount} {token.Name}{BRACKET_RIGHT}", ProofLogix.Instance.ChatMessageKey.Value);
+                lastTotalReachedTime = DateTime.UtcNow;
             };
 
             var menu = new ContextMenuStrip {
@@ -203,7 +204,23 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             base.Build(buildPanel);
         }
 
-        private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources, Panel labelPanel) {
+        private bool CanSend(int totalAmount, DateTime lastTotalReachedTime) {
+            if (!GameService.Gw2Mumble.IsAvailable) {
+                ScreenNotification.ShowNotification("Chat unavailable.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            if (DateTime.UtcNow.Subtract(lastTotalReachedTime).TotalSeconds < 1) {
+                ScreenNotification.ShowNotification("Action recharging.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            if (totalAmount == 0) {
+                ScreenNotification.ShowNotification("You can't ping empty records.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            return true;
+        }
+
+        private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources, Container labelPanel) {
             foreach (var resource in resources) {
                 var tokenEntry = new ContextMenuStripItem(resource.Name) {
                     Parent   = parent.Submenu
