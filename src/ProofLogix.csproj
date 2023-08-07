@@ -51,9 +51,11 @@
     </Reference>
     <Reference Include="Flurl, Version=2.8.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Flurl.2.8.2\lib\net40\Flurl.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Flurl.Http, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Flurl.Http.2.4.2\lib\net46\Flurl.Http.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Gapotchenko.FX, Version=2021.1.5.4096, Culture=neutral, PublicKeyToken=a750ee378eaf756f, processorArchitecture=MSIL">
       <HintPath>packages\Gapotchenko.FX.2021.1.5\lib\net472\Gapotchenko.FX.dll</HintPath>
@@ -276,6 +278,7 @@
     <Compile Include="Core\Services\ResourceService.cs" />
     <Compile Include="Core\UI\Clears\ClearsView.cs" />
     <Compile Include="Core\UI\Configs\ConfigBase.cs" />
+    <Compile Include="Core\UI\Configs\SmartPingConfig.cs" />
     <Compile Include="Core\UI\FlowPanelWithIcon.cs" />
     <Compile Include="Core\UI\Home\HomeView.cs" />
     <Compile Include="Core\UI\LoadingView.cs" />
@@ -287,6 +290,7 @@
     <Compile Include="Core\UI\KpProfile\RefreshButton.cs" />
     <Compile Include="Core\UI\Register\Register.cs" />
     <Compile Include="Core\UI\KpProfile\ProfileView.cs" />
+    <Compile Include="Core\UI\SmartPing\SmartPingView.cs" />
     <Compile Include="Core\UI\Table\TableEntryBase.cs" />
     <Compile Include="Core\UI\Table\TableHeaderEntry.cs" />
     <Compile Include="Core\UI\Table\TablePlayerEntry.cs" />

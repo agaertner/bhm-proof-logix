@@ -83,6 +83,13 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Icon   = GameService.Content.DatAssetCache.GetTextureFromAssetId(156407)
             };
 
+            var smartPingEntry = new MenuItem {
+                Parent = separatorEntry,
+                Text   = "Smart Ping",
+                Width  = navMenu.ContentRegion.Width,
+                Icon   = GameService.Content.DatAssetCache.GetTextureFromAssetId(155157),
+            };
+
             var plyPanel = new ViewContainer {
                 Parent           = buildPanel,
                 Left             = menuPanel.Right,
@@ -107,6 +114,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 separatorEntry.Width   = e.CurrentRegion.Width;
                 myProfileEntry.Height  = e.CurrentRegion.Height;
                 squadTableEntry.Height = e.CurrentRegion.Height;
+                smartPingEntry.Height  = e.CurrentRegion.Height;
             };
 
             proofsEntry.Click += async (_, _) => {
@@ -166,6 +174,11 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             squadTableEntry.Click += (_, _) => {
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
                 ProofLogix.Instance.ToggleTable();
+            };
+
+            smartPingEntry.Click += (_, _) => {
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+                ProofLogix.Instance.ToggleSmartPing();
             };
 
             base.Build(buildPanel);

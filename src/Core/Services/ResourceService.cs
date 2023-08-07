@@ -2,6 +2,7 @@
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
+using Gw2Sharp.WebApi.Exceptions;
 using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
@@ -145,9 +146,27 @@ namespace Nekres.ProofLogix.Core.Services {
                 return tex;
             }
 
-            var response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
+            Gw2Sharp.WebApi.V2.Models.Item response = null;
+            try {
+                response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
+            } catch (Exception e) {
+                switch (e) {
+                    case NotFoundException or BadRequestException or AuthorizationRequiredException: // Resource does not exist or access is denied.
+                        ProofLogix.Logger.Trace(e, e.Message);
+                        break;
+                    case TooManyRequestsException:
+                        ProofLogix.Logger.Warn(e, "No icon could be loaded due to being rate limited by the API.");
+                        break;
+                    case RequestException or RequestException<string>:
+                        ProofLogix.Logger.Trace(e, e.Message);
+                        break;
+                    default:
+                        ProofLogix.Logger.Error(e, e.Message);
+                        break;
+                }
+            }
 
-            if (response?.Icon == null) {
+            if (response == null || string.IsNullOrEmpty(response.Icon)) {
                 return ContentService.Textures.TransparentPixel;
             }
 
