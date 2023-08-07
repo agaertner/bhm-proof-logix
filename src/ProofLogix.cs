@@ -11,6 +11,7 @@ using Nekres.ProofLogix.Core.UI;
 using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.Home;
 using Nekres.ProofLogix.Core.UI.LookingForOpener;
+using Nekres.ProofLogix.Core.UI.SmartPing;
 using Nekres.ProofLogix.Core.UI.Table;
 using System;
 using System.ComponentModel.Composition;
@@ -40,29 +41,40 @@ namespace Nekres.ProofLogix {
         internal PartySyncService PartySync;
         internal Gw2WebApiService Gw2WebApi;
 
-        private TabbedWindow2     _window;
+        private TabbedWindow2      _window;
         private LockableAxisWindow _table;
-        private StandardWindow    _registerWindow;
+        private StandardWindow     _registerWindow;
+        private StandardWindow     _smartPing;
 
         private CornerIcon     _cornerIcon;
         internal AsyncTexture2D Emblem;
         private AsyncTexture2D _icon;
         private AsyncTexture2D _hoverIcon;
 
-        internal SettingEntry<LfoConfig>   LfoConfig;
-        internal SettingEntry<TableConfig> TableConfig;
+        internal SettingEntry<LfoConfig>       LfoConfig;
+        internal SettingEntry<TableConfig>     TableConfig;
+        internal SettingEntry<SmartPingConfig> SmartPingConfig;
+        internal SettingEntry<KeyBinding>      ChatMessageKey;
 
         private SettingEntry<KeyBinding> _tableKey;
+        private SettingEntry<KeyBinding> _smartPingKey;
 
         protected override void DefineSettings(SettingCollection settings) {
             var keyBindings = settings.AddSubCollection("bindings", true, false, () => "Key Bindings");
             _tableKey = keyBindings.DefineSetting("table_key", new KeyBinding(ModifierKeys.Ctrl, Keys.K), 
                                                 () => "Party Table", 
                                                 () => "Open or close the Party Table dialog.");
+            _smartPingKey = keyBindings.DefineSetting("smart_ping_key", new KeyBinding(ModifierKeys.Ctrl, Keys.L),
+                                                      () => "Smart Ping",
+                                                      () => "Open or close the Smart Ping dialog.");
+            ChatMessageKey = keyBindings.DefineSetting("chat_message_key", new KeyBinding(Keys.Enter),
+                                                       () => "Chat Message",
+                                                       () => "Give focus to the chat edit box.");
 
             var selfManaged = settings.AddSubCollection("configs", false, false);
-            LfoConfig   = selfManaged.DefineSetting("lfo_config",   Core.UI.Configs.LfoConfig.Default);
-            TableConfig = selfManaged.DefineSetting("table_config", Core.UI.Configs.TableConfig.Default);
+            LfoConfig       = selfManaged.DefineSetting("lfo_config",        Core.UI.Configs.LfoConfig.Default);
+            TableConfig     = selfManaged.DefineSetting("table_config",      Core.UI.Configs.TableConfig.Default);
+            SmartPingConfig = selfManaged.DefineSetting("smart_ping_config", Core.UI.Configs.SmartPingConfig.Default);
         }
 
         protected override void Initialize() {
@@ -93,8 +105,8 @@ namespace Nekres.ProofLogix {
                                          new Rectangle(100, 36, 839, 605)) {
                 Parent        = GameService.Graphics.SpriteScreen,
                 Title         = this.Name,
+                Subtitle      = "Account",
                 Emblem        = Emblem,
-                Subtitle      = "Kill Proof",
                 Id            = $"{nameof(ProofLogix)}_KillProof_91702dd39f0340b5bd7883cc566e4f63",
                 CanResize     = true,
                 SavesSize     = true,
@@ -104,11 +116,10 @@ namespace Nekres.ProofLogix {
                 Visible       = false
             };
 
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(),          "Account"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(), "Account"));
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(LfoConfig.Value), "Looking for Opener"));
 
             _window.TabChanged += OnTabChanged;
-
 
             _table = new LockableAxisWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
                                         new Rectangle(40, 26, 913, 691),
@@ -118,7 +129,7 @@ namespace Nekres.ProofLogix {
                 Width              = 1000,
                 Height             = 500,
                 Id                 = $"{nameof(ProofLogix)}_Table_045b4a5441ac40ea93d98ae2021a8f0c",
-                Title              = "Party Table", // Prevents Title ("No Title") and Subtitle from being drawn.
+                Title              = "Party Table",
                 Subtitle           = GetKeyCombinationString(_tableKey.Value),
                 CanResize          = true,
                 SavesSize          = true,
@@ -127,13 +138,43 @@ namespace Nekres.ProofLogix {
                 Visible            = false,
                 Emblem             = Emblem
             };
+
+            _smartPing = new StandardWindow(GameService.Content.DatAssetCache.GetTextureFromAssetId(155985),
+                                            new Rectangle(40, 26, 913, 691),
+                                            new Rectangle(70, 36, 839, 645)) {
+                Parent             = GameService.Graphics.SpriteScreen,
+                Width              = 500,
+                Height             = 150,
+                Id                 = $"{nameof(ProofLogix)}_SmartPing_1f4fa9243b014915bfb7af4be545cb7b",
+                Title              = "Smart Ping",
+                Subtitle           = GetKeyCombinationString(_smartPingKey.Value),
+                SavesPosition      = true,
+                CanCloseWithEscape = false,
+                Visible            = false,
+                Emblem             = Emblem
+            };
+
             _cornerIcon.Click += OnCornerIconClick;
 
             _tableKey.Value.Activated      += OnTableKeyActivated;
             _tableKey.Value.BindingChanged += OnTableKeyBindingChanged;
             _tableKey.Value.Enabled        =  true;
+
+            _smartPingKey.Value.Activated      += OnSmartPingKeyActivated;              
+            _smartPingKey.Value.BindingChanged += OnSmartPingKeyBindingChanged;
+            _smartPingKey.Value.Enabled        =  true;
             // Base handler must be called
             base.OnModuleLoaded(e);
+        }
+
+        private void OnSmartPingKeyBindingChanged(object sender, EventArgs e) {
+            if (_smartPing != null) {
+                _smartPing.Subtitle = GetKeyCombinationString(_smartPingKey.Value);
+            }
+        }
+
+        private void OnSmartPingKeyActivated(object sender, EventArgs e) {
+            ToggleSmartPing();
         }
 
         private void OnTableKeyBindingChanged(object sender, EventArgs e) {
@@ -142,12 +183,13 @@ namespace Nekres.ProofLogix {
             }
         }
 
+        private void OnTableKeyActivated(object sender, EventArgs e) {
+            ToggleTable();
+        }
+
         private string GetKeyCombinationString(KeyBinding keyBinding) {
             if (keyBinding.ModifierKeys == ModifierKeys.None) {
-                if (keyBinding.PrimaryKey == Keys.None) {
-                    return string.Empty;
-                }
-                return $"[{keyBinding.PrimaryKey}]";
+                return keyBinding.PrimaryKey == Keys.None ? string.Empty : $"[{keyBinding.PrimaryKey}]";
             }
             string modifierString = string.Empty;
             if ((keyBinding.ModifierKeys & ModifierKeys.Ctrl) != 0) {
@@ -160,10 +202,6 @@ namespace Nekres.ProofLogix {
                 modifierString += "Shift + ";
             }
             return $"[{modifierString + keyBinding.PrimaryKey}]";
-        }
-
-        private void OnTableKeyActivated(object sender, EventArgs e) {
-            ToggleTable();
         }
 
         public void ToggleRegisterWindow() {
@@ -194,8 +232,17 @@ namespace Nekres.ProofLogix {
             _table.ToggleWindow(new TableView(TableConfig.Value));
         }
 
+        public void ToggleSmartPing() {
+            if (!PartySync.LocalPlayer.HasKpProfile) {
+                GameService.Content.PlaySoundEffectByName("error");
+                ScreenNotification.ShowNotification("Smart Ping unavailable. Profile not yet loaded.", ScreenNotification.NotificationType.Error);
+                return;
+            }
+            _smartPing.ToggleWindow(new SmartPingView(SmartPingConfig.Value));
+        }
+
         private void OnTabChanged(object sender, ValueChangedEventArgs<Tab> e) {
-            if (sender is not TabbedWindow2 wnd) {
+            if (sender is not WindowBase2 wnd) {
                 return;
             }
             wnd.Subtitle = e.NewValue.Name;
@@ -207,10 +254,16 @@ namespace Nekres.ProofLogix {
 
         /// <inheritdoc />
         protected override void Unload() {
+            _smartPingKey.Value.Enabled        =  false;
+            _smartPingKey.Value.BindingChanged -= OnSmartPingKeyBindingChanged;
+            _smartPingKey.Value.Activated      -= OnSmartPingKeyActivated;
+
+            _tableKey.Value.Enabled        =  false;
             _tableKey.Value.BindingChanged -= OnTableKeyBindingChanged;
             _tableKey.Value.Activated      -= OnTableKeyActivated;
-            _window.TabChanged             -= OnTabChanged;
-            _cornerIcon.Click              -= OnCornerIconClick;
+
+            _window.TabChanged -= OnTabChanged;
+            _cornerIcon.Click  -= OnCornerIconClick;
 
             _cornerIcon?.Dispose();
             _window?.Dispose();
