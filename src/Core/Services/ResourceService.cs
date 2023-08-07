@@ -145,7 +145,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 return tex;
             }
 
-            var response = TaskUtil.TryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId)).Result;
+            var response = Task.Run(() => TaskUtil.TryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId))).Result;
 
             if (response?.Icon == null) {
                 return ContentService.Textures.TransparentPixel;
