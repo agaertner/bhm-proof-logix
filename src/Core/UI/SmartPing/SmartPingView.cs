@@ -110,13 +110,20 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             var currentValue         = 0;
             var currentRepetitions   = 0;
 
+            var busy = false;
             sendBttn.LeftMouseButtonReleased += (_, _) => {
+                if (busy) {
+                    return;
+                }
+                busy = true;
+
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
                 if (!CanSend(total, lastTotalReachedTime)) {
                     GameService.Content.PlaySoundEffectByName("error");
+                    busy = false;
                     return;
                 }
 
@@ -139,15 +146,22 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 };
 
                 ChatUtil.Send(chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
+                busy = false;
             };
 
             sendBttn.RightMouseButtonReleased += (_, _) => {
+                if (busy) {
+                    return;
+                }
+                busy = true;
+
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
                 if (!CanSend(total, lastTotalReachedTime)) {
                     GameService.Content.PlaySoundEffectByName("error");
+                    busy = false;
                     return;
                 }
 
@@ -158,6 +172,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
                 ChatUtil.Send($"{BRACKET_LEFT}{total} {chatLink}{BRACKET_RIGHT}", ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
+                busy = false;
             };
 
             var menu = new ContextMenuStrip {
