@@ -130,14 +130,13 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 lastSendTime = DateTime.UtcNow;
 
                 var chatLink = new ItemChatLink {
-                    ItemId = _config.SelectedToken
+                    ItemId   = _config.SelectedToken,
+                    Quantity = Convert.ToByte(total <= 250 ? total : GetNext(total, 
+                                                                             ref currentReduction, 
+                                                                             ref currentValue, 
+                                                                             ref currentRepetitions, 
+                                                                             ref lastTotalReachedTime))
                 };
-
-                chatLink.Quantity = Convert.ToByte(total <= 250 ? total : GetNext(total, 
-                                                                                  ref currentReduction, 
-                                                                                  ref currentValue, 
-                                                                                  ref currentRepetitions, 
-                                                                                  ref lastTotalReachedTime));
 
                 ChatUtil.Send(chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
             };
@@ -145,14 +144,19 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             sendBttn.RightMouseButtonReleased += (_, _) => {
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
 
-                var token = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken);
+                var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
-                if (!CanSend(token.Amount, lastTotalReachedTime)) {
+                if (!CanSend(total, lastTotalReachedTime)) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
 
-                ChatUtil.Send($"{BRACKET_LEFT}{token.Amount} {token.Name}{BRACKET_RIGHT}", ProofLogix.Instance.ChatMessageKey.Value);
+                var chatLink = new ItemChatLink {
+                    ItemId = _config.SelectedToken,
+                    Quantity = 1
+                };
+
+                ChatUtil.Send($"{BRACKET_LEFT}{total} {chatLink}{BRACKET_RIGHT}", ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
             };
 
