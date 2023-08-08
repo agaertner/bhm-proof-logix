@@ -16,9 +16,6 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
     public class SmartPingView : View {
 
-        private const char BRACKET_LEFT  = '[';
-        private const char BRACKET_RIGHT = ']';
-
         private SmartPingConfig _config;
 
         private AsyncTexture2D _cogWheelIcon;
@@ -65,8 +62,10 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 ShowBorder = true
             };
 
-            var quantity = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
-            var lbl = BuildItemLabel(quantity, _config.SelectedToken);
+            var token = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken);
+            var rarity   = ProofLogix.Instance.Resources.GetItem(_config.SelectedToken).Rarity.AsColor();
+
+            var lbl = BuildItemLabel(AssetUtil.GetItemDisplayName(token.Name, token.Amount), rarity);
             lbl.Parent = labelPanel;
             lbl.Top    = (labelPanel.ContentRegion.Height - lbl.Height) / 2;
             lbl.Left   = (labelPanel.ContentRegion.Width - lbl.Width)  / 2;
@@ -79,7 +78,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 Top           = labelPanel.Top   + (labelPanel.Height - 32) / 2,
                 SpriteEffects = SpriteEffects.FlipHorizontally,
                 Tint          = Color.White * 0.8f,
-                BasicTooltipText = "Send to Chat\nMouse 1: As item with adjusted quantity portion.\nMouse 2: As message."
+                BasicTooltipText = "Send to Chat\nMouse 1: Proportionately each time until total is reached.\nMouse 2: Total with singular item."
             };
 
             sendBttn.MouseEntered += (_, _) => {
@@ -170,7 +169,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     Quantity = 1
                 };
 
-                ChatUtil.Send($"{BRACKET_LEFT}{total} {chatLink}{BRACKET_RIGHT}", ProofLogix.Instance.ChatMessageKey.Value);
+                ChatUtil.Send(total > 1 ? AssetUtil.GetItemDisplayName(chatLink.ToString(), total) : chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
                 busy = false;
             };
@@ -180,41 +179,65 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 ClipsBounds = false
             };
 
-            var generalCategory = new ContextMenuStripItem("General") {
-                Parent  = menu,
-                Submenu = new ContextMenuStrip()
-            };
+            var playerTokens = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetTokens();
+            var generalItems = ProofLogix.Instance.Resources.GetGeneralItems()
+                                         .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
 
-            AddProofEntries(generalCategory, ProofLogix.Instance.Resources.GetGeneralItems(), labelPanel);
-
-            var coffersCategory = new ContextMenuStripItem("Coffers") {
-                Parent  = menu,
-                Submenu = new ContextMenuStrip()
-            };
-
-            AddProofEntries(coffersCategory, ProofLogix.Instance.Resources.GetCofferItems(), labelPanel);
-
-            var raidsCategory = new ContextMenuStripItem("Raids") {
-                Parent  = menu,
-                Submenu = new ContextMenuStrip()
-            };
-
-            var i = 1;
-            foreach (var wing in ProofLogix.Instance.Resources.GetWings()) {
-                var wingEntry = new ContextMenuStripItem($"Wing {i++}") {
-                    Parent  = raidsCategory.Submenu,
+            if (generalItems.Any()) {
+                var generalCategory = new ContextMenuStripItem("General") {
+                    Parent  = menu,
                     Submenu = new ContextMenuStrip()
                 };
 
-                AddProofEntries(wingEntry, wing.Events.Where(ev => ev.Token != null).Select(ev => ev.Token), labelPanel);
+                AddProofEntries(generalCategory, generalItems, labelPanel);
             }
 
-            var fractalsCategory = new ContextMenuStripItem("Fractals") {
-                Parent  = menu,
-                Submenu = new ContextMenuStrip()
-            };
+            var cofferItems = ProofLogix.Instance.Resources.GetCofferItems()
+                                        .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
 
-            AddProofEntries(fractalsCategory, ProofLogix.Instance.Resources.GetItemsForFractals(), labelPanel);
+            if (cofferItems.Any()) {
+                var coffersCategory = new ContextMenuStripItem("Coffers") {
+                    Parent  = menu,
+                    Submenu = new ContextMenuStrip()
+                };
+
+                AddProofEntries(coffersCategory, cofferItems, labelPanel);
+            }
+
+            var wingTokens = ProofLogix.Instance.Resources.GetWings()
+                                       .Select(wing => wing.Events.Where(ev => ev.Token != null)
+                                                           .Select(ev => ev.Token)
+                                                           .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0))).ToList();
+
+            if (wingTokens.Any()) {
+                var raidsCategory = new ContextMenuStripItem("Raids") {
+                    Parent  = menu,
+                    Submenu = new ContextMenuStrip()
+                };
+
+                var i = 1;
+                foreach (var wing in wingTokens) {
+
+                    var wingEntry = new ContextMenuStripItem($"Wing {i++}") {
+                        Parent  = raidsCategory.Submenu,
+                        Submenu = new ContextMenuStrip()
+                    };
+
+                    AddProofEntries(wingEntry, wing, labelPanel);
+                }
+            }
+
+            var fractalItems = ProofLogix.Instance.Resources.GetItemsForFractals()
+                                         .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
+
+            if (fractalItems.Any()) {
+                var fractalsCategory = new ContextMenuStripItem("Fractals") {
+                    Parent  = menu,
+                    Submenu = new ContextMenuStrip()
+                };
+
+                AddProofEntries(fractalsCategory, fractalItems, labelPanel);
+            }
 
             cogWheel.Click += (_, _) => {
                 GameService.Content.PlaySoundEffectByName("button-click");
@@ -241,30 +264,39 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
         private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources, Container labelPanel) {
             foreach (var resource in resources) {
-                var tokenEntry = new ContextMenuStripItem(resource.Name) {
-                    Parent   = parent.Submenu
+
+                var token = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(resource.Id);
+
+                var displayName = AssetUtil.GetItemDisplayName(resource.Name, token.Amount);
+
+                var rarity   = ProofLogix.Instance.Resources.GetItem(resource.Id).Rarity.AsColor();
+                var tokenEntry = new ContextMenuStripItemWithColor(displayName) {
+                    Parent   = parent.Submenu,
+                    TextColor = rarity
                 };
 
                 tokenEntry.Click += (_, _) => {
                     labelPanel.Children.FirstOrDefault()?.Dispose();
                     _config.SelectedToken = resource.Id;
-                    var amount = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(resource.Id).Amount;
-                    var lbl    = BuildItemLabel(amount, resource.Id);
+                    var lbl = BuildItemLabel(displayName, rarity);
                     lbl.Parent = labelPanel;
                     lbl.Top    = (labelPanel.ContentRegion.Height - lbl.Height) / 2;
                     lbl.Left   = (labelPanel.ContentRegion.Width  - lbl.Width)  / 2;
+                    GameService.Content.PlaySoundEffectByName("color-change");
                 };
             }
         }
 
-        private FormattedLabel BuildItemLabel(int quantity, int tokenId) {
-            var str  = $"{BRACKET_LEFT}{quantity} {ProofLogix.Instance.Resources.GetItem(tokenId).Name}{BRACKET_RIGHT}";
-            var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, str);
-            return new FormattedLabelBuilder().SetWidth(size.X)
-                                              .SetHeight(size.Y)
-                                              .CreatePart(str, o => {
-                                                   o.SetFontSize(ContentService.FontSize.Size20);
-                                               }).Build();
+        private Label BuildItemLabel(string displayName, Color color) {
+            var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, displayName);
+            return new Label {
+                Text       = displayName,
+                TextColor  = color,
+                StrokeText = true,
+                ShowShadow = true,
+                Size       = new Point(size.X, size.Y),
+                Font       = GameService.Content.GetFont(ContentService.FontFace.Menomonia , ContentService.FontSize.Size20, ContentService.FontStyle.Regular)
+            };
         }
 
         private int GetNext(int totalAmount, ref int currentReduction, ref int currentValue, ref int currentRepetitions, ref DateTime lastTotalReachedTime) {

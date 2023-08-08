@@ -9,6 +9,7 @@ using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blish_HUD.Extended;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
@@ -179,6 +180,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                     PartySyncService.ColorGradingMode.LocalPlayerComparison => "your own",
                     PartySyncService.ColorGradingMode.MedianComparison      => "the median",
                     PartySyncService.ColorGradingMode.LargestComparison     => "the largest",
+                    PartySyncService.ColorGradingMode.AverageComparison     => "the average",
                     _                                                       => string.Empty
                 };
 
@@ -288,10 +290,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         private void AddProofEntries(ContextMenuStripItem parent, IEnumerable<Resource> resources) {
             foreach (var resource in resources) {
-                var tokenEntry = new ContextMenuStripItem(resource.Name) {
+                var tokenEntry = new ContextMenuStripItemWithColor(resource.Name) {
                     Parent   = parent.Submenu,
                     CanCheck = true,
-                    Checked  = this.Presenter.Model.TokenIds.Any(id => id == resource.Id)
+                    Checked  = this.Presenter.Model.TokenIds.Any(id => id == resource.Id),
+                    TextColor = ProofLogix.Instance.Resources.GetItem(resource.Id).Rarity.AsColor()
                 };
                 tokenEntry.CheckedChanged += (_, e) => {
                     if (e.Checked) {

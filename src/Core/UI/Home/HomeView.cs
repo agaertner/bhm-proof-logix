@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Extended;
 using Blish_HUD.Graphics.UI;
 using Gw2Sharp.Models;
 using Gw2Sharp.WebApi.V2.Models;
@@ -265,7 +266,8 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                         Width = 64,
                         Height = 64,
                         Amount = item.Count,
-                        BasicTooltipText = name
+                        BasicTooltipText = name,
+                        BorderColor = ProofLogix.Instance.Resources.GetItem(item.Id).Rarity.AsColor()
                     };
                 }
             }

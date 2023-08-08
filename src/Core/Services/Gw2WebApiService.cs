@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Extended;
+using Gw2Sharp.WebApi.Exceptions;
 using Gw2Sharp.WebApi.V2.Models;
 using System;
 using System.Collections.Generic;
@@ -100,6 +101,10 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public bool HasCorrectFormat(string apiKey) {
             return !string.IsNullOrWhiteSpace(apiKey) && _apiKeyPattern.IsMatch(apiKey);
+        }
+
+        public async Task<IReadOnlyList<Item>> GetItems(params int[] itemIds) {
+            return await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.ManyAsync(itemIds.ToList()));
         }
 
         private async Task<IEnumerable<Character>> GetCharacters() {
