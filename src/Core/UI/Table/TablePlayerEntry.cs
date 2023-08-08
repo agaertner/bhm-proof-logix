@@ -68,7 +68,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override string GetTokenTooltip(int tokenId) {
-            return this.Player.KpProfile.GetToken(tokenId).Amount.ToString();
+            var token = this.Player.KpProfile.GetToken(tokenId);
+            return AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
         }
 
         protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {

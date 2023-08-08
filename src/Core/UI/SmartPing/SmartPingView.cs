@@ -169,7 +169,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     Quantity = 1
                 };
 
-                ChatUtil.Send(total > 1 ? AssetUtil.GetItemDisplayName(chatLink.ToString(), total) : chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
+                ChatUtil.Send(total > 255 ? AssetUtil.GetItemDisplayName(chatLink.ToString(), total) : chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
                 busy = false;
             };

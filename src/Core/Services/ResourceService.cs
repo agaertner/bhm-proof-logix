@@ -95,7 +95,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 });
             }
             
-            var tokens = profile.Totals.GetTokens(excludeCoffers: true);
+            var tokens = profile.Totals.GetTokens(true);
             var newTokens = new List<Resource>();
             foreach (var token in tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
                 newTokens.Add(new Resource {

@@ -254,19 +254,13 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 };
 
                 foreach (var item in items) {
-
-                    var name = ProofLogix.Instance.Resources.GetItems().FirstOrDefault(i => i.Id.Equals(item.Id))?.Name;
-
-                    if (!string.IsNullOrEmpty(name)) {
-                        name = $"{item.Count}x {name}";
-                    }
-
+                    var resource = ProofLogix.Instance.Resources.GetItem(item.Id);
                     var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetItem(item.Id).Icon) {
                         Parent = slotsCategory,
                         Width = 64,
                         Height = 64,
                         Amount = item.Count,
-                        BasicTooltipText = name,
+                        BasicTooltipText = AssetUtil.GetItemDisplayName(resource.Name, item.Count, false),
                         BorderColor = ProofLogix.Instance.Resources.GetItem(item.Id).Rarity.AsColor()
                     };
                 }
