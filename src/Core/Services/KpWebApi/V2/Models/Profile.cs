@@ -58,9 +58,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public List<Clear> Clears { get; set; }
 
         #region Shorthands
-        public     List<Profile> Accounts => this.Linked?.Prepend(this).ToList() ?? new List<Profile> { this };
+        public List<Profile> Accounts => this.Linked?.Prepend(this).ToList() ?? new List<Profile> { this };
 
-        public new bool          IsEmpty  => this.Totals.IsEmpty;
+        public new bool IsEmpty  => this.Totals.IsEmpty;
         #endregion
 
         public bool BelongsTo(string accountName, out Profile linkedProfile) {
@@ -110,7 +110,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 tokens = tokens.Concat(Coffers);
             }
 
-            return tokens;
+            return tokens.GroupBy(token => token.Id).Select(group => group.First());
         }
     }
 

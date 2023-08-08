@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 using System.Linq;
+using Gw2Sharp.WebApi.V2.Models;
+using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
@@ -63,9 +65,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("id")]
         public int Id { get; set; }
 
-        public AsyncTexture2D Icon => !string.IsNullOrWhiteSpace(this.IconUrl)
-                                          ? GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(this.IconUrl)) 
-                                          : ProofLogix.Instance.Resources.GetApiIcon(this.Id);
+        [JsonIgnore]
+        public ItemRarity Rarity { get; set; }
+
+        [JsonIgnore]
+        public AsyncTexture2D Icon { get; set; }
     }
 
     public class Raid {

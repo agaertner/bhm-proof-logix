@@ -1,5 +1,6 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
+using Blish_HUD.Extended;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,6 +21,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
     public class LinkedView : View {
 
         private readonly Profile _profile;
+
         public LinkedView(Profile profile) {
             _profile = profile;
         }
@@ -68,8 +70,10 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
             foreach (var profile in _profile.Accounts) {
 
-                var entry = new MenuItem(profile.Name) {
-                    Parent = menu
+                var entry = new MenuItem(AssetUtil.Truncate(profile.Name, menu.ContentRegion.Width - 14, GameService.Content.DefaultFont16)) {
+                    Parent = menu,
+                    BasicTooltipText = profile.Name,
+                    Width = menu.ContentRegion.Width
                 };
 
                 entry.ItemSelected += (_,_) => {
@@ -356,7 +360,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
 
                 var tokens        = totals.GetTokens().ToList();
                 var fractalTokens = tokens.Where(token => fractalResources.Any(res => res.Id == token.Id));
-                var raidTokens = tokens.Where(token => fractalResources.Any(res => res.Id != token.Id));
+                var raidTokens    = tokens.Where(token => fractalResources.All(res => res.Id != token.Id));
 
                 var fractalResults = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Fractal), fractalTokens);
                 var raidResults    = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Raid),    raidTokens);
@@ -372,8 +376,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                     Parent              = parent,
                     Width               = parent.ContentRegion.Width / 2 - Panel.RIGHT_PADDING,
                     Height              = parent.ContentRegion.Height    - Panel.RIGHT_PADDING,
-                    ControlPadding      = new Vector2(0, Panel.RIGHT_PADDING),
-                    OuterControlPadding = new Vector2(0, Panel.RIGHT_PADDING),
+                    ControlPadding      = new Vector2(5, Panel.RIGHT_PADDING),
+                    OuterControlPadding = new Vector2(5, Panel.RIGHT_PADDING),
                     FlowDirection       = ControlFlowDirection.SingleTopToBottom,
                     CanScroll           = true,
                     Title               = panelTitle
@@ -385,14 +389,15 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 };
 
                 foreach (var title in items.Titles) {
-                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size14, title.Name, true);
+                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, title.Name, true);
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)
                                .SetHeight(size.Y)
                                .CreatePart(title.Name, o => {
-                                   o.SetFontSize(ContentService.FontSize.Size14);
+                                   o.SetFontSize(ContentService.FontSize.Size20);
                                    o.SetPrefixImage(_iconTitle);
+                                   o.SetPrefixImageSize(new Point(size.Y, size.Y));
                                })
                                .Build();
                     label.Parent = flow;
@@ -403,22 +408,19 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                         continue;
                     }
 
-                    var text = $"{token.Name} x{token.Amount}";
-                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size14, text, true);
+                    var text = AssetUtil.GetItemDisplayName(token.Name, token.Amount);
+                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
                     var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)
                                .SetHeight(size.Y + Control.ControlStandard.ControlOffset.Y)
-                               .CreatePart(token.Name, o => {
-                                   o.SetFontSize(ContentService.FontSize.Size14);
-                                   o.SetPrefixImage(icon);
-                               }).CreatePart($"x{token.Amount}", o => {
-                                   o.SetFontSize(ContentService.FontSize.Size14);
-                                   o.SetTextColor(Color.Green);
-                                   o.MakeBold();
-                               })
-                               .Build();
+                               .CreatePart(text, o => {
+                                    o.SetTextColor(ProofLogix.Instance.Resources.GetItem(token.Id).Rarity.AsColor());
+                                    o.SetFontSize(ContentService.FontSize.Size20);
+                                    o.SetPrefixImage(icon);
+                                    o.SetPrefixImageSize(new Point(size.Y, size.Y));
+                                }).Build();
                     label.Parent = flow;
                 }
             }

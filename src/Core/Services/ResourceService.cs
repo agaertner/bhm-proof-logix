@@ -81,26 +81,32 @@ namespace Nekres.ProofLogix.Core.Services {
             _menuClicks[RandomUtil.GetRandom(0, 3)].Play(GameService.GameIntegration.Audio.Volume, 0, 0);
         }
 
-        public void AddNewResources(Profile profile) {
+        public async Task AddNewResources(Profile profile) {
             if (_resources.IsEmpty || profile.IsEmpty) {
                 return;
             }
 
             var coffers = profile.Totals.Coffers ?? Enumerable.Empty<Token>();
+            var newCoffers = new List<Resource>();
             foreach (var token in coffers.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
-                _resources.Coffers.Add(new Resource {
+                newCoffers.Add(new Resource {
+                    Id   = token.Id,
+                    Name = token.Name
+                });
+            }
+            
+            var tokens = profile.Totals.GetTokens(excludeCoffers: true);
+            var newTokens = new List<Resource>();
+            foreach (var token in tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
+                newTokens.Add(new Resource {
                     Id   = token.Id,
                     Name = token.Name
                 });
             }
 
-            var tokens = profile.Totals.GetTokens(excludeCoffers: true);
-            foreach (var token in tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
-                _resources.GeneralTokens.Add(new Resource {
-                    Id   = token.Id,
-                    Name = token.Name
-                });
-            }
+            _resources.Coffers.AddRange(newCoffers);
+            _resources.GeneralTokens.AddRange(newTokens);
+            await ExpandResources(newCoffers.Concat(newTokens));
         }
 
         public async Task LoadAsync(bool localeChange = false) {
@@ -124,7 +130,8 @@ namespace Nekres.ProofLogix.Core.Services {
                 wing.Name = await GetMapName(wing.MapId);
             }
 
-            AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
+            await ExpandResources(_resources.Items);
+            await AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
         }
 
         public string GetClassName(int profession, int elite) {
@@ -137,7 +144,7 @@ namespace Nekres.ProofLogix.Core.Services {
                    _profIcons.TryGetValue(profession, out icon) ? icon : ContentService.Textures.TransparentPixel;
         }
 
-        public AsyncTexture2D GetApiIcon(int itemId) {
+        public async Task<AsyncTexture2D> GetApiIcon(int itemId) {
             if (itemId == 0) {
                 return ContentService.Textures.TransparentPixel;
             }
@@ -146,31 +153,19 @@ namespace Nekres.ProofLogix.Core.Services {
                 return tex;
             }
 
-            Gw2Sharp.WebApi.V2.Models.Item response = null;
-            try {
-                response = GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.GetAsync(itemId).Result;
-            } catch (Exception e) {
-                switch (e) {
-                    case NotFoundException or BadRequestException or AuthorizationRequiredException: // Resource does not exist or access is denied.
-                        ProofLogix.Logger.Trace(e, e.Message);
-                        break;
-                    case TooManyRequestsException:
-                        ProofLogix.Logger.Warn(e, "No icon could be loaded due to being rate limited by the API.");
-                        break;
-                    case RequestException or RequestException<string>:
-                        ProofLogix.Logger.Trace(e, e.Message);
-                        break;
-                    default:
-                        ProofLogix.Logger.Error(e, e.Message);
-                        break;
-                }
-            }
+            var response = await ProofLogix.Instance.Gw2WebApi.GetItems(itemId);
 
-            if (response == null || string.IsNullOrEmpty(response.Icon)) {
+            if (response == null || !response.Any()) {
                 return ContentService.Textures.TransparentPixel;
             }
 
-            var assetId = AssetUtil.GetId(response.Icon);
+            var item = response[0];
+
+            if (string.IsNullOrEmpty(item.Icon)) {
+                return ContentService.Textures.TransparentPixel;
+            }
+
+            var assetId = AssetUtil.GetId(item.Icon);
             var icon = GameService.Content.DatAssetCache.GetTextureFromAssetId(assetId);
             _apiIcons.Add(itemId, icon);
             return icon;
@@ -187,6 +182,23 @@ namespace Nekres.ProofLogix.Core.Services {
             _menuItemClickSfx.Dispose();
             foreach (var sfx in _menuClicks) {
                 sfx.Dispose();
+            }
+        }
+
+        private async Task ExpandResources(IEnumerable<Resource> resources) {
+            var items = await ProofLogix.Instance.Gw2WebApi.GetItems(resources.Select(resource => resource.Id).ToArray());
+
+            if (items == null || !items.Any()) {
+                return;
+            }
+
+            foreach (var item in items) {
+                var resource = _resources.Items.FirstOrDefault(resource => resource.Id == item.Id);
+
+                if (resource != null) {
+                    resource.Rarity = item.Rarity;
+                    resource.Icon   = GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(item.Icon));
+                }
             }
         }
 

@@ -35,7 +35,8 @@ namespace Nekres.ProofLogix.Core.Services {
         public enum ColorGradingMode {
             LocalPlayerComparison,
             MedianComparison,
-            LargestComparison
+            LargestComparison,
+            AverageComparison
             //CustomComparison
         }
 
@@ -66,6 +67,9 @@ namespace Nekres.ProofLogix.Core.Services {
                     break;
                 case ColorGradingMode.LargestComparison:
                     maxAmount = GetLargestAmount(id);
+                    break;
+                case ColorGradingMode.AverageComparison:
+                    maxAmount = _members.Count > 0 ? (float)_members.Values.Average(member => member.KpProfile.GetToken(id).Amount) : amount;
                     break;
             }
             var diff = maxAmount - amount;
