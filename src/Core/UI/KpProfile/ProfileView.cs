@@ -376,8 +376,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                     Parent              = parent,
                     Width               = parent.ContentRegion.Width / 2 - Panel.RIGHT_PADDING,
                     Height              = parent.ContentRegion.Height    - Panel.RIGHT_PADDING,
-                    ControlPadding      = new Vector2(5, Panel.RIGHT_PADDING),
-                    OuterControlPadding = new Vector2(5, Panel.RIGHT_PADDING),
+                    ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                    OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
                     FlowDirection       = ControlFlowDirection.SingleTopToBottom,
                     CanScroll           = true,
                     Title               = panelTitle
@@ -389,12 +389,14 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 };
 
                 foreach (var title in items.Titles) {
-                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, title.Name, true);
+
+                    var text = ' ' + title.Name;
+                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)
                                .SetHeight(size.Y)
-                               .CreatePart(title.Name, o => {
+                               .CreatePart(text, o => {
                                    o.SetFontSize(ContentService.FontSize.Size20);
                                    o.SetPrefixImage(_iconTitle);
                                    o.SetPrefixImageSize(new Point(size.Y, size.Y));
@@ -408,13 +410,13 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                         continue;
                     }
 
-                    var text = AssetUtil.GetItemDisplayName(token.Name, token.Amount);
+                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount);
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
                     var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
 
                     var label = new FormattedLabelBuilder()
                                .SetWidth(size.X)
-                               .SetHeight(size.Y + Control.ControlStandard.ControlOffset.Y)
+                               .SetHeight(size.Y)
                                .CreatePart(text, o => {
                                     o.SetTextColor(ProofLogix.Instance.Resources.GetItem(token.Id).Rarity.AsColor());
                                     o.SetFontSize(ContentService.FontSize.Size20);

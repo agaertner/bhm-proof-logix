@@ -41,12 +41,14 @@ namespace Nekres.ProofLogix.Core.UI {
             // Draw rarity border
             spriteBatch.DrawRectangleOnCtrl(this, bounds, 2, this.BorderColor);
 
-            // Draw quantity number
-            var text = this.Amount.ToString();
-            var dest = new Rectangle(-6, 2, bounds.Width, bounds.Height);
-            spriteBatch.DrawStringOnCtrl(this, text, this.Font, dest,
-                                         _amountColor, false, true, 2,
-                                         HorizontalAlignment.Right, VerticalAlignment.Top);
+            if (this.Amount > 1) {
+                // Draw quantity number
+                var text = this.Amount.ToString();
+                var dest = new Rectangle(-6, 2, bounds.Width, bounds.Height);
+                spriteBatch.DrawStringOnCtrl(this, text, this.Font, dest,
+                                             _amountColor, false, true, 2,
+                                             HorizontalAlignment.Right, VerticalAlignment.Top);
+            }
         }
     }
 }

@@ -12,11 +12,11 @@ namespace Nekres.ProofLogix.Core {
             return int.Parse(Path.GetFileNameWithoutExtension(assetUri));
         }
 
-        public static string GetItemDisplayName(string name, int quantity) {
+        public static string GetItemDisplayName(string name, int quantity, bool brackets = true) {
             if (quantity == 1) {
-                return $"{BRACKET_LEFT}{name}{BRACKET_RIGHT}";
+                return brackets ? $"{BRACKET_LEFT}{name}{BRACKET_RIGHT}" : name;
             }
-            return $"{BRACKET_LEFT}{quantity} {name}{BRACKET_RIGHT}";
+            return brackets ? $"{BRACKET_LEFT}{quantity} {name}{BRACKET_RIGHT}" : $"{quantity} {name}";
         }
 
         public static string Truncate(string text, int maxWidth, BitmapFont font) {
