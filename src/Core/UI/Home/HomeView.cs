@@ -131,11 +131,14 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 plyPanel.Show(new LoadingView("Loading items…", loadingText));
 
                 loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
-                var bank             = await ProofLogix.Instance.Gw2WebApi.GetBank();
+                var bank = await ProofLogix.Instance.Gw2WebApi.GetBank();
+
                 loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
-                var sharedBags       = await ProofLogix.Instance.Gw2WebApi.GetSharedBags();
+                var sharedBags = await ProofLogix.Instance.Gw2WebApi.GetSharedBags();
+
                 loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
                 var bagsByCharacters = await ProofLogix.Instance.Gw2WebApi.GetBagsByCharacter();
+
                 plyPanel.Show(new AccountItemsView(bank, sharedBags, bagsByCharacters));
             };
 

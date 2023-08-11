@@ -410,7 +410,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                         continue;
                     }
 
-                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount);
+                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
                     var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
 
