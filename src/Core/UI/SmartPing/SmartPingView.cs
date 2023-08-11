@@ -207,7 +207,10 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             var wingTokens = ProofLogix.Instance.Resources.GetWings()
                                        .Select(wing => wing.Events.Where(ev => ev.Token != null)
                                                            .Select(ev => ev.Token)
-                                                           .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0))).ToList();
+                                                           .Where(resource => playerTokens.Any(item => 
+                                                                                                   item.Id == resource.Id && 
+                                                                                                   item.Amount > 0))
+                                                           .ToList()).ToList();
 
             if (wingTokens.Any()) {
                 var raidsCategory = new ContextMenuStripItem("Raids") {
@@ -217,13 +220,14 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
                 var i = 1;
                 foreach (var wing in wingTokens) {
-
-                    var wingEntry = new ContextMenuStripItem($"Wing {i++}") {
-                        Parent  = raidsCategory.Submenu,
-                        Submenu = new ContextMenuStrip()
-                    };
-
-                    AddProofEntries(wingEntry, wing, labelPanel);
+                    if (wing.Any()) {
+                        var wingEntry = new ContextMenuStripItem($"Wing {i}") {
+                            Parent  = raidsCategory.Submenu,
+                            Submenu = new ContextMenuStrip()
+                        };
+                        AddProofEntries(wingEntry, wing, labelPanel);
+                    }
+                    ++i;
                 }
             }
 

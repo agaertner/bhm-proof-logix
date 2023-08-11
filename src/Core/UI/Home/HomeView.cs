@@ -128,14 +128,17 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var loadingText = new AsyncString();
-                plyPanel.Show(new LoadingView("Loading items..", loadingText));
+                plyPanel.Show(new LoadingView("Loading items…", loadingText));
 
-                loadingText.String = "Turning Bank upside down.";
-                var bank             = await ProofLogix.Instance.Gw2WebApi.GetBank();
-                loadingText.String = "Borrowing bag slots.";
-                var sharedBags       = await ProofLogix.Instance.Gw2WebApi.GetSharedBags();
-                loadingText.String = "Tickling characters.";
+                loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
+                var bank = await ProofLogix.Instance.Gw2WebApi.GetBank();
+
+                loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
+                var sharedBags = await ProofLogix.Instance.Gw2WebApi.GetSharedBags();
+
+                loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
                 var bagsByCharacters = await ProofLogix.Instance.Gw2WebApi.GetBagsByCharacter();
+
                 plyPanel.Show(new AccountItemsView(bank, sharedBags, bagsByCharacters));
             };
 

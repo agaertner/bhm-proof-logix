@@ -261,7 +261,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 // However, there is no space so we doing this quick and dirty.
                 var basicTooltipText = new AsyncString();
                 var loadingText      = new AsyncString();
-                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing...", loadingText, basicTooltipText));
+                ((ViewContainer)buildPanel).Show(new LoadingView("Refreshing…", loadingText, basicTooltipText));
 
                 if (!await ProofLogix.Instance.KpWebApi.Refresh(_profile.Id)) {
                     GameService.Content.PlaySoundEffectByName("error");
@@ -284,7 +284,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                     retries--;
 
                     var retryStr = $"({60 - retries} / 60)";
-                    basicTooltipText.String = $"Checking completion.. {retryStr}";
+                    basicTooltipText.String = $"Checking completion… {retryStr}";
                     loadingText.String = ProofLogix.Instance.Resources.GetLoadingSubtitle();
 
                     if (await ProofLogix.Instance.KpWebApi.IsProofBusy(_profile.Id)) {
@@ -410,7 +410,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                         continue;
                     }
 
-                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount);
+                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
                     var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
 

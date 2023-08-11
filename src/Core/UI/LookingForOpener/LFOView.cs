@@ -78,8 +78,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
             int wingNr = 0;
             foreach (var wing in wings) {
-                wingNr++;
-
+                ++wingNr;
 
                 var wingItem = new MenuItem {
                     Parent = menu,
@@ -99,9 +98,8 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
 
                     encounterItem.Click += async (_, _) => {
                         ProofLogix.Instance.Resources.PlayMenuItemClick();
-                        resultContainer.Show(new LoadingView("Searching..."));
-                        resultContainer
-                           .Show(new LfoResultView(new LfoResults(encounter.Id, await this.Presenter.GetOpener(encounter.Id))));
+                        resultContainer.Show(new LoadingView("Searching…"));
+                        resultContainer.Show(new LfoResultView(new LfoResults(encounter.Id, await this.Presenter.GetOpener(encounter.Id))));
                     };
                 }
             }

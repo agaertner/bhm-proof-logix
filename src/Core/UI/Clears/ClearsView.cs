@@ -38,7 +38,7 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
             _clears = (from wing in raids.SelectMany(raid => raid.Wings)
                        where !string.IsNullOrEmpty(wing.Id)
                        select new Clear {
-                           Name = wing.Name,
+                           Name = ProofLogix.Instance.Resources.GetMapName(wing.MapId),
                            Encounters = wing.Events.Select(ev => new Boss {
                                                  Name    = ev.Name,
                                                  Cleared = clears.Any(id => id.Equals(ev.Id))
@@ -72,30 +72,31 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
 
                 var wingCategory = new FlowPanel {
                     Parent              = panel,
-                    Width               = panel.ContentRegion.Width,
+                    Width               = panel.ContentRegion.Width - 24,
                     HeightSizingMode    = SizingMode.AutoSize,
                     Title               = clear.Name,
                     CanCollapse         = true,
-                    ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
-                    OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
+                    ControlPadding      = new Vector2(5, 5),
+                    OuterControlPadding = new Vector2(5, 5),
                     FlowDirection       = ControlFlowDirection.SingleTopToBottom
                 };
 
                 panel.ContentResized += (_, e) => {
-                    wingCategory.Width = e.CurrentRegion.Width;
+                    wingCategory.Width = e.CurrentRegion.Width - 24;
                 };
 
                 foreach (var encounter in clear.Encounters) {
 
                     var icon = encounter.Cleared ? _greenTick : _redCross;
-                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size16, encounter.Name, true);
+                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, encounter.Name, true);
 
                     var encounterItem = new FormattedLabelBuilder()
                                        .SetWidth(size.X)
                                        .SetHeight(size.Y + Control.ControlStandard.ControlOffset.Y)
                                        .CreatePart(encounter.Name, o => {
-                                           o.SetFontSize(ContentService.FontSize.Size16);
+                                           o.SetFontSize(ContentService.FontSize.Size20);
                                            o.SetPrefixImage(icon);
+                                           o.SetHyperLink(AssetUtil.GetWikiLink(encounter.Name));
                                        }).Build();
 
                     encounterItem.Parent = wingCategory;

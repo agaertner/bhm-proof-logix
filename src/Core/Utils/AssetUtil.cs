@@ -1,4 +1,7 @@
-﻿using MonoGame.Extended.BitmapFonts;
+﻿using Blish_HUD;
+using Blish_HUD.Extended;
+using Gw2Sharp.WebApi;
+using MonoGame.Extended.BitmapFonts;
 using System.IO;
 
 namespace Nekres.ProofLogix.Core {
@@ -27,6 +30,19 @@ namespace Nekres.ProofLogix.Core {
                 width  = (int)font.MeasureString(result).Width;
             }
             return result.Length < text.Length ? result.TrimEnd() + ELLIPSIS : result;
+        }
+
+        public static string GetWikiLink(string wikiPage) {
+            switch (GameService.Overlay.UserLocale.Value) {
+                case Locale.English:
+                case Locale.Spanish:
+                case Locale.German:
+                case Locale.French: 
+                    return $"https://wiki-{GameService.Overlay.UserLocale.Value.Code()}.guildwars2.com/wiki/{wikiPage}";
+                case Locale.Korean:
+                case Locale.Chinese:
+                default: return $"https://wiki.guildwars2.com/index.php?search={wikiPage}";
+            }
         }
     }
 }
