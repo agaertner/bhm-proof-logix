@@ -24,7 +24,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                              .SetHeight(size.Y)
                              .CreatePart(encounter.Name, o => {
                                   o.SetFontSize(ContentService.FontSize.Size32);
-                                  o.SetHyperLink($"https://wiki.guildwars2.com/wiki/{encounter.Name}");
+                                  o.SetHyperLink(AssetUtil.GetWikiLink(encounter.Name));
                                   o.SetPrefixImage(encounter.Icon);
                               }).Build();
 

@@ -2,7 +2,7 @@
 using Blish_HUD.Content;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
-using Gw2Sharp.WebApi.Exceptions;
+using Gw2Sharp.WebApi.V2.Models;
 using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 
 namespace Nekres.ProofLogix.Core.Services {
     internal class ResourceService : IDisposable {
@@ -21,39 +22,41 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private Resources _resources;
 
+        private IReadOnlyList<Map> _maps;
+
         private Dictionary<int, AsyncTexture2D> _apiIcons;
 
         private IReadOnlyList<SoundEffect> _menuClicks;
         private SoundEffect                _menuItemClickSfx;
 
         private readonly IReadOnlyList<string> _loadingText = new List<string> {
-            "Turning Vault upside down...",
-            "Borrowing wallet...",
-            "Tickling characters...",
-            "High-fiving Deimos...",
-            "Checking on Dhuum's cage...",
-            "Throwing rocks into Mystic Forge...",
-            "Lock-picking Ahdashim...",
-            "Mounting Gorseval...",
-            "Knitting Xera's ribbon...",
-            "Caring for the bees...",
-            "Dismantling White Mantle...",
-            "Chasing Skritt...",
-            "Ransacking bags...",
-            "Poking Saul...",
-            "Commanding golems...",
-            "Polishing monocle...",
-            "Running in circles...",
-            "Scratching Slothasor...",
-            "Cleaning Kitty Golem...",
-            "Making sense of inventory...",
-            "Pleading for Glenna's assistance...",
-            "Counting achievements...",
-            "Blowing away dust...",
-            "Calling upon spirits...",
-            "Consulting Order of Shadows...",
-            "Bribing Pact troops...",
-            "Bribing Bankers..."
+            "Turning Vault upside down…",
+            "Borrowing wallet…",
+            "Tickling characters…",
+            "High-fiving Deimos…",
+            "Checking on Dhuum's cage…",
+            "Throwing rocks into Mystic Forge…",
+            "Lock-picking Ahdashim…",
+            "Mounting Gorseval…",
+            "Knitting Xera's ribbon…",
+            "Caring for the bees…",
+            "Dismantling White Mantle…",
+            "Chasing Skritt…",
+            "Ransacking bags…",
+            "Poking Saul…",
+            "Commanding golems…",
+            "Polishing monocle…",
+            "Running in circles…",
+            "Scratching Slothasor…",
+            "Cleaning Kitty Golem…",
+            "Making sense of inventory…",
+            "Pleading for Glenna's assistance…",
+            "Counting achievements…",
+            "Blowing away dust…",
+            "Calling upon spirits…",
+            "Consulting Order of Shadows…",
+            "Bribing Pact troops…",
+            "Bribing Bankers…"
         };
 
         public ResourceService() {
@@ -69,6 +72,11 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 
+        public async Task LoadAsync(bool localeChange = false) {
+            await LoadProfessions(localeChange);
+            await LoadResources();
+        }
+
         public string GetLoadingSubtitle() {
             return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
         }
@@ -81,37 +89,28 @@ namespace Nekres.ProofLogix.Core.Services {
             _menuClicks[RandomUtil.GetRandom(0, 3)].Play(GameService.GameIntegration.Audio.Volume, 0, 0);
         }
 
-        public async Task AddNewResources(Profile profile) {
+        public void AddNewCoffers(Profile profile) {
             if (_resources.IsEmpty || profile.IsEmpty) {
                 return;
             }
 
+            // raid coffers have an extra field.
             var coffers = profile.Totals.Coffers ?? Enumerable.Empty<Token>();
-            var newCoffers = new List<Resource>();
-            foreach (var token in coffers.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
-                newCoffers.Add(new Resource {
-                    Id   = token.Id,
-                    Name = token.Name
-                });
-            }
-            
-            var tokens = profile.Totals.GetTokens(true);
-            var newTokens = new List<Resource>();
-            foreach (var token in tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))) {
-                newTokens.Add(new Resource {
-                    Id   = token.Id,
-                    Name = token.Name
-                });
-            }
 
-            _resources.Coffers.AddRange(newCoffers);
-            _resources.GeneralTokens.AddRange(newTokens);
-            await ExpandResources(newCoffers.Concat(newTokens));
+            // strike coffers are mixed in with boss specific tokens.
+            var tokens = profile.Totals.Tokens ?? Enumerable.Empty<Token>();
+
+            // add missing coffers to resources
+            _resources.Coffers.AddRange(FetchNew(coffers.Concat(tokens)));
         }
 
-        public async Task LoadAsync(bool localeChange = false) {
-            await LoadProfessions(localeChange);
-            await LoadResources();
+        private IEnumerable<Resource> FetchNew(IEnumerable<Token> tokens) {
+
+            return tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))
+                         .Select(token => new Resource {
+                              Id   = token.Id,
+                              Name = token.Name
+                          });
         }
 
         private void LoadSounds() {
@@ -126,12 +125,10 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private async Task LoadResources() {
             _resources = await ProofLogix.Instance.KpWebApi.GetResources();
-            foreach (var wing in _resources.Wings) {
-                wing.Name = await GetMapName(wing.MapId);
-            }
+            _maps      = await ProofLogix.Instance.Gw2WebApi.GetMaps(_resources.Wings.Select(wing => wing.MapId).ToArray());
 
+            AddNewCoffers(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
             await ExpandResources(_resources.Items);
-            await AddNewResources(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
         }
 
         public string GetClassName(int profession, int elite) {
@@ -171,9 +168,8 @@ namespace Nekres.ProofLogix.Core.Services {
             return icon;
         }
 
-        public async Task<string> GetMapName(int mapId) {
-            var map = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.GetAsync(mapId));
-            return map?.Name ?? string.Empty;
+        public string GetMapName(int mapId) {
+            return _maps.FirstOrDefault(map => map.Id == mapId)?.Name ?? string.Empty;
         }
 
         public void Dispose() {

@@ -71,8 +71,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
             var profile = await _v2Client.GetProfile(id);
 
-            ProofLogix.Instance.Resources.AddNewResources(profile);
-
             return await ExpandProfile(profile);
         }
 

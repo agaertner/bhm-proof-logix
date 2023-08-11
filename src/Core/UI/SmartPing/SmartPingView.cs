@@ -218,9 +218,8 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     Submenu = new ContextMenuStrip()
                 };
 
-                var i = 0;
+                var i = 1;
                 foreach (var wing in wingTokens) {
-                    ++i;
                     if (wing.Any()) {
                         var wingEntry = new ContextMenuStripItem($"Wing {i}") {
                             Parent  = raidsCategory.Submenu,
@@ -228,6 +227,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                         };
                         AddProofEntries(wingEntry, wing, labelPanel);
                     }
+                    ++i;
                 }
             }
 

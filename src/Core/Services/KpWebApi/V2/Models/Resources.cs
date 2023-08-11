@@ -95,9 +95,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             [JsonProperty("events")]
             public List<Event> Events { get; set; }
 
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
             public sealed class Event {
 
                 public enum EventType {
