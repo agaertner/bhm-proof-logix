@@ -1,17 +1,18 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
+using Gw2Sharp.WebApi.V2.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 using System.Linq;
-using Gw2Sharp.WebApi.V2.Models;
-using Microsoft.Xna.Framework;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
     // Path: /api/resources?lang={code}
 
     public class Resources {
+
+        public const int UNSTABLE_COSMIC_ESSENCE = 81743; // One-time hardcode courtesy to handle original_uce.
 
         public static Resources Empty = new() {
             IsEmpty = true
