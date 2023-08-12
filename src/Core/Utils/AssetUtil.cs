@@ -10,6 +10,7 @@ namespace Nekres.ProofLogix.Core {
         private const char ELLIPSIS      = '\u2026';
         private const char BRACKET_LEFT  = '[';
         private const char BRACKET_RIGHT = ']';
+        private const string WIKI_SEARCH = "https://wiki-{0}.guildwars2.com/index.php?search={1}";
 
         public static int GetId(string assetUri) {
             return int.Parse(Path.GetFileNameWithoutExtension(assetUri));
@@ -37,11 +38,11 @@ namespace Nekres.ProofLogix.Core {
                 case Locale.English:
                 case Locale.Spanish:
                 case Locale.German:
-                case Locale.French: 
-                    return $"https://wiki-{GameService.Overlay.UserLocale.Value.Code()}.guildwars2.com/wiki/{wikiPage}";
+                case Locale.French:
+                    return string.Format(WIKI_SEARCH, GameService.Overlay.UserLocale.Value.Code(), wikiPage);
                 case Locale.Korean:
                 case Locale.Chinese:
-                default: return $"https://wiki.guildwars2.com/index.php?search={wikiPage}";
+                default: return string.Format(WIKI_SEARCH, Locale.English.Code(), wikiPage);
             }
         }
     }
