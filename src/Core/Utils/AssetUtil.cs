@@ -10,7 +10,7 @@ namespace Nekres.ProofLogix.Core {
         private const char ELLIPSIS      = '\u2026';
         private const char BRACKET_LEFT  = '[';
         private const char BRACKET_RIGHT = ']';
-        private const string WIKI_SEARCH = "https://wiki-{0}.guildwars2.com/index.php?search={1}";
+        private const string WIKI_SEARCH = "https://wiki-{0}.guildwars2.com?search={1}";
 
         public static int GetId(string assetUri) {
             return int.Parse(Path.GetFileNameWithoutExtension(assetUri));
