@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Blish_HUD.Controls;
 using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -59,6 +60,8 @@ namespace Nekres.ProofLogix.Core.Services {
             "Bribing Bankers…"
         };
 
+        private const string RESOURCE_PROFILE = "Nika"; // Used to add resources missing from the resources endpoint.
+
         public ResourceService() {
             LoadSounds();
 
@@ -70,6 +73,14 @@ namespace Nekres.ProofLogix.Core.Services {
             _apiIcons   = new Dictionary<int, AsyncTexture2D>();
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
+        }
+
+        public bool HasLoaded() {
+            if (_resources.IsEmpty || !_eliteIcons.Any()) {
+                ScreenNotification.ShowNotification("Unavailable. Resources not yet loaded.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            return true;
         }
 
         public async Task LoadAsync(bool localeChange = false) {
@@ -105,7 +116,6 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private IEnumerable<Resource> FetchNew(IEnumerable<Token> tokens) {
-
             return tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))
                          .Select(token => new Resource {
                               Id   = token.Id,
@@ -124,10 +134,17 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task LoadResources() {
-            _resources = await ProofLogix.Instance.KpWebApi.GetResources();
-            _maps      = await ProofLogix.Instance.Gw2WebApi.GetMaps(_resources.Wings.Select(wing => wing.MapId).ToArray());
+            do { // Locale change requires the request to be made at least once even if not empty.
+                _resources = await ProofLogix.Instance.KpWebApi.GetResources();
 
-            AddNewCoffers(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
+                if (_resources.IsEmpty) {
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                }
+            } while (_resources.IsEmpty);
+            
+            _maps = await ProofLogix.Instance.Gw2WebApi.GetMaps(_resources.Wings.Select(wing => wing.MapId).ToArray());
+
+            AddNewCoffers(await ProofLogix.Instance.KpWebApi.GetProfile(RESOURCE_PROFILE));
             await ExpandResources(_resources.Items);
         }
 
@@ -224,8 +241,8 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
-            _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
-            _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
+            _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(x.IconBig)));
+            _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(x.ProfessionIconBig)));
         }
 
         public Resource GetItem(int id) {
@@ -241,12 +258,12 @@ namespace Nekres.ProofLogix.Core.Services {
             return fractalItems.ToList();
         }
 
-        public List<Resource> GetGeneralItems(bool includeOld = false) {
+        public List<Resource> GetGeneralItems() {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             return generalItems.ToList();
         }
 
-        public List<Resource> GetCofferItems(bool includeOld = false) {
+        public List<Resource> GetCofferItems() {
             var cofferItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Coffers;
             return cofferItems.ToList();
         }
@@ -260,7 +277,6 @@ namespace Nekres.ProofLogix.Core.Services {
                                   .Where(x => x.MapId == mapId)
                                   .SelectMany(x => x.Events)
                                   .SelectMany(x => x.GetTokens());
-
             return items.ToList();
         }
 

@@ -66,8 +66,19 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public bool BelongsTo(string accountName, out Profile linkedProfile) {
             linkedProfile = this.Accounts?.FirstOrDefault(profile => !string.IsNullOrEmpty(profile.Name) 
                                                                   && profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase));
-
             return !(linkedProfile ?? Empty).NotFound;
+        }
+
+        public override Token GetToken(int id) {
+            return HandleOriginalUce(id, base.GetToken(id));
+        }
+
+        private Token HandleOriginalUce(int id, Token token) {
+            if (id != Resources.UNSTABLE_COSMIC_ESSENCE) {
+                return token;
+            }
+            var originalUce = this.OriginalUce ?? token;
+            return token.Amount > originalUce.Amount ? token : originalUce;
         }
     }
 
@@ -89,7 +100,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("titles")]
         public List<Title> Titles { get; set; }
 
-        public Token GetToken(int id) {
+        public virtual Token GetToken(int id) {
             return Tokens?.FirstOrDefault(x => x.Id == id) ??
                    Killproofs?.FirstOrDefault(x => x.Id == id) ??
                    Coffers?.FirstOrDefault(x => x.Id == id) ?? Token.Empty;
@@ -114,13 +125,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         }
     }
 
-    public sealed class OriginalUce {
-
-        [JsonProperty("amount")]
-        public int Amount { get; set; }
-
+    public sealed class OriginalUce : Token {
         [JsonProperty("at_date")]
         public DateTime AtDate { get; set; }
+
+        public OriginalUce() {
+            this.Id   = Resources.UNSTABLE_COSMIC_ESSENCE;
+            this.Name = ProofLogix.Instance.Resources.GetItem(Id).Name;
+        }
     }
 
     public sealed class Title {
@@ -135,11 +147,15 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public V1.Models.Title.TitleMode Mode { get; set; }
     }
 
-    public sealed class Token {
+    public class Token {
 
         public static Token Empty = new() {
-            Name = string.Empty
+            Name = string.Empty,
+            IsEmpty = true
         };
+
+        [JsonIgnore]
+        public bool IsEmpty { get; private init; }
 
         [JsonProperty("id")]
         public int Id { get; set; }
