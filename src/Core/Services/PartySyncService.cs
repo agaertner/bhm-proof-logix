@@ -119,10 +119,6 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
             GameService.ArcDps.Common.PlayerAdded             -= OnPlayerJoin;
             GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerLeft;
-
-            PlayerAdded   = null;
-            PlayerRemoved = null;
-            PlayerChanged = null;
         }
 
         public void AddKpProfile(Profile kpProfile) {
