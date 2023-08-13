@@ -259,19 +259,28 @@ namespace Nekres.ProofLogix {
 
         /// <inheritdoc />
         protected override void Unload() {
-            _smartPingKey.Value.Enabled        =  false;
-            _smartPingKey.Value.BindingChanged -= OnSmartPingKeyBindingChanged;
-            _smartPingKey.Value.Activated      -= OnSmartPingKeyActivated;
+            if (_smartPingKey != null) {
+                _smartPingKey.Value.Enabled        =  false;
+                _smartPingKey.Value.BindingChanged -= OnSmartPingKeyBindingChanged;
+                _smartPingKey.Value.Activated      -= OnSmartPingKeyActivated;
+            }
 
-            _tableKey.Value.Enabled        =  false;
-            _tableKey.Value.BindingChanged -= OnTableKeyBindingChanged;
-            _tableKey.Value.Activated      -= OnTableKeyActivated;
+            if (_tableKey != null) {
+                _tableKey.Value.Enabled        =  false;
+                _tableKey.Value.BindingChanged -= OnTableKeyBindingChanged;
+                _tableKey.Value.Activated      -= OnTableKeyActivated;
+            }
 
-            _window.TabChanged -= OnTabChanged;
-            _cornerIcon.Click  -= OnCornerIconClick;
+            if (_window != null) {
+                _window.TabChanged -= OnTabChanged;
+                _window.Dispose();
+            }
 
-            _cornerIcon?.Dispose();
-            _window?.Dispose();
+            if (_cornerIcon != null) {
+                _cornerIcon.Click -= OnCornerIconClick;
+                _cornerIcon.Dispose();
+            }
+
             _registerWindow?.Dispose();
             _table?.Dispose();
             _hoverIcon?.Dispose();
