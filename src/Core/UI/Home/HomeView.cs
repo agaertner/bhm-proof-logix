@@ -120,6 +120,11 @@ namespace Nekres.ProofLogix.Core.UI.Home {
 
             proofsEntry.Click += async (_, _) => {
 
+                if (!ProofLogix.Instance.Resources.HasLoaded()) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
                 if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
@@ -144,6 +149,11 @@ namespace Nekres.ProofLogix.Core.UI.Home {
 
             clearsEntry.Click += async (_, _) => {
 
+                if (!ProofLogix.Instance.Resources.HasLoaded()) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
                 if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
@@ -157,10 +167,22 @@ namespace Nekres.ProofLogix.Core.UI.Home {
 
             myProfileEntry.Click += (_, _) => {
 
+                if (!ProofLogix.Instance.Resources.HasLoaded()) {
+                    GameService.Content.PlaySoundEffectByName("error");
+                    return;
+                }
+
                 var localPlayer = ProofLogix.Instance.PartySync.LocalPlayer;
 
                 if (!localPlayer.HasKpProfile) {
+
                     GameService.Content.PlaySoundEffectByName("error");
+
+                    if (string.IsNullOrWhiteSpace(GameService.Gw2Mumble.PlayerCharacter.Name)) {
+                        ScreenNotification.ShowNotification("Profile unavailable. Please, login to a character.", ScreenNotification.NotificationType.Error);
+                        return;
+                    }
+
                     ScreenNotification.ShowNotification("Not yet loaded. Please, try again.", ScreenNotification.NotificationType.Error);
                     return;
                 }

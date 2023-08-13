@@ -117,7 +117,11 @@ namespace Nekres.ProofLogix {
             };
 
             _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(255369), () => new HomeView(), "Account"));
-            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), () => new LfoView(LfoConfig.Value), "Looking for Opener"));
+            _window.Tabs.Add(new Tab(GameService.Content.DatAssetCache.GetTextureFromAssetId(156680), 
+                                     () => Resources.HasLoaded()
+                                               ? new LfoView(LfoConfig.Value) 
+                                               : new LoadingView("Service unavailable…", "Please, try again later."), 
+                                     "Looking for Opener"));
 
             _window.TabChanged += OnTabChanged;
 
@@ -229,10 +233,18 @@ namespace Nekres.ProofLogix {
         }
 
         public void ToggleTable() {
+            if (!Resources.HasLoaded()) {
+                GameService.Content.PlaySoundEffectByName("error");
+                return;
+            }
             _table.ToggleWindow(new TableView(TableConfig.Value));
         }
 
         public void ToggleSmartPing() {
+            if (!Resources.HasLoaded()) {
+                GameService.Content.PlaySoundEffectByName("error");
+                return;
+            }
             if (!PartySync.LocalPlayer.HasKpProfile) {
                 GameService.Content.PlaySoundEffectByName("error");
                 ScreenNotification.ShowNotification("Smart Ping unavailable. Profile not yet loaded.", ScreenNotification.NotificationType.Error);

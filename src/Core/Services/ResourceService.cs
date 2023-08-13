@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Blish_HUD.Controls;
 using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -74,6 +75,14 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
 
+        public bool HasLoaded() {
+            if (_resources.IsEmpty || !_eliteIcons.Any()) {
+                ScreenNotification.ShowNotification("Unavailable. Resources not yet loaded.", ScreenNotification.NotificationType.Error);
+                return false;
+            }
+            return true;
+        }
+
         public async Task LoadAsync(bool localeChange = false) {
             await LoadProfessions(localeChange);
             await LoadResources();
@@ -107,7 +116,6 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private IEnumerable<Resource> FetchNew(IEnumerable<Token> tokens) {
-
             return tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))
                          .Select(token => new Resource {
                               Id   = token.Id,
@@ -233,8 +241,8 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
-            _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.GetRenderServiceTexture(x.IconBig.ToString()));
-            _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.GetRenderServiceTexture(x.ProfessionIconBig.ToString()));
+            _profIcons  = professions.ToDictionary(x => (int)(ProfessionType)Enum.Parse(typeof(ProfessionType), x.Id, true), x => GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(x.IconBig)));
+            _eliteIcons = elites.ToDictionary(x => x.Id, x => GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(x.ProfessionIconBig)));
         }
 
         public Resource GetItem(int id) {
