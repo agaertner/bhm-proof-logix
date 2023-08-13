@@ -59,6 +59,8 @@ namespace Nekres.ProofLogix.Core.Services {
             "Bribing Bankers…"
         };
 
+        private const string RESOURCE_PROFILE = "Nika"; // Used to add resources missing from the resources endpoint.
+
         public ResourceService() {
             LoadSounds();
 
@@ -124,10 +126,17 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private async Task LoadResources() {
-            _resources = await ProofLogix.Instance.KpWebApi.GetResources();
-            _maps      = await ProofLogix.Instance.Gw2WebApi.GetMaps(_resources.Wings.Select(wing => wing.MapId).ToArray());
+            do { // Locale change requires the request to be made at least once even if not empty.
+                _resources = await ProofLogix.Instance.KpWebApi.GetResources();
 
-            AddNewCoffers(await ProofLogix.Instance.KpWebApi.GetProfile("Nika"));
+                if (_resources.IsEmpty) {
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                }
+            } while (_resources.IsEmpty);
+            
+            _maps = await ProofLogix.Instance.Gw2WebApi.GetMaps(_resources.Wings.Select(wing => wing.MapId).ToArray());
+
+            AddNewCoffers(await ProofLogix.Instance.KpWebApi.GetProfile(RESOURCE_PROFILE));
             await ExpandResources(_resources.Items);
         }
 
@@ -241,12 +250,12 @@ namespace Nekres.ProofLogix.Core.Services {
             return fractalItems.ToList();
         }
 
-        public List<Resource> GetGeneralItems(bool includeOld = false) {
+        public List<Resource> GetGeneralItems() {
             var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
             return generalItems.ToList();
         }
 
-        public List<Resource> GetCofferItems(bool includeOld = false) {
+        public List<Resource> GetCofferItems() {
             var cofferItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Coffers;
             return cofferItems.ToList();
         }
@@ -260,7 +269,6 @@ namespace Nekres.ProofLogix.Core.Services {
                                   .Where(x => x.MapId == mapId)
                                   .SelectMany(x => x.Events)
                                   .SelectMany(x => x.GetTokens());
-
             return items.ToList();
         }
 
