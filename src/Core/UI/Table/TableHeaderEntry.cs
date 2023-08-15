@@ -10,10 +10,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             /* NOOP */
         }
 
-        private const      string         TIMESTAMP_TITLE = "#";
-        private readonly   AsyncTexture2D _classIcon      = GameService.Content.DatAssetCache.GetTextureFromAssetId(517179); // alternative 157085
-        private const      string         CHAR_TITLE      = "Character";
-        private const      string         ACCOUNT_TITLE   = "Account";
+        private const    string         TIMESTAMP_TITLE = "#";
+        private readonly AsyncTexture2D _classIcon      = GameService.Content.DatAssetCache.GetTextureFromAssetId(517179); // alternative 157085
+        private const    string         CHAR_TITLE      = "Character";
+        private const    string         ACCOUNT_TITLE   = "Account";
 
         protected override string         Timestamp     => TIMESTAMP_TITLE;
         protected override AsyncTexture2D ClassIcon     => _classIcon;

@@ -1,4 +1,4 @@
-﻿using Blish_HUD;
+using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
@@ -124,6 +124,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
             var column = this.Model.SelectedColumn;
             var comparison = 0;
+
+            if (column == (int)TableConfig.Column.Status) {
+                comparison = x.Player.Status.CompareTo(y.Player.Status);
+            }
 
             if (column == (int)TableConfig.Column.Timestamp) {
                 comparison = x.Player.Created.CompareTo(y.Player.Created);

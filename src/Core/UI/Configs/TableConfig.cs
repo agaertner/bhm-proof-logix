@@ -1,4 +1,4 @@
-﻿using MonoGame.Extended.Collections;
+using MonoGame.Extended.Collections;
 using Nekres.ProofLogix.Core.Services;
 using Newtonsoft.Json;
 
@@ -17,7 +17,8 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
                 Column.Timestamp,
                 Column.Class,
                 Column.Character,
-                Column.Account
+                Column.Account,
+                Column.Status
             }
         };
 
@@ -25,7 +26,8 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             Timestamp,
             Class,
             Character,
-            Account
+            Account,
+            Status
         }
 
         private int _selectedColumn;

@@ -10,10 +10,18 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
     /// </summary>
     public class Player {
 
-        public Profile KpProfile     { get; private set; }
+        public enum OnlineStatus {
+            Unknown, // No agent attached.
+            Away,    // Agent is different map or offline.
+            Online   // Agent is in same map instance.
+        }
 
-        public DateTime Created { get; private set; }
+        public virtual OnlineStatus Status { get; set; }
 
+        public DateTime Created { get; }
+
+        public Profile KpProfile { get; private set; }
+        
         public string  AccountName => HasAgent ? _arcDpsPlayer.AccountName : 
                                       HasKpProfile ? KpProfile.Name : string.Empty;
 
@@ -23,8 +31,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         public bool HasKpProfile => this.KpProfile is {NotFound: false};
 
         public string         Class => GetClass();
-        public AsyncTexture2D Icon  => GetIcon();
-
+        public AsyncTexture2D Icon => GetIcon();
 
         private CommonFields.Player _arcDpsPlayer;
 

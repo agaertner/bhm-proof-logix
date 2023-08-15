@@ -20,13 +20,19 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _font, value);
         }
 
+        private int _maxStatusIconCellWidth = 10;
+        public int MaxStatusIconCellWidth {
+            get => _maxStatusIconCellWidth;
+            set => SetProperty(ref _maxStatusIconCellWidth, value);
+        }
+
         private int _maxTimestampCellWidth = 150;
         public int MaxTimestampCellWidth {
             get => _maxTimestampCellWidth;
             set => SetProperty(ref _maxTimestampCellWidth, value);
         }
 
-        private int _maxClassIconCellWidth = 32;
+        private int _maxClassIconCellWidth = 36;
         public int MaxClassIconCellWidth {
             get => _maxClassIconCellWidth;
             set => SetProperty(ref _maxClassIconCellWidth, value);
@@ -56,11 +62,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected abstract string         AccountName   { get; }
         protected          bool           IsHovering    { get; private set; }
 
+        private Rectangle       _statusIconBounds;
         private Rectangle       _timestampBounds;
         private Rectangle       _classIconBounds;
         private Rectangle       _characterNameBounds;
         private Rectangle       _accountNameBounds;
         private List<Rectangle> _tokenBounds;
+
+        private const int STATUS_ICON_SIZE = 8;
 
         protected TableEntryBase() {
             _timestampBounds = Rectangle.Empty;
@@ -83,6 +92,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         protected override void OnClick(MouseEventArgs e) {
             base.OnClick(e);
+
+            if (_statusIconBounds.Contains(this.RelativeMousePosition)) {
+                ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Status));
+                return;
+            }
 
             if (_timestampBounds.Contains(this.RelativeMousePosition)) {
                 ColumnClick?.Invoke(this, new ValueEventArgs<int>((int)TableConfig.Column.Timestamp));
@@ -118,21 +132,32 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var columns = ProofLogix.Instance.TableConfig.Value.Columns;
 
+            // Status Rectangle
+            if (columns.Contains(TableConfig.Column.Status)) {
+                _statusIconBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxStatusIconCellWidth, bounds.Height);
+                // Keep aspect ratio and center.
+                var centered = new Rectangle(_statusIconBounds.X + (_statusIconBounds.Width - STATUS_ICON_SIZE) / 2, _statusIconBounds.Y + (_statusIconBounds.Height - STATUS_ICON_SIZE) / 2, STATUS_ICON_SIZE, STATUS_ICON_SIZE);
+                spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, centered, GetStatusColor());
+                UpdateTooltip(_statusIconBounds, GetStatusTooltip());
+            } else {
+                _statusIconBounds = Rectangle.Empty; 
+            }
+
             // Timestamp
             if (columns.Contains(TableConfig.Column.Timestamp)) {
                 var timestamp = AssetUtil.Truncate(this.Timestamp, this.MaxTimestampCellWidth, this.Font);
-                _timestampBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxTimestampCellWidth, bounds.Height);
+                _timestampBounds = new Rectangle(_statusIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxTimestampCellWidth, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, timestamp, this.Font, _timestampBounds, Color.White, false, true, 2);
                 UpdateTooltip(_timestampBounds, GetTimestampTooltip());
             } else {
-                _timestampBounds = Rectangle.Empty;
+                _timestampBounds = new Rectangle(_statusIconBounds.Right, 0, 0, 0);
             }
 
             // Class Icon
             if (columns.Contains(TableConfig.Column.Class)) {
-                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, 36, bounds.Height);
+                _classIconBounds = new Rectangle(_timestampBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxClassIconCellWidth, bounds.Height);
                 // Keep aspect ratio and center.
-                var centered = new Rectangle(_classIconBounds.X + (_classIconBounds.Width - _classIconBounds.Height) / 2, _classIconBounds.Y, _classIconBounds.Height, _classIconBounds.Height);
+                var centered = new Rectangle(_classIconBounds.X + (_classIconBounds.Width - _classIconBounds.Height) / 2, _classIconBounds.Y + (bounds.Height - _classIconBounds.Height) / 2, _classIconBounds.Height, _classIconBounds.Height);
                 spriteBatch.DrawOnCtrl(this, this.ClassIcon, centered);
                 UpdateTooltip(_classIconBounds, GetClassTooltip());
             } else {
@@ -171,6 +196,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             _tokenBounds = tempTokenBounds;
 
             this.Width = tokenBounds.Right + ControlStandard.ControlOffset.X;
+        }
+
+        protected virtual Color GetStatusColor() {
+            return Color.Transparent;
+        }
+
+        protected virtual string GetStatusTooltip() {
+            return string.Empty;
         }
 
         protected virtual string GetTimestampTooltip() {

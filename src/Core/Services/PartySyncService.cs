@@ -108,6 +108,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 return;
             }
 
+            member.Status = Player.OnlineStatus.Away;
             PlayerRemoved?.Invoke(this, new ValueEventArgs<Player>(member));
         }
 
@@ -206,6 +207,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 return member;
             });
 
+            member.Status = Player.OnlineStatus.Online;
             UpdateHistory(member);
         }
 
