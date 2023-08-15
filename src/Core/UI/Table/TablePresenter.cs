@@ -1,4 +1,4 @@
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
@@ -94,6 +94,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
+            if (this.Model.KeepLeavers) {
+                return;
+            }
+
             if (!TryGetPlayerEntry(e.Value, out var playerEntry)) {
                 return;
             }

@@ -1,4 +1,4 @@
-using MonoGame.Extended.Collections;
+﻿using MonoGame.Extended.Collections;
 using Nekres.ProofLogix.Core.Services;
 using Newtonsoft.Json;
 
@@ -46,6 +46,16 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             get => _orderDescending;
             set {
                 _orderDescending = value;
+                SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        private bool _keepLeavers;
+        [JsonProperty("keep_leavers")]
+        public bool KeepLeavers {
+            get => _keepLeavers;
+            set {
+                _keepLeavers = value;
                 SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }

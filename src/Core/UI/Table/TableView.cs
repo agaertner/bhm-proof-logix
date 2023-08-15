@@ -1,4 +1,4 @@
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
@@ -166,6 +166,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             var menu = new ContextMenuStrip {
                 Parent = buildPanel,
                 ClipsBounds = false
+            };
+
+            var autoRemoveEntry = new ContextMenuStripItem("Keep Leavers") {
+                Parent           = menu,
+                CanCheck         = true,
+                Checked          = this.Presenter.Model.KeepLeavers,
+                BasicTooltipText = "Disables automatic removal of players who left the party."
+            };
+
+            autoRemoveEntry.CheckedChanged += (_, e) => {
+                this.Presenter.Model.KeepLeavers = e.Checked;
             };
 
             var colorGradingModeCategory = new ContextMenuStripItem("Color Grading Mode") {
