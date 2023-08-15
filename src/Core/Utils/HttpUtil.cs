@@ -5,7 +5,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Nekres.ProofLogix.Core.Utils {
+namespace Nekres.ProofLogix.Core {
     internal static class HttpUtil {
 
         public static bool TryParseJson<T>(string json, out T result) {

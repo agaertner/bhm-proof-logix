@@ -51,6 +51,12 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             table.Invalidate();
         }
 
+        private void ResetBulkLoadTimer() {
+            _bulkLoadTimer.Stop();
+            _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
+            _bulkLoadTimer.Start();
+        }
+
         public void CreatePlayerEntry(Player player) {
             if (!player.HasKpProfile) {
                 return;
@@ -61,7 +67,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return;
             }
 
-            _bulkLoadTimer.Stop();
+            ResetBulkLoadTimer();
 
             var entry = new TablePlayerEntry(player) {
                 Height = 32,
@@ -70,8 +76,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
             
             _bulk.Add(entry);
-            _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
-            _bulkLoadTimer.Start();
 
             entry.LeftMouseButtonReleased += (_, _) => {
                 ProofLogix.Instance.Resources.PlayMenuItemClick();
@@ -94,6 +98,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
+            if (this.Model.KeepLeavers) {
+                ResetBulkLoadTimer();
+                return;
+            }
+
             if (!TryGetPlayerEntry(e.Value, out var playerEntry)) {
                 return;
             }
@@ -102,14 +111,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 return; // Don't remove remembered entries.
             }
 
-            _bulkLoadTimer.Stop();
+            ResetBulkLoadTimer();
 
             if (_bulk.Remove(playerEntry)) {
                 playerEntry.Dispose();
             }
-
-            _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
-            _bulkLoadTimer.Start();
         }
 
         private void PlayerAddedOrChanged(object sender, ValueEventArgs<Player> e) {
@@ -122,8 +128,33 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
+            if (this.Model.AlwaysSortStatus) {
+                var status = x.Player.Status.CompareTo(y.Player.Status);
+
+                // Sort by online status
+                if (status != 0) {
+                    if (x.Player.Status == Player.OnlineStatus.Unknown) {
+                        return 1;
+                    }
+                    if (y.Player.Status == Player.OnlineStatus.Unknown) {
+                        return -1;
+                    }
+                    if (x.Player.Status == Player.OnlineStatus.Online && y.Player.Status == Player.OnlineStatus.Away) {
+                        return -1;
+                    }
+                    if (x.Player.Status == Player.OnlineStatus.Away && y.Player.Status == Player.OnlineStatus.Online) {
+                        return 1;
+                    }
+                }
+            }
+
+            // Sort by selected column
             var column = this.Model.SelectedColumn;
             var comparison = 0;
+
+            if (column == (int)TableConfig.Column.Status) {
+                comparison = x.Player.Status.CompareTo(y.Player.Status);
+            }
 
             if (column == (int)TableConfig.Column.Timestamp) {
                 comparison = x.Player.Created.CompareTo(y.Player.Created);
@@ -160,13 +191,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             foreach (var ctrl in _bulk) {
                 ctrl?.Dispose();
             }
-
             base.Unload();
         }
 
         public void SortEntries() {
             this.View.Table.SortChildren<TablePlayerEntry>(Comparer);
         }
-
     }
 }

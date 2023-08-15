@@ -168,6 +168,31 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 ClipsBounds = false
             };
 
+            var alwaysSortStatusEntry = new ContextMenuStripItem("Always Sort by Status") {
+                Parent = menu,
+                CanCheck = true,
+                Checked = this.Presenter.Model.AlwaysSortStatus,
+                BasicTooltipText = "Sorts players by their online status\nbefore sorting by your selected column."
+            };
+
+            alwaysSortStatusEntry.CheckedChanged += (_, e) => {
+                this.Presenter.Model.AlwaysSortStatus = e.Checked;
+                this.Presenter.SortEntries();
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+            };
+
+            var keepLeaversEntry = new ContextMenuStripItem("Keep Leavers") {
+                Parent           = menu,
+                CanCheck         = true,
+                Checked          = this.Presenter.Model.KeepLeavers,
+                BasicTooltipText = "Disables the automatic removal of players who have left your party."
+            };
+
+            keepLeaversEntry.CheckedChanged += (_, e) => {
+                this.Presenter.Model.KeepLeavers = e.Checked;
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
+            };
+
             var colorGradingModeCategory = new ContextMenuStripItem("Color Grading Mode") {
                 Parent = menu,
                 Submenu = new ContextMenuStrip()

@@ -303,9 +303,10 @@ namespace Nekres.ProofLogix {
             Resources.Dispose();
             Gw2WebApi.Dispose();
 
+            TrackableWindow.Unset();
+
             // All static members must be manually unset
             Instance = null;
-            TrackableWindow.Unset();
         }
     }
 }
