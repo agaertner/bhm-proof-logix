@@ -8,9 +8,9 @@ using System.Collections.Concurrent;
 namespace Nekres.ProofLogix.Core.UI {
     internal class TrackableWindow : StandardWindow {
 
-        private static ConcurrentDictionary<string, StandardWindow> _windows;
+        private static ConcurrentDictionary<string, TrackableWindow> _windows;
 
-        public static bool TryGetById(string id, out StandardWindow wnd) {
+        public static bool TryGetById(string id, out TrackableWindow wnd) {
             ValidateDictionary();
             return _windows.TryGetValue(id, out wnd);
         }
@@ -20,14 +20,14 @@ namespace Nekres.ProofLogix.Core.UI {
                 return;
             }
             foreach (var wnd in _windows.Values) {
-                wnd?.Dispose();
+                wnd?.Hide();
             }
             _windows.Clear();
             _windows = null;
         }
 
         private static void ValidateDictionary() {
-            _windows ??= new ConcurrentDictionary<string, StandardWindow>();
+            _windows ??= new ConcurrentDictionary<string, TrackableWindow>();
         }
 
         private readonly string _trackId;
@@ -62,7 +62,7 @@ namespace Nekres.ProofLogix.Core.UI {
         }
 
         protected override void DisposeControl() {
-            _windows.TryRemove(_trackId ?? string.Empty, out _);
+            _windows?.TryRemove(_trackId ?? string.Empty, out _);
             base.DisposeControl();
         }
     }
