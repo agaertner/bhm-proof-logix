@@ -20,7 +20,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _font, value);
         }
 
-        private int _maxStatusIconCellWidth = 10;
+        private int _maxStatusIconCellWidth = 11;
         public int MaxStatusIconCellWidth {
             get => _maxStatusIconCellWidth;
             set => SetProperty(ref _maxStatusIconCellWidth, value);
@@ -68,8 +68,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         private Rectangle       _characterNameBounds;
         private Rectangle       _accountNameBounds;
         private List<Rectangle> _tokenBounds;
-
-        private const int STATUS_ICON_SIZE = 8;
 
         protected TableEntryBase() {
             _timestampBounds = Rectangle.Empty;
@@ -132,12 +130,10 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             var columns = ProofLogix.Instance.TableConfig.Value.Columns;
 
-            // Status Rectangle
+            // Status
             if (columns.Contains(TableConfig.Column.Status)) {
-                _statusIconBounds = new Rectangle(Panel.LEFT_PADDING, 0, this.MaxStatusIconCellWidth, bounds.Height);
-                // Keep aspect ratio and center.
-                var centered = new Rectangle(_statusIconBounds.X + (_statusIconBounds.Width - STATUS_ICON_SIZE) / 2, _statusIconBounds.Y + (_statusIconBounds.Height - STATUS_ICON_SIZE) / 2, STATUS_ICON_SIZE, STATUS_ICON_SIZE);
-                spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, centered, GetStatusColor());
+                _statusIconBounds = new Rectangle(ControlStandard.ControlOffset.X, 0, this.MaxStatusIconCellWidth, bounds.Height);
+                PaintStatus(spriteBatch, _statusIconBounds);
                 UpdateTooltip(_statusIconBounds, GetStatusTooltip());
             } else {
                 _statusIconBounds = Rectangle.Empty; 
@@ -198,10 +194,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             this.Width = tokenBounds.Right + ControlStandard.ControlOffset.X;
         }
 
-        protected virtual Color GetStatusColor() {
-            return Color.Transparent;
-        }
-
         protected virtual string GetStatusTooltip() {
             return string.Empty;
         }
@@ -225,6 +217,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected virtual string GetTokenTooltip(int tokenId) {
             return ProofLogix.Instance.Resources.GetItem(tokenId).Name;
         }
+
+        protected abstract void PaintStatus(SpriteBatch spriteBatch, Rectangle bounds);
 
         protected abstract void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId);
 

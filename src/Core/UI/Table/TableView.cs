@@ -168,14 +168,14 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 ClipsBounds = false
             };
 
-            var autoRemoveEntry = new ContextMenuStripItem("Keep Leavers") {
+            var keepLeaversEntry = new ContextMenuStripItem("Keep Leavers") {
                 Parent           = menu,
                 CanCheck         = true,
                 Checked          = this.Presenter.Model.KeepLeavers,
-                BasicTooltipText = "Disables automatic removal of players who left the party."
+                BasicTooltipText = "Disables the automatic removal of players who have left your party."
             };
 
-            autoRemoveEntry.CheckedChanged += (_, e) => {
+            keepLeaversEntry.CheckedChanged += (_, e) => {
                 this.Presenter.Model.KeepLeavers = e.Checked;
             };
 

@@ -22,15 +22,15 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public IReadOnlyList<Player> PlayerList  => _members.Values.ToList();
 
-        public IReadOnlyList<Player> HistoryList => _history.ToList();
-
-
         private readonly ConcurrentDictionary<string, Player> _members;
-        private readonly ConcurrentQueue<Player>              _history;
-
-        private const int MAX_HISTORY_LENGTH = 100;
 
         private readonly Color _redShift = new(255, 57, 57);
+
+        private readonly Color _unknownColor = new(127, 128, 127);
+
+        private readonly Color _awayColor = new(255, 165, 0);
+
+        private readonly Color _onlineColor = new(0, 255, 0);
 
         public enum ColorGradingMode {
             LocalPlayerComparison,
@@ -44,7 +44,6 @@ namespace Nekres.ProofLogix.Core.Services {
             this.LocalPlayer = new MumblePlayer();
 
             _members = new ConcurrentDictionary<string, Player>();
-            _history = new ConcurrentQueue<Player>();
 
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
 
@@ -78,6 +77,15 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private int GetLargestAmount(int id) {
             return _members.Count > 0 ? _members.Values.Max(x => x.KpProfile.GetToken(id).Amount) : this.LocalPlayer.KpProfile.GetToken(id).Amount;
+        }
+
+        public Color GetStatusColor(Player.OnlineStatus status) {
+            return status switch {
+                Player.OnlineStatus.Unknown => _unknownColor,
+                Player.OnlineStatus.Away    => _awayColor,
+                Player.OnlineStatus.Online  => _onlineColor,
+                _                           => throw new ArgumentOutOfRangeException()
+            };
         }
 
         /// <summary>
@@ -154,8 +162,6 @@ namespace Nekres.ProofLogix.Core.Services {
                 return member;
 
             });
-
-            UpdateHistory(member);
         }
 
         private async void OnPlayerCharacterNameChanged(object sender, ValueEventArgs<string> e) {
@@ -208,15 +214,6 @@ namespace Nekres.ProofLogix.Core.Services {
             });
 
             member.Status = Player.OnlineStatus.Online;
-            UpdateHistory(member);
-        }
-
-        private void UpdateHistory(Player player) {
-            _history.Enqueue(player);
-
-            if (_history.Count > MAX_HISTORY_LENGTH) {
-                _history.TryDequeue(out _);
-            }
         }
 
         private bool HasAccountInParty(string account, out string existingAccount) {

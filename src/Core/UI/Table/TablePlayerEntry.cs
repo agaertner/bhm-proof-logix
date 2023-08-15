@@ -5,7 +5,6 @@ using Blish_HUD.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
-using System;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePlayerEntry : TableEntryBase {
@@ -34,11 +33,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected override string         CharacterName => this.Player.CharacterName;
         protected override string         AccountName   => this.Player.AccountName;
 
-        private readonly Color _unknownColor = new(127, 128, 127);
-
-        private readonly Color _awayColor = new(255, 165, 0);
-
-        private readonly Color _onlineColor = new(0, 255, 0);
+        private const int STATUS_ICON_SIZE = 8;
 
         protected override void OnMouseLeft(MouseEventArgs e) {
             base.OnMouseLeft(e);
@@ -79,24 +74,20 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             return AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
         }
 
+        protected override void PaintStatus(SpriteBatch spriteBatch, Rectangle bounds) {
+            // Keep aspect ratio and center.
+            var centered = new Rectangle(bounds.X + (bounds.Width - STATUS_ICON_SIZE) / 2, bounds.Y + (bounds.Height - STATUS_ICON_SIZE) / 2, STATUS_ICON_SIZE, STATUS_ICON_SIZE);
+            spriteBatch.DrawOnCtrl(this, ContentService.Textures.Pixel, centered, ProofLogix.Instance.PartySync.GetStatusColor(this.Player.Status));
+        }
+
         protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {
             var token = this.Player.KpProfile.GetToken(tokenId);
             var color = ProofLogix.Instance.PartySync.GetTokenAmountColor(tokenId, token.Amount, ProofLogix.Instance.TableConfig.Value.ColorGradingMode);
-            spriteBatch.DrawStringOnCtrl(this, AssetUtil.Truncate(token.Amount.ToString(), this.MaxTokenCellWidth, this.Font), this.Font, bounds, color, false, true, 2, HorizontalAlignment.Center);
+            spriteBatch.DrawStringOnCtrl(this, AssetUtil.Truncate(token.Amount.ToString(), bounds.Width, this.Font), this.Font, bounds, color, false, true, 2, HorizontalAlignment.Center);
         }
 
         protected override string GetStatusTooltip() {
             return this.Player.Status.ToString();
         }
-
-        protected override Color GetStatusColor() {
-            return this.Player.Status switch {
-                Player.OnlineStatus.Unknown => _unknownColor,
-                Player.OnlineStatus.Away    => _awayColor,
-                Player.OnlineStatus.Online  => _onlineColor,
-                _                           => throw new ArgumentOutOfRangeException()
-            };
-        }
-
     }
 }
