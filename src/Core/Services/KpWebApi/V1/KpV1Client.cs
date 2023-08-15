@@ -1,12 +1,10 @@
 ﻿using Flurl;
 using Flurl.Http;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models;
-using Nekres.ProofLogix.Core.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1 {

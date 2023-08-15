@@ -26,7 +26,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _maxStatusIconCellWidth, value);
         }
 
-        private int _maxTimestampCellWidth = 150;
+        private int _maxTimestampCellWidth = 147;
         public int MaxTimestampCellWidth {
             get => _maxTimestampCellWidth;
             set => SetProperty(ref _maxTimestampCellWidth, value);
@@ -38,13 +38,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             set => SetProperty(ref _maxClassIconCellWidth, value);
         }
 
-        private int _maxCharacterNameCellWidth = 150;
+        private int _maxCharacterNameCellWidth = 120;
         public int MaxCharacterNameCellWidth {
             get => _maxCharacterNameCellWidth; 
             set => SetProperty(ref _maxCharacterNameCellWidth, value);
         }
 
-        private int _maxAccountNameCellWidth = 150;
+        private int _maxAccountNameCellWidth = 120;
         public int MaxAccountNameCellWidth {
             get => _maxAccountNameCellWidth;
             set => SetProperty(ref _maxAccountNameCellWidth, value);
@@ -163,7 +163,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             // Character Name
             if (columns.Contains(TableConfig.Column.Character)) {
                 var characterName = AssetUtil.Truncate(this.CharacterName, this.MaxCharacterNameCellWidth, this.Font);
-                _characterNameBounds = new Rectangle(_classIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxCharacterNameCellWidth, bounds.Height);
+                _characterNameBounds = new Rectangle(_classIconBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxCharacterNameCellWidth + ControlStandard.ControlOffset.X, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, characterName, this.Font, _characterNameBounds, Color.White, false, true, 2);
                 UpdateTooltip(_characterNameBounds, GetCharacterTooltip());
             } else {
@@ -173,7 +173,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             // Account Name
             if (columns.Contains(TableConfig.Column.Account)) {
                 var accountName = AssetUtil.Truncate(this.AccountName, this.MaxAccountNameCellWidth, this.Font);
-                _accountNameBounds = new Rectangle(_characterNameBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxAccountNameCellWidth, bounds.Height);
+                _accountNameBounds = new Rectangle(_characterNameBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxAccountNameCellWidth + ControlStandard.ControlOffset.X, bounds.Height);
                 spriteBatch.DrawStringOnCtrl(this, accountName, this.Font, _accountNameBounds, Color.White, false, true, 2);
                 UpdateTooltip(_accountNameBounds, GetAccountTooltip());
             } else {
@@ -184,7 +184,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             var tempTokenBounds = new List<Rectangle>();
             var tokenBounds = _accountNameBounds;
             foreach (var id in ProofLogix.Instance.TableConfig.Value.TokenIds) {
-                tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X * 3, 0, this.MaxTokenCellWidth, bounds.Height);
+                tokenBounds = new Rectangle(tokenBounds.Right + ControlStandard.ControlOffset.X, 0, this.MaxTokenCellWidth, bounds.Height);
                 tempTokenBounds.Add(tokenBounds);
                 PaintToken(spriteBatch, tokenBounds, id);
                 UpdateTooltip(tokenBounds, GetTokenTooltip(id));

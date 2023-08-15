@@ -6,6 +6,7 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
     public class TableConfig : ConfigBase {
 
         public static TableConfig Default => new() {
+            _alwaysSortStatus = true,
             _colorGradingMode = PartySyncService.ColorGradingMode.MedianComparison,
             _profileIds = new ObservableCollection<string>(),
             _tokenIds = new ObservableCollection<int> {
@@ -14,11 +15,11 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
                 93781
             },
             _columns = new ObservableCollection<Column> {
+                Column.Status,
                 Column.Timestamp,
                 Column.Class,
                 Column.Character,
-                Column.Account,
-                Column.Status
+                Column.Account
             }
         };
 
@@ -56,6 +57,16 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             get => _keepLeavers;
             set {
                 _keepLeavers = value;
+                SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        private bool _alwaysSortStatus;
+        [JsonProperty("always_sort_status")]
+        public bool AlwaysSortStatus {
+            get => _alwaysSortStatus;
+            set {
+                _alwaysSortStatus = value;
                 SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }
