@@ -165,11 +165,24 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 }
 
                 var chatLink = new ItemChatLink {
-                    ItemId = _config.SelectedToken,
-                    Quantity = 1
+                    ItemId = _config.SelectedToken
                 };
 
-                ChatUtil.Send(total > 255 ? AssetUtil.GetItemDisplayName(chatLink.ToString(), total) : chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
+                string message;
+
+                if (total > 255) {
+                    chatLink.Quantity = 1;
+                    message = AssetUtil.GetItemDisplayName(chatLink.ToString(), total);
+                } else {
+                    chatLink.Quantity = Convert.ToByte(total);
+                    message = chatLink.ToString();
+                }
+
+                if (_config.SendProfileId) {
+                    message += $" » {ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.Id}";
+                }
+
+                ChatUtil.Send(message, ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
                 busy = false;
             };
@@ -177,6 +190,16 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             var menu = new ContextMenuStrip {
                 Parent      = buildPanel,
                 ClipsBounds = false
+            };
+
+            var sendProfileIdEntry = new ContextMenuStripItem("Send Profile ID with Mouse 2") {
+                Parent = menu,
+                CanCheck = true,
+                Checked = _config.SendProfileId
+            };
+
+            sendProfileIdEntry.CheckedChanged += (_, e) => {
+                _config.SendProfileId = e.Checked;
             };
 
             var playerTokens = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetTokens();

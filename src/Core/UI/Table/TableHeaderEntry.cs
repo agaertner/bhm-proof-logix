@@ -24,7 +24,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         protected override void PaintToken(SpriteBatch spriteBatch, Rectangle bounds, int tokenId) {
             // Keep aspect ratio and center.
             var centered = new Rectangle(bounds.X + (bounds.Width - bounds.Height) / 2, bounds.Y, bounds.Height, bounds.Height);
-            spriteBatch.DrawOnCtrl(this, ProofLogix.Instance.Resources.GetApiIcon(tokenId).Result, centered);
+            spriteBatch.DrawOnCtrl(this, ProofLogix.Instance.Resources.GetApiIcon(tokenId), centered);
         }
 
         protected override void PaintStatus(SpriteBatch spriteBatch, Rectangle bounds) {

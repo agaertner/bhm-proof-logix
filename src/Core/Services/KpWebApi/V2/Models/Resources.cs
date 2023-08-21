@@ -10,6 +10,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
 
     // Path: /api/resources?lang={code}
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Resources {
 
         public const int UNSTABLE_COSMIC_ESSENCE = 81743; // One-time hardcode courtesy to handle original_uce.
@@ -31,7 +32,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public List<Raid> Raids { get; set; }
 
         [JsonProperty("coffers")]
-        public List<Resource> Coffers { get; set; }
+        public List<Resource> Coffers { get; set; } // Retroactively adding coffers from profile responses.
 
         public IEnumerable<Raid.Wing> Wings => this.Raids.SelectMany(raid => raid.Wings);
 
@@ -46,10 +47,14 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                                                   .Select(group => group.First());
 
         public Resources() {
-            this.Coffers = new List<Resource>(); // Retroactively adding these from profile responses.
+            this.Coffers = new List<Resource>();
+            this.Raids   = new List<Raid>();
+            this.Fractals = new List<Resource>();
+            this.GeneralTokens = new List<Resource>();
         }
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Resource {
 
         public static Resource Empty = new() {
@@ -73,6 +78,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         public AsyncTexture2D Icon { get; set; }
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Raid {
 
         [JsonProperty("id")]
@@ -84,6 +90,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("wings")]
         public List<Wing> Wings { get; set; }
 
+        public Raid() {
+            this.Wings = new List<Wing>();
+        }
+
+        [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
         public sealed class Wing {
 
 
@@ -96,6 +107,11 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             [JsonProperty("events")]
             public List<Event> Events { get; set; }
 
+            public Wing() {
+                this.Events = new List<Event>();
+            }
+
+            [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
             public sealed class Event {
 
                 public enum EventType {
@@ -123,6 +139,10 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 public AsyncTexture2D Icon => this.Miniatures?.FirstOrDefault()?.Icon
                                            ?? this.Token?.Icon 
                                            ?? GameService.Content.DatAssetCache.GetTextureFromAssetId(1302744);
+
+                public Event() {
+                    this.Miniatures = new List<Resource>();
+                }
 
                 public List<Resource> GetTokens() {
 
