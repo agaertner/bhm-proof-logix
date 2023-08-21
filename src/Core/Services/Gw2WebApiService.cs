@@ -1,11 +1,13 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Extended;
-using Gw2Sharp.WebApi.Exceptions;
+using Flurl.Http;
 using Gw2Sharp.WebApi.V2.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -29,6 +31,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private Regex _apiKeyPattern = new(@"^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{20}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$");
 
+        private string _baseApiUrl = "https://api.guildwars2.com/";
+
         public Gw2WebApiService() {
             MissingPermissions = new List<TokenPermission>();
 
@@ -39,7 +43,42 @@ namespace Nekres.ProofLogix.Core.Services {
             ProofLogix.Instance.Gw2ApiManager.SubtokenUpdated -= OnSubtokenUpdated;
         }
 
+        public bool IsApiDown(out string message) {
+
+            try {
+
+                using var response = _baseApiUrl.AllowHttpStatus(HttpStatusCode.ServiceUnavailable)
+                                                .AllowHttpStatus(HttpStatusCode.InternalServerError)
+                                                .GetAsync(default, HttpCompletionOption.ResponseHeadersRead).Result;
+
+                // API is broken.
+                if (response.StatusCode == HttpStatusCode.InternalServerError) {
+                    message = "GW2 API is down. Please, try again later.";
+                    return true;
+                }
+
+                // API is down for maintenance. Chances are high body contains a message.
+                if (response.StatusCode == HttpStatusCode.ServiceUnavailable) {
+                    var body = response.Content.ReadAsStringAsync().Result;
+                    message = body.GetTextBetweenTags("p");
+                    return true;
+                }
+
+            } catch (Exception e) {
+                ProofLogix.Logger.Warn(e, "Failed to check API status.");
+            }
+
+            // If we don't immediately get a 503 then the API is probably available.
+            message = string.Empty;
+            return false;
+        }
+
         public bool IsApiAvailable() {
+            if (IsApiDown(out var message)) {
+                ScreenNotification.ShowNotification(message, ScreenNotification.NotificationType.Error);
+                return false;
+            }
+
             if (string.IsNullOrWhiteSpace(GameService.Gw2Mumble.PlayerCharacter.Name)) {
                 ScreenNotification.ShowNotification("API unavailable. Please, login to a character.", ScreenNotification.NotificationType.Error);
                 return false;
@@ -59,17 +98,17 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<List<string>> GetClears() {
-            var clears = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Raids.GetAsync());
+            var clears = await TaskUtil.TryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Raids.GetAsync());
             return (clears ?? Enumerable.Empty<string>()).ToList();
         }
 
         public async Task<List<AccountItem>> GetBank() {
-            var bank = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Bank.GetAsync());
+            var bank = await TaskUtil.TryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Bank.GetAsync());
             return FilterProofs(bank).ToList();
         }
 
         public async Task<List<AccountItem>> GetSharedBags() {
-            var sharedBags = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Inventory.GetAsync());
+            var sharedBags = await TaskUtil.TryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Account.Inventory.GetAsync());
             return FilterProofs(sharedBags).ToList();
         }
 
@@ -104,17 +143,17 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         public async Task<IReadOnlyList<Item>> GetItems(params int[] itemIds) {
-            var response = await TaskUtil.RetryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.ManyAsync(itemIds));
+            var response = await TaskUtil.TryAsync(() => GameService.Gw2WebApi.AnonymousConnection.Client.V2.Items.ManyAsync(itemIds));
             return response ?? Enumerable.Empty<Item>().ToList();
         }
 
         public async Task<IReadOnlyList<Map>> GetMaps(params int[] mapIds) {
-            var response = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.ManyAsync(mapIds));
+            var response = await TaskUtil.TryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Maps.ManyAsync(mapIds));
             return response ?? Enumerable.Empty<Map>().ToList();
         }
 
         private async Task<IEnumerable<Character>> GetCharacters() {
-            var characters = await TaskUtil.RetryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Characters.AllAsync());
+            var characters = await TaskUtil.TryAsync(() => ProofLogix.Instance.Gw2ApiManager.Gw2ApiClient.V2.Characters.AllAsync());
             return characters ?? Enumerable.Empty<Character>();
         }
 

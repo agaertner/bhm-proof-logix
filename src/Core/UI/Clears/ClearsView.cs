@@ -70,7 +70,9 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
 
             foreach (var clear in _clears) {
 
-                var wingCategory = new FlowPanel {
+                var completed = clear.Encounters.All(encounter => encounter.Cleared);
+                var none      = !clear.Encounters.Any(encounter => encounter.Cleared);
+                var wingCategory = new FlowPanelWithIcon(completed ? _greenTick : none ? _redCross : ContentService.Textures.TransparentPixel) {
                     Parent              = panel,
                     Width               = panel.ContentRegion.Width - 24,
                     HeightSizingMode    = SizingMode.AutoSize,
@@ -78,7 +80,8 @@ namespace Nekres.ProofLogix.Core.UI.Clears {
                     CanCollapse         = true,
                     ControlPadding      = new Vector2(5, 5),
                     OuterControlPadding = new Vector2(5, 5),
-                    FlowDirection       = ControlFlowDirection.SingleTopToBottom
+                    FlowDirection       = ControlFlowDirection.SingleTopToBottom,
+                    Collapsed = completed || none
                 };
 
                 panel.ContentResized += (_, e) => {

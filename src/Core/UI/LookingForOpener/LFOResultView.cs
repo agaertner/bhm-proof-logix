@@ -53,7 +53,7 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                 var text      = "No volunteers found.";
 
                 var fontSize  = ContentService.FontSize.Size24;
-                var labelSize = LabelUtil.GetLabelSize(fontSize, text);
+                var labelSize = LabelUtil.GetLabelSize(fontSize, text, true);
                 var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
                                                        .CreatePart(text, o => {
                                                             o.SetFontSize(fontSize);

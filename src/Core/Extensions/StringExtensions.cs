@@ -13,5 +13,10 @@ namespace Nekres.ProofLogix.Core {
         public static string ReplaceWhitespace(this string input, string replacement) {
             return Regex.Replace(input, @"\s+", replacement);
         }
+
+        public static string GetTextBetweenTags(this string input, string tagName) {
+            var match = Regex.Match(input, $"<{tagName}>(.*?)</{tagName}>");
+            return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value : string.Empty;
+        }
     }
 }
