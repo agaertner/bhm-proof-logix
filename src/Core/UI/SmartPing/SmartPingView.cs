@@ -200,6 +200,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
             sendProfileIdEntry.CheckedChanged += (_, e) => {
                 _config.SendProfileId = e.Checked;
+                ProofLogix.Instance.Resources.PlayMenuItemClick();
             };
 
             var playerTokens = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetTokens();

@@ -22,7 +22,8 @@ namespace Nekres.ProofLogix.Core.Services {
             TokenPermission.Account,
             TokenPermission.Progression,
             TokenPermission.Inventories,
-            TokenPermission.Characters
+            TokenPermission.Characters,
+            TokenPermission.Builds
         };
 
         public bool HasSubtoken;
@@ -159,7 +160,7 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private void OnSubtokenUpdated(object sender, ValueEventArgs<IEnumerable<TokenPermission>> e) {
             HasSubtoken        = true;
-            MissingPermissions = e.Value.Intersect(_requires).Except(_requires).ToList();
+            MissingPermissions = _requires.Except(e.Value).ToList();
         }
 
         private IEnumerable<AccountItem> FilterProofs(IEnumerable<AccountItem> items) {
