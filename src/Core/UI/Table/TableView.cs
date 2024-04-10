@@ -151,7 +151,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             headerEntry.ColumnClick += (_, e) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
                 this.Presenter.Model.SelectedColumn  = e.Value;
                 this.Presenter.Model.OrderDescending = !this.Presenter.Model.OrderDescending;
                 this.Presenter.SortEntries();
@@ -178,7 +177,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             alwaysSortStatusEntry.CheckedChanged += (_, e) => {
                 this.Presenter.Model.AlwaysSortStatus = e.Checked;
                 this.Presenter.SortEntries();
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
             };
 
             var keepLeaversEntry = new ContextMenuStripItem("Keep Leavers") {
@@ -190,7 +188,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             keepLeaversEntry.CheckedChanged += (_, e) => {
                 this.Presenter.Model.KeepLeavers = e.Checked;
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
             };
 
             var colorGradingModeCategory = new ContextMenuStripItem("Color Grading Mode") {
@@ -258,7 +255,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         GameService.Content.PlaySoundEffectByName("color-change");
                     } else {
                         this.Presenter.Model.Columns.RemoveAll(col);
-                        ProofLogix.Instance.Resources.PlayMenuItemClick();
                     }
                 };
             }
@@ -327,7 +323,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         GameService.Content.PlaySoundEffectByName("color-change");
                     } else {
                         this.Presenter.Model.TokenIds.RemoveAll(resource.Id);
-                        ProofLogix.Instance.Resources.PlayMenuItemClick();
                     }
                 };
             }

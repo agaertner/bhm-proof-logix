@@ -27,9 +27,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
         private Dictionary<int, AsyncTexture2D> _apiIcons;
 
-        private IReadOnlyList<SoundEffect> _menuClicks;
-        private SoundEffect                _menuItemClickSfx;
-
         private readonly IReadOnlyList<string> _loadingText = new List<string> {
             "Turning Vault upside down…",
             "Borrowing wallet…",
@@ -63,8 +60,6 @@ namespace Nekres.ProofLogix.Core.Services {
         private const string RESOURCE_PROFILE = "Nika"; // Used to add resources missing from the resources endpoint.
 
         public ResourceService() {
-            LoadSounds();
-
             _resources  = Resources.Empty;
             _profNames  = new Dictionary<int, string>();
             _profIcons  = new Dictionary<int, AsyncTexture2D>();
@@ -93,14 +88,6 @@ namespace Nekres.ProofLogix.Core.Services {
             return _loadingText[RandomUtil.GetRandom(0, _loadingText.Count - 1)];
         }
 
-        public void PlayMenuItemClick() {
-            _menuItemClickSfx.Play(GameService.GameIntegration.Audio.Volume, 0, 0);
-        }
-
-        public void PlayMenuClick() {
-            _menuClicks[RandomUtil.GetRandom(0, 3)].Play(GameService.GameIntegration.Audio.Volume, 0, 0);
-        }
-
         public void AddNewCoffers(Profile profile) {
             if (_resources.IsEmpty || profile.IsEmpty) {
                 return;
@@ -122,16 +109,6 @@ namespace Nekres.ProofLogix.Core.Services {
                               Id   = token.Id,
                               Name = token.Name
                           });
-        }
-
-        private void LoadSounds() {
-            _menuItemClickSfx = ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-item-click.wav");
-            _menuClicks = new List<SoundEffect> {
-                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-1.wav"),
-                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-2.wav"),
-                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-3.wav"),
-                ProofLogix.Instance.ContentsManager.GetSound(@"audio\menu-click-4.wav")
-            };
         }
 
         private async Task LoadResources() {
@@ -192,11 +169,6 @@ namespace Nekres.ProofLogix.Core.Services {
 
         public void Dispose() {
             GameService.Overlay.UserLocaleChanged -= OnUserLocaleChanged;
-
-            _menuItemClickSfx.Dispose();
-            foreach (var sfx in _menuClicks) {
-                sfx.Dispose();
-            }
         }
 
         private async Task ExpandResources(IEnumerable<Resource> resources) {
