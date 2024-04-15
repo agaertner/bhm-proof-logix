@@ -1,6 +1,6 @@
 {
   "name": "Proof Logix",
-  "version": "2.21.5",
+  "version": "2.21.6",
   "namespace": "KillProofModule",
   "package": "ProofLogix.dll",
   "manifest_version": 1,

@@ -68,8 +68,6 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 Collapsed = false
             };
 
-            separatorEntry.Click += (_, _) => ProofLogix.Instance.Resources.PlayMenuClick();
-
             var myProfileEntry = new MenuItem {
                 Parent = separatorEntry,
                 Text   = "My Profile",
@@ -130,8 +128,6 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
-
                 var loadingText = new AsyncString();
                 plyPanel.Show(new LoadingView("Loading items…", loadingText));
 
@@ -159,8 +155,6 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
-
                 plyPanel.Show(new LoadingView("Loading clears.."));
                 plyPanel.Show(new ClearsView(await ProofLogix.Instance.Gw2WebApi.GetClears()));
             };
@@ -187,8 +181,6 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
-
                 if (localPlayer.KpProfile.NotFound) {
                     ProofLogix.Instance.ToggleRegisterWindow();
                     return;
@@ -198,12 +190,10 @@ namespace Nekres.ProofLogix.Core.UI.Home {
             };
 
             squadTableEntry.Click += (_, _) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
                 ProofLogix.Instance.ToggleTable();
             };
 
             smartPingEntry.Click += (_, _) => {
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
                 ProofLogix.Instance.ToggleSmartPing();
             };
 

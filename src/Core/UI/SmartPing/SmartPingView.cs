@@ -116,8 +116,6 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 }
                 busy = true;
 
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
-
                 var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
                 if (!CanSend(total, lastTotalReachedTime)) {
@@ -153,8 +151,6 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     return;
                 }
                 busy = true;
-
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
 
                 var total = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetToken(_config.SelectedToken).Amount;
 
@@ -200,7 +196,6 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
 
             sendProfileIdEntry.CheckedChanged += (_, e) => {
                 _config.SendProfileId = e.Checked;
-                ProofLogix.Instance.Resources.PlayMenuItemClick();
             };
 
             var playerTokens = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetTokens();

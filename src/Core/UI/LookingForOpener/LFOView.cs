@@ -85,8 +85,6 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     Text = $"Wing {wingNr}"
                 };
 
-                wingItem.Click += (_, _) => ProofLogix.Instance.Resources.PlayMenuClick();
-
                 foreach (var encounter in wing.Events) {
 
                     var encounterItem = new MenuItem {
@@ -97,7 +95,6 @@ namespace Nekres.ProofLogix.Core.UI.LookingForOpener {
                     };
 
                     encounterItem.Click += async (_, _) => {
-                        ProofLogix.Instance.Resources.PlayMenuItemClick();
                         resultContainer.Show(new LoadingView("Searching…"));
                         resultContainer.Show(new LfoResultView(new LfoResults(encounter.Id, await this.Presenter.GetOpener(encounter.Id))));
                     };
