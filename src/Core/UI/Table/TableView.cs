@@ -283,6 +283,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Submenu = new ContextMenuStrip()
             };
 
+            AddProofEntries(raidsCategory, ProofLogix.Instance.Resources.GetItems(Resources.LEGENDARY_DIVINATION));
+
             var coffersCategory = new ContextMenuStripItem("Coffers") {
                 Parent  = raidsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
@@ -310,7 +312,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Submenu = new ContextMenuStrip()
             };
 
-            AddProofEntries(strikesCategory, ProofLogix.Instance.Resources.GetItemsForStrikes());
+            AddProofEntries(strikesCategory, ProofLogix.Instance.Resources.GetItems(Resources.BONESKINNER_RITUAL_VIAL)
+                                                       .Concat(ProofLogix.Instance.Resources.GetItemsForStrikes()));
 
             base.Build(buildPanel);
         }

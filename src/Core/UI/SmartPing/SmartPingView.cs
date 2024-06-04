@@ -223,7 +223,8 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 AddProofEntries(coffersCategory, cofferItems, labelPanel);
             }
 
-            var strikeItems = ProofLogix.Instance.Resources.GetItemsForStrikes()
+            var strikeItems = ProofLogix.Instance.Resources.GetItems(Resources.BONESKINNER_RITUAL_VIAL)
+                                        .Concat(ProofLogix.Instance.Resources.GetItemsForStrikes())
                                         .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
 
             if (strikeItems.Any()) {
@@ -243,11 +244,16 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                                                                                                    item.Amount > 0))
                                                            .ToList()).ToList();
 
-            if (wingTokens.Any()) {
+            var raidItems = ProofLogix.Instance.Resources.GetItems(Resources.LEGENDARY_DIVINATION)
+                                      .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
+
+            if (wingTokens.Any() || raidItems.Any()) {
                 var raidsCategory = new ContextMenuStripItem("Raids") {
                     Parent  = menu,
                     Submenu = new ContextMenuStrip()
                 };
+
+                AddProofEntries(raidsCategory, raidItems, labelPanel);
 
                 var i = 1;
                 foreach (var wing in wingTokens) {
