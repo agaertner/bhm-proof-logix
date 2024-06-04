@@ -278,10 +278,12 @@
     <Compile Include="Core\Services\ResourceService.cs" />
     <Compile Include="Core\UI\Clears\ClearsView.cs" />
     <Compile Include="Core\UI\Configs\ConfigBase.cs" />
+    <Compile Include="Core\UI\Configs\ProfileConfig.cs" />
     <Compile Include="Core\UI\Configs\SmartPingConfig.cs" />
     <Compile Include="Core\UI\ContextMenuStripItemWithColor.cs" />
     <Compile Include="Core\UI\FlowPanelWithIcon.cs" />
     <Compile Include="Core\UI\Home\HomeView.cs" />
+    <Compile Include="Core\UI\ItemTooltipView.cs" />
     <Compile Include="Core\UI\LoadingView.cs" />
     <Compile Include="Core\UI\Configs\LFOConfig.cs" />
     <Compile Include="Core\UI\LookingForOpener\LFOPresenter.cs" />
