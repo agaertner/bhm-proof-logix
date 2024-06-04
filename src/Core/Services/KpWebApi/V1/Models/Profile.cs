@@ -52,7 +52,8 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V1.Models {
         public enum TitleMode {
             Unknown,
             Raid,
-            Fractal
+            Fractal,
+            Strike
         }
 
         public string Name { get; set; }
