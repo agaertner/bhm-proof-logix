@@ -90,6 +90,7 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             profile.Clears = await _v1Client.GetClears(profile.Id);
+            var totalUce = HandleOriginalUce(profile);
 
             if (profile.Linked == null) {
                 return profile;
@@ -97,9 +98,28 @@ namespace Nekres.ProofLogix.Core.Services {
 
             foreach (var link in profile.Linked) {
                 link.Clears = await _v1Client.GetClears(link.Id);
+                totalUce += HandleOriginalUce(link);
+            }
+
+            var uce = profile.Totals.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
+            if (uce is {IsEmpty: false}) {
+                uce.Amount = totalUce;
             }
 
             return profile;
+        }
+
+        private int HandleOriginalUce(Profile profile) {
+            if (profile.OriginalUce == null) {
+                return 0;
+            }
+            var uce = profile.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
+            if (uce == null || uce.IsEmpty) {
+                profile.Tokens.Add(profile.OriginalUce);
+                uce = profile.OriginalUce;
+            }
+            uce.Amount = Math.Max(uce.Amount, profile.OriginalUce.Amount);
+            return uce.Amount;
         }
     }
 }

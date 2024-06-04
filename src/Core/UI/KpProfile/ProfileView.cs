@@ -4,6 +4,7 @@ using Blish_HUD.Extended;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.UI.Clears;
 using System;
 using System.Collections.Generic;
@@ -310,11 +311,146 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
         private sealed class ItemsView : View {
 
             private readonly Profile   _profile;
-            private readonly Texture2D _iconTitle;
 
             public ItemsView(Profile profile) {
                 _profile   = profile;
+            }
+
+            protected override void Build(Container buildPanel) {
+
+                if (_profile.IsEmpty) {
+                    var nothingFound = "Nothing found.";
+                    var description  = "\n  Player is registered but either has proofs explicitly hidden or none at all.";
+                    var fontSize     = ContentService.FontSize.Size24;
+                    var labelSize = LabelUtil.GetLabelSize(fontSize, nothingFound + description, true);
+                    var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
+                                                           .CreatePart(nothingFound, o => {
+                                                                o.SetFontSize(fontSize);
+                                                                o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
+                                                                o.SetTextColor(Color.Yellow);
+                                                            }).CreatePart(description, o => {
+                                                                o.SetFontSize(ContentService.FontSize.Size18);
+                                                                o.SetTextColor(Color.White);
+                                                            }).Build();
+                    label.Parent = buildPanel;
+                    return;
+                }
+
+                var menuPanel = new Panel {
+                    Parent    = buildPanel,
+                    Width     = 200,
+                    Height    = buildPanel.ContentRegion.Height,
+                    CanScroll = true,
+                    Title     = "Mode"
+                };
+
+                var navMenu = new Menu {
+                    Parent = menuPanel,
+                    Top    = 0,
+                    Left   = 0,
+                    Width  = menuPanel.ContentRegion.Width,
+                    Height = menuPanel.ContentRegion.Height,
+                };
+
+                var fractalsEntry = new MenuItem {
+                    Parent           = navMenu,
+                    Text             = "Fractals",
+                    Width            = navMenu.ContentRegion.Width,
+                    Icon             = GameService.Content.DatAssetCache.GetTextureFromAssetId(514379),
+                    BasicTooltipText = "Rewards related to Fractals including tokens and titles."
+                };
+
+                var raidsEntry = new MenuItem {
+                    Parent           = navMenu,
+                    Text             = "Raids",
+                    Width            = navMenu.ContentRegion.Width,
+                    Icon             = GameService.Content.DatAssetCache.GetTextureFromAssetId(1128644),
+                    BasicTooltipText = "Rewards related to Raids including tokens and titles."
+                };
+
+                var strikesEntry = new MenuItem {
+                    Parent           = navMenu,
+                    Text             = "Strikes",
+                    Width            = navMenu.ContentRegion.Width,
+                    Icon             = GameService.Content.DatAssetCache.GetTextureFromAssetId(2200049),
+                    BasicTooltipText = "Rewards related to Strike Missions including tokens and titles."
+                };
+
+                var plyPanel = new ViewContainer {
+                    Parent     = buildPanel,
+                    Left       = menuPanel.Right,
+                    Width      = buildPanel.ContentRegion.Width - menuPanel.Width,
+                    Height     = buildPanel.ContentRegion.Height,
+                    ShowBorder = true
+                };
+
+                buildPanel.ContentResized += (_, e) => {
+                    plyPanel.Width  = e.CurrentRegion.Width - menuPanel.Width;
+                    plyPanel.Height = e.CurrentRegion.Height;
+                };
+
+                menuPanel.ContentResized += (_, e) => {
+                    navMenu.Width  = e.CurrentRegion.Width;
+                    navMenu.Height = e.CurrentRegion.Height;
+                };
+
+                navMenu.ContentResized += (_, e) => {
+                    fractalsEntry.Width = e.CurrentRegion.Width;
+                    raidsEntry.Height   = e.CurrentRegion.Height;
+                    strikesEntry.Height = e.CurrentRegion.Height;
+                };
+
+
+                fractalsEntry.ItemSelected += (_, _) => {
+                    var fractalResources = ProofLogix.Instance.Resources.GetItemsForFractals();
+                    var fractalTokens    = _profile.Totals.GetTokens().Where(token => fractalResources.Any(res => res.Id == token.Id)).ToList();
+                    var fractalsResults  = new ProfileItems(_profile.Totals.Titles.Where(title => title.Mode == TitleMode.Fractal), fractalTokens);
+                    ProofLogix.Instance.ProfileConfig.Value.SelectedTab = 0;
+                    plyPanel.Show(new ProfileItemsView(fractalsResults));
+                };
+
+                raidsEntry.ItemSelected += (_, _) => {
+                    var raidResources = ProofLogix.Instance.Resources.GetItems(Resources.LEGENDARY_INSIGHT, Resources.LEGENDARY_DIVINATION, Resources.BANANAS, Resources.BANANAS_IN_BULK)
+                                                  .Concat(ProofLogix.Instance.Resources.GetItemsForRaids());
+                    var raidTokens = _profile.Totals.GetTokens().Where(token => raidResources.Any(res => res.Id == token.Id));
+                    var raidResults   = new ProfileItems(_profile.Totals.Titles.Where(title => title.Mode == TitleMode.Raid), raidTokens);
+                    ProofLogix.Instance.ProfileConfig.Value.SelectedTab = 1;
+                    plyPanel.Show(new ProfileItemsView(raidResults));
+                };
+
+                strikesEntry.ItemSelected += (_, _) => {
+                    var strikeResources = ProofLogix.Instance.Resources.GetItems(Resources.LEGENDARY_INSIGHT, Resources.BONESKINNER_RITUAL_VIAL)
+                                                    .Concat(ProofLogix.Instance.Resources.GetItemsForStrikes());
+                    var strikeTokens    = _profile.Totals.GetTokens().Where(token => strikeResources.Any(res => res.Id == token.Id));
+                    var strikeResults   = new ProfileItems(_profile.Totals.Titles.Where(title => title.Mode == TitleMode.Strike), strikeTokens);
+                    ProofLogix.Instance.ProfileConfig.Value.SelectedTab = 2;
+                    plyPanel.Show(new ProfileItemsView(strikeResults, true));
+                };
+                ((MenuItem)navMenu.Children[ProofLogix.Instance.ProfileConfig.Value.SelectedTab]).Select();
+            }
+        }
+
+        private sealed class ProfileItems {
+
+            public IReadOnlyList<Title> Titles { get; init; }
+
+            public IReadOnlyList<Token> Tokens { get; init; }
+
+            public ProfileItems(IEnumerable<Title> titles, IEnumerable<Token> tokens) {
+                Titles = titles.ToList();
+                Tokens = tokens.ToList();
+            }
+        }
+
+        private sealed class ProfileItemsView : View {
+
+            private          ProfileItems _items;
+            private readonly Texture2D    _iconTitle;
+            private          bool         _displayAsText;
+            public ProfileItemsView(ProfileItems items, bool displayAsText = false) {
+                _items     = items;
                 _iconTitle = ProofLogix.Instance.ContentsManager.GetTexture("icon_title.png");
+                _displayAsText = displayAsText;
             }
 
             protected override void Unload() {
@@ -328,73 +464,45 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                     Width               = buildPanel.ContentRegion.Width,
                     Height              = buildPanel.ContentRegion.Height,
                     FlowDirection       = ControlFlowDirection.LeftToRight,
-                    OuterControlPadding = new Vector2(Panel.LEFT_PADDING, Panel.TOP_PADDING)
+                    OuterControlPadding = new Vector2(5, 5),
+                    ControlPadding      = new Vector2(5, 5),
+                    CanScroll = true
                 };
 
                 buildPanel.ContentResized += (_, e) => {
-                    panel.Width  = e.CurrentRegion.Width;
+                    panel.Width = e.CurrentRegion.Width;
                     panel.Height = e.CurrentRegion.Height;
                 };
 
-                if (_profile.IsEmpty) {
-                    var nothingFound = "Nothing found.";
-                    var description  = "\n  Player is registered but either has proofs explicitly hidden or none at all.";
-                    var fontSize     = ContentService.FontSize.Size24;
-                    var labelSize    = LabelUtil.GetLabelSize(fontSize, nothingFound + description, true);
-                    var label = new FormattedLabelBuilder().SetHeight(labelSize.Y).SetWidth(labelSize.X)
-                                                           .CreatePart(nothingFound, o => {
-                                                                o.SetFontSize(fontSize);
-                                                                o.SetPrefixImage(GameService.Content.GetTexture("common/1444522"));
-                                                                o.SetTextColor(Color.Yellow);
-                                                            }).CreatePart(description, o => {
-                                                                o.SetFontSize(ContentService.FontSize.Size18);
-                                                                o.SetTextColor(Color.White);
-                                                            }).Build();
-                    label.Parent = panel;
-                    base.Build(panel);
-                    return;
+                foreach (var token in _items.Tokens) {
+                    if (token.Amount <= 0) {
+                        continue;
+                    }
+                    if (_displayAsText) {
+                        var item = ProofLogix.Instance.Resources.GetItem(token.Id);
+                        var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
+                        var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
+                        var label = new FormattedLabelBuilder()
+                                   .SetWidth(panel.ContentRegion.Width)
+                                   .SetHeight(size.Y)
+                                   .CreatePart(text, o => {
+                                        o.SetTextColor(item.Rarity.AsColor());
+                                        o.SetFontSize(ContentService.FontSize.Size20);
+                                        o.SetPrefixImage(item.Icon);
+                                        o.SetPrefixImageSize(new Point(size.Y, size.Y));
+                                    }).Build();
+                        label.Parent = panel;
+                    } else {
+                        ItemWithAmount.Create(token.Id, token.Amount).Parent = panel;
+                    }
                 }
-                var totals = _profile.Totals;
 
-                var fractalResources = ProofLogix.Instance.Resources.GetItemsForFractals();
-
-                var tokens        = totals.GetTokens().ToList();
-                var fractalTokens = tokens.Where(token => fractalResources.Any(res => res.Id == token.Id));
-                var raidTokens    = tokens.Where(token => fractalResources.All(res => res.Id != token.Id));
-
-                var fractalResults = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Fractal), fractalTokens);
-                var raidResults    = new ProfileItems(totals.Titles.Where(title => title.Mode == TitleMode.Raid),    raidTokens);
-
-                CreateItemPanel(panel, fractalResults, "Fractals");
-                CreateItemPanel(panel, raidResults,    "Raids");
-
-                base.Build(panel);
-            }
-
-            private void CreateItemPanel(Container parent, ProfileItems items, string panelTitle) {
-                var flow = new FlowPanel {
-                    Parent              = parent,
-                    Width               = parent.ContentRegion.Width / 2 - Panel.RIGHT_PADDING,
-                    Height              = parent.ContentRegion.Height    - Panel.RIGHT_PADDING,
-                    ControlPadding      = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
-                    OuterControlPadding = new Vector2(Control.ControlStandard.ControlOffset.X, Control.ControlStandard.ControlOffset.Y),
-                    FlowDirection       = ControlFlowDirection.SingleTopToBottom,
-                    CanScroll           = true,
-                    Title               = panelTitle
-                };
-
-                parent.ContentResized += (_, e) => {
-                    flow.Height = e.CurrentRegion.Height    - Panel.RIGHT_PADDING;
-                    flow.Width  = e.CurrentRegion.Width / 2 - Panel.RIGHT_PADDING;
-                };
-
-                foreach (var title in items.Titles) {
-
+                foreach (var title in _items.Titles) {
                     var text = ' ' + title.Name;
                     var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
 
                     var label = new FormattedLabelBuilder()
-                               .SetWidth(size.X)
+                               .SetWidth(panel.ContentRegion.Width)
                                .SetHeight(size.Y)
                                .CreatePart(text, o => {
                                    o.SetFontSize(ContentService.FontSize.Size20);
@@ -402,41 +510,8 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                                    o.SetPrefixImageSize(new Point(size.Y, size.Y));
                                })
                                .Build();
-                    label.Parent = flow;
+                    label.Parent = panel;
                 }
-
-                foreach (var token in items.Tokens) {
-                    if (token.Amount == 0) {
-                        continue;
-                    }
-
-                    var text = ' ' + AssetUtil.GetItemDisplayName(token.Name, token.Amount, false);
-                    var size = LabelUtil.GetLabelSize(ContentService.FontSize.Size20, text, true);
-                    var icon = ProofLogix.Instance.Resources.GetItem(token.Id).Icon;
-
-                    var label = new FormattedLabelBuilder()
-                               .SetWidth(size.X)
-                               .SetHeight(size.Y)
-                               .CreatePart(text, o => {
-                                    o.SetTextColor(ProofLogix.Instance.Resources.GetItem(token.Id).Rarity.AsColor());
-                                    o.SetFontSize(ContentService.FontSize.Size20);
-                                    o.SetPrefixImage(icon);
-                                    o.SetPrefixImageSize(new Point(size.Y, size.Y));
-                                }).Build();
-                    label.Parent = flow;
-                }
-            }
-        }
-
-        private sealed class ProfileItems {
-
-            public IReadOnlyList<Title> Titles { get; init; }
-
-            public IReadOnlyList<Token> Tokens { get; init; }
-
-            public ProfileItems(IEnumerable<Title> titles, IEnumerable<Token> tokens) {
-                Titles = titles.ToList();
-                Tokens = tokens.ToList();
             }
         }
     }

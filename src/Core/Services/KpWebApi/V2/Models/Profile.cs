@@ -68,18 +68,6 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                                                                   && profile.Name.Equals(accountName, StringComparison.InvariantCultureIgnoreCase));
             return !(linkedProfile ?? Empty).NotFound;
         }
-
-        public override Token GetToken(int id) {
-            return HandleOriginalUce(id, base.GetToken(id));
-        }
-
-        private Token HandleOriginalUce(int id, Token token) {
-            if (id != Resources.UNSTABLE_COSMIC_ESSENCE) {
-                return token;
-            }
-            var originalUce = this.OriginalUce ?? token;
-            return token.Amount > originalUce.Amount ? token : originalUce;
-        }
     }
 
     public class Proofs : BaseResponse {

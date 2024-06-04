@@ -13,7 +13,12 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Resources {
 
-        public const int UNSTABLE_COSMIC_ESSENCE = 81743; // One-time hardcode courtesy to handle original_uce.
+        public const int UNSTABLE_COSMIC_ESSENCE = 81743; // Unobtainable since September 15, 2020. Hardcoded to handle original_uce.
+        public const int LEGENDARY_DIVINATION    = 88485; // Unobtainable since July 19, 2022. Hardcoded to exclude them from anything but Raids.
+        public const int BONESKINNER_RITUAL_VIAL = 93781; // Misplaced in general tokens. Hardcoded to exclude them from anything but Strikes.
+        public const int LEGENDARY_INSIGHT       = 77302; // Sometimes we want them in general tokens, sometimes we want them in Raids and Strikes.
+        public const int BANANAS_IN_BULK         = 12773; // Hardcoded to move them to general tokens.
+        public const int BANANAS                 = 12251; // Hardcoded to move them to general tokens.
 
         public static Resources Empty = new() {
             IsEmpty = true
@@ -34,6 +39,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
         [JsonProperty("coffers")]
         public List<Resource> Coffers { get; set; } // Retroactively adding coffers from profile responses.
 
+        [JsonIgnore]
+        public List<Resource> Strikes { get; set; } // Retroactively adding strike tokens from profile responses.
+
         public IEnumerable<Raid.Wing> Wings => this.Raids.SelectMany(raid => raid.Wings);
 
         public IEnumerable<Resource> Items => this.Raids
@@ -43,6 +51,7 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                                                   .Concat(this.Fractals)
                                                   .Concat(this.GeneralTokens)
                                                   .Concat(this.Coffers)
+                                                  .Concat(this.Strikes)
                                                   .GroupBy(resource => resource.Id)
                                                   .Select(group => group.First());
 
@@ -51,6 +60,15 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
             this.Raids   = new List<Raid>();
             this.Fractals = new List<Resource>();
             this.GeneralTokens = new List<Resource>();
+            this.Strikes = new List<Resource>();
+            LoadDefaults();
+        }
+
+        private void LoadDefaults() {
+            this.GeneralTokens.AddRange(new[] { 
+                new Resource { Id = BANANAS }, 
+                new Resource { Id = BANANAS_IN_BULK }
+            });
         }
     }
 
@@ -136,9 +154,9 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
                 public List<Resource> Miniatures { get; set; }
 
                 [JsonIgnore]
-                public AsyncTexture2D Icon => this.Miniatures?.FirstOrDefault()?.Icon
-                                           ?? this.Token?.Icon 
-                                           ?? GameService.Content.DatAssetCache.GetTextureFromAssetId(1302744);
+                public AsyncTexture2D Icon => this.Miniatures?.Any() ?? false ? 
+                                                  GameService.Content.GetRenderServiceTexture(this.Miniatures.First().IconUrl) : 
+                                                  this.Token?.Icon ?? GameService.Content.DatAssetCache.GetTextureFromAssetId(1302744);
 
                 public Event() {
                     this.Miniatures = new List<Resource>();

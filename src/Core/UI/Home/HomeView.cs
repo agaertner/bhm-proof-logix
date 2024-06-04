@@ -254,14 +254,14 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 }
 
                 var slotsCategory = new FlowPanelWithIcon(icon) {
-                    Parent = parent,
-                    Width = parent.ContentRegion.Width - 24,
-                    HeightSizingMode = SizingMode.AutoSize,
-                    Title = category,
-                    CanCollapse = true,
-                    CanScroll = true,
+                    Parent              = parent,
+                    Width               = parent.ContentRegion.Width - 24,
+                    HeightSizingMode    = SizingMode.AutoSize,
+                    Title               = category,
+                    CanCollapse         = true,
+                    CanScroll           = true,
                     OuterControlPadding = new Vector2(5, 5),
-                    ControlPadding = new Vector2(5, 5)
+                    ControlPadding      = new Vector2(5, 5)
                 };
 
                 parent.ContentResized += (_, e) => {
@@ -269,18 +269,9 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                 };
 
                 foreach (var item in items) {
-                    var resource = ProofLogix.Instance.Resources.GetItem(item.Id);
-                    var slotItem = new ItemWithAmount(ProofLogix.Instance.Resources.GetItem(item.Id).Icon) {
-                        Parent = slotsCategory,
-                        Width = 64,
-                        Height = 64,
-                        Amount = item.Count,
-                        BasicTooltipText = AssetUtil.GetItemDisplayName(resource.Name, item.Count, false),
-                        BorderColor = ProofLogix.Instance.Resources.GetItem(item.Id).Rarity.AsColor()
-                    };
+                    ItemWithAmount.Create(item.Id, item.Count).Parent = slotsCategory;
                 }
             }
-
         }
     }
 }

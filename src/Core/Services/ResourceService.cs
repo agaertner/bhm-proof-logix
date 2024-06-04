@@ -1,16 +1,15 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
+using Blish_HUD.Controls;
 using Blish_HUD.Extended;
 using Gw2Sharp.Models;
 using Gw2Sharp.WebApi.V2.Models;
-using Microsoft.Xna.Framework.Audio;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Blish_HUD.Controls;
 using Raid = Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models.Raid;
 
 namespace Nekres.ProofLogix.Core.Services {
@@ -92,23 +91,27 @@ namespace Nekres.ProofLogix.Core.Services {
             if (_resources.IsEmpty || profile.IsEmpty) {
                 return;
             }
+            var totals = (profile.Totals.Tokens ?? Enumerable.Empty<Token>()).Where(x => x.Id != Resources.BANANAS
+                                                                                     && x.Id != Resources.BANANAS_IN_BULK);
 
-            // raid coffers have an extra field.
+            // Strike and raid tokens are mixed under tokens in the response.
+            // Split Strike tokens in the profile from raid tokens by comparing with the resources response which just includes raid tokens.
+            var raidResources = GetItemsForRaids();
+            var strikeResources = totals.Where(token => raidResources.All(x => x.Id != token.Id))
+                                    .Select(token => new Resource {
+                                         Id   = token.Id,
+                                         Name = token.Name
+                                     });
+            _resources.Strikes.AddRange(strikeResources); // Add strike tokens to its own list.
+
+            // Strike and Raid coffers.
             var coffers = profile.Totals.Coffers ?? Enumerable.Empty<Token>();
-
-            // strike coffers are mixed in with boss specific tokens.
-            var tokens = profile.Totals.Tokens ?? Enumerable.Empty<Token>();
-
-            // add missing coffers to resources
-            _resources.Coffers.AddRange(FetchNew(coffers.Concat(tokens)));
-        }
-
-        private IEnumerable<Resource> FetchNew(IEnumerable<Token> tokens) {
-            return tokens.Where(token => _resources.Items.All(x => x.Id != token.Id))
-                         .Select(token => new Resource {
-                              Id   = token.Id,
-                              Name = token.Name
-                          });
+            var newCoffers = coffers.Where(token => _resources.Items.All(x => x.Id != token.Id))
+                                    .Select(token => new Resource {
+                                         Id   = token.Id,
+                                         Name = token.Name
+                                     });
+            _resources.Coffers.AddRange(newCoffers); // Add missing coffers.
         }
 
         private async Task LoadResources() {
@@ -184,6 +187,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 if (resource != null) {
                     resource.Rarity = item.Rarity;
                     resource.Icon   = GameService.Content.DatAssetCache.GetTextureFromAssetId(AssetUtil.GetId(item.Icon));
+                    resource.Name = item.Name;
                 }
             }
         }
@@ -222,8 +226,11 @@ namespace Nekres.ProofLogix.Core.Services {
             return _resources.Items.FirstOrDefault(item => item.Id == id) ?? Resource.Empty;
         }
 
-        public List<Resource> GetItems() {
-            return _resources.Items.ToList();
+        public List<Resource> GetItems(params int[] ids) {
+            if (ids == null || !ids.Any()) {
+                return _resources.Items.ToList();
+            }
+            return _resources.Items.Where(x => ids.Contains(x.Id)).ToList();
         }
 
         public List<Resource> GetItemsForFractals() {
@@ -231,9 +238,22 @@ namespace Nekres.ProofLogix.Core.Services {
             return fractalItems.ToList();
         }
 
+        public List<Resource> GetItemsForStrikes() {
+            var strikeItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.Strikes;
+            return strikeItems.ToList();
+        }
+
+        public List<Resource> GetItemsForRaids() {
+            var items = _resources.Raids.SelectMany(x => x.Wings)
+                                  .SelectMany(x => x.Events)
+                                  .SelectMany(x => x.GetTokens());
+            var strikeResources = GetItemsForStrikes();
+            var coffers         = _resources.Coffers.Where(coffer => strikeResources.All(strikeCoffer => strikeCoffer.Id != coffer.Id));
+            return items.Concat(coffers).ToList();
+        }
+
         public List<Resource> GetGeneralItems() {
-            var generalItems = _resources.IsEmpty ? Enumerable.Empty<Resource>() : _resources.GeneralTokens;
-            return generalItems.ToList();
+            return _resources.IsEmpty ? Enumerable.Empty<Resource>().ToList() : _resources.GeneralTokens;
         }
 
         public List<Resource> GetCofferItems() {

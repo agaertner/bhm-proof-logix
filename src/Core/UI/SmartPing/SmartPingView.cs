@@ -199,7 +199,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             };
 
             var playerTokens = ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.GetTokens();
-            var generalItems = ProofLogix.Instance.Resources.GetGeneralItems()
+            var generalItems = ProofLogix.Instance.Resources.GetItems(Resources.BANANAS, Resources.BANANAS_IN_BULK, Resources.LEGENDARY_INSIGHT)
                                          .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
 
             if (generalItems.Any()) {
@@ -221,6 +221,18 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                 };
 
                 AddProofEntries(coffersCategory, cofferItems, labelPanel);
+            }
+
+            var strikeItems = ProofLogix.Instance.Resources.GetItemsForStrikes()
+                                        .Where(resource => playerTokens.Any(item => item.Id == resource.Id && item.Amount > 0)).ToList();
+
+            if (strikeItems.Any()) {
+                var strikesCategory = new ContextMenuStripItem("Strikes") {
+                    Parent  = menu,
+                    Submenu = new ContextMenuStrip()
+                };
+
+                AddProofEntries(strikesCategory, strikeItems, labelPanel);
             }
 
             var wingTokens = ProofLogix.Instance.Resources.GetWings()

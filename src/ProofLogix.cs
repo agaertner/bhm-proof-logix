@@ -51,6 +51,7 @@ namespace Nekres.ProofLogix {
         private AsyncTexture2D _icon;
         private AsyncTexture2D _hoverIcon;
 
+        internal SettingEntry<ProfileConfig>   ProfileConfig;
         internal SettingEntry<LfoConfig>       LfoConfig;
         internal SettingEntry<TableConfig>     TableConfig;
         internal SettingEntry<SmartPingConfig> SmartPingConfig;
@@ -75,6 +76,7 @@ namespace Nekres.ProofLogix {
             LfoConfig       = selfManaged.DefineSetting("lfo_config",        Core.UI.Configs.LfoConfig.Default);
             TableConfig     = selfManaged.DefineSetting("table_config",      Core.UI.Configs.TableConfig.Default);
             SmartPingConfig = selfManaged.DefineSetting("smart_ping_config", Core.UI.Configs.SmartPingConfig.Default);
+            ProfileConfig   = selfManaged.DefineSetting("profile_config",    Core.UI.Configs.ProfileConfig.Default);
         }
 
         protected override void Initialize() {

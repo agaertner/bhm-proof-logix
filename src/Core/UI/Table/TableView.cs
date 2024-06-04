@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
+using Blish_HUD.Extended;
 using Blish_HUD.Graphics.UI;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services;
@@ -9,7 +10,6 @@ using Nekres.ProofLogix.Core.UI.Configs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blish_HUD.Extended;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
@@ -264,24 +264,31 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Submenu = new ContextMenuStrip()
             };
 
-            var generalCategory = new ContextMenuStripItem("General") {
+            var generalCategory = new ContextMenuStripItem("Generic") {
                 Parent  = proofsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
             };
 
-            AddProofEntries(generalCategory, ProofLogix.Instance.Resources.GetGeneralItems());
+            AddProofEntries(generalCategory,  ProofLogix.Instance.Resources.GetGeneralItems().Where(x => x.Id != Resources.BONESKINNER_RITUAL_VIAL && x.Id != Resources.LEGENDARY_DIVINATION));
 
-            var coffersCategory = new ContextMenuStripItem("Coffers") {
+            var fractalsCategory = new ContextMenuStripItem("Fractals") {
                 Parent  = proofsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
             };
 
-            AddProofEntries(coffersCategory, ProofLogix.Instance.Resources.GetCofferItems());
+            AddProofEntries(fractalsCategory, ProofLogix.Instance.Resources.GetItemsForFractals());
 
             var raidsCategory = new ContextMenuStripItem("Raids") {
                 Parent  = proofsCategory.Submenu,
                 Submenu = new ContextMenuStrip()
             };
+
+            var coffersCategory = new ContextMenuStripItem("Coffers") {
+                Parent  = raidsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(coffersCategory, ProofLogix.Instance.Resources.GetCofferItems());
 
             var i = 1;
             foreach (var wing in ProofLogix.Instance.Resources.GetWings()) {
@@ -293,17 +300,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 AddProofEntries(wingEntry, wing.Events.Where(ev => ev.Token != null).Select(ev => ev.Token));
             }
 
-            var fractalsCategory = new ContextMenuStripItem("Fractals") {
-                Parent  = proofsCategory.Submenu,
-                Submenu = new ContextMenuStrip()
-            };
-
-            AddProofEntries(fractalsCategory, ProofLogix.Instance.Resources.GetItemsForFractals());
-
             cogWheel.Click += (_, _) => {
                 GameService.Content.PlaySoundEffectByName("button-click");
                 menu.Show(GameService.Input.Mouse.Position);
             };
+
+            var strikesCategory = new ContextMenuStripItem("Strikes") {
+                Parent  = proofsCategory.Submenu,
+                Submenu = new ContextMenuStrip()
+            };
+
+            AddProofEntries(strikesCategory, ProofLogix.Instance.Resources.GetItemsForStrikes());
 
             base.Build(buildPanel);
         }

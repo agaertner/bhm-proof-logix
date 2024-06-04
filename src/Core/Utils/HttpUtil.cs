@@ -41,7 +41,7 @@ namespace Nekres.ProofLogix.Core {
             } catch (Exception e) {
 
                 if (retries > 0) {
-                    logger.Info(e, $"Failed to request data. Retrying in {delayMs / 1000} second(s) (remaining retries: {retries}).");
+                    logger.Info($"Failed to request data. Retrying in {delayMs / 1000} second(s) (remaining retries: {retries}).");
                     await Task.Delay(delayMs);
                     return await RetryAsync<T>(request, retries - 1, delayMs, logger);
                 }
