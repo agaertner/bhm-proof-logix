@@ -89,37 +89,106 @@ namespace Nekres.ProofLogix.Core.Services {
                 return profile;
             }
 
+            //AddUceToUfe(profile);
+            AddLdToLi(profile);
+
             profile.Clears = await _v1Client.GetClears(profile.Id);
-            var totalUce = HandleOriginalUce(profile);
 
             if (profile.Linked == null) {
                 return profile;
             }
 
             foreach (var link in profile.Linked) {
+                //AddUceToUfe(link);
+                AddLdToLi(link);
                 link.Clears = await _v1Client.GetClears(link.Id);
-                totalUce += HandleOriginalUce(link);
-            }
-
-            var uce = profile.Totals.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
-            if (uce is {IsEmpty: false}) {
-                uce.Amount = totalUce;
             }
 
             return profile;
         }
 
-        private int HandleOriginalUce(Profile profile) {
-            if (profile.OriginalUce == null) {
-                return 0;
+        private void UpdateTotals(Profile profile) {
+            if (profile.Linked == null || !profile.Linked.Any()) {
+                return;
             }
+            int totalLi  = profile.GetToken(Resources.LEGENDARY_INSIGHT).Amount;
+            int totalUfe = profile.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE).Amount;
+            foreach (var link in profile.Linked) {
+                totalLi += link.GetToken(Resources.LEGENDARY_INSIGHT).Amount;
+                totalUfe += link.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE).Amount;
+            }
+            if (totalLi > 0 || totalUfe > 0) {
+                var li = profile.Totals.GetToken(Resources.LEGENDARY_INSIGHT);
+                if (!li.IsEmpty) {
+                    li.Amount = totalLi;
+                }
+                var uce = profile.Totals.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE);
+                if (!uce.IsEmpty) {
+                    uce.Amount = totalUfe;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds the amount of UCE to the amount of UFE.
+        /// The original Unstable Cosmic Essence (UCE) are counted as 5 Unstable Fractal Essence (UFE).
+        /// </summary>
+        private void AddUceToUfe(Profile profile) {
+            if (profile.IsEmpty || profile.OriginalUce == null) {
+                return;
+            }
+
+            // We sync the amount of UCE with the field original_uce. Basically fixing the bad 0 entries.
             var uce = profile.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
             if (uce == null || uce.IsEmpty) {
-                profile.Tokens.Add(profile.OriginalUce);
+                profile.Killproofs.Add(profile.OriginalUce);
                 uce = profile.OriginalUce;
             }
-            uce.Amount = Math.Max(uce.Amount, profile.OriginalUce.Amount);
-            return uce.Amount;
+
+            uce.Amount = Math.Max(uce.Amount, profile.OriginalUce.Amount); // For rare cases where UCE is greater than original_uce.
+
+            if (uce.IsEmpty || uce.Amount <= 0) {
+                return;
+            }
+
+            var ufe = profile.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE);
+            if (ufe == null || ufe.IsEmpty) {
+                var ufeRes = ProofLogix.Instance.Resources.GetItem(Resources.UNSTABLE_FRACTAL_ESSENCE).Name;
+                ufe = new KpWebApi.V2.Models.Token {
+                    Id = Resources.UNSTABLE_FRACTAL_ESSENCE,
+                    Name = string.IsNullOrEmpty(ufeRes) ? "Unstable Fractal Essence" : ufeRes
+                };
+                profile.Killproofs.Add(ufe);
+            }
+            
+            ufe.Amount += 5 * uce.Amount;
+        }
+
+        /// <summary>
+        /// Adds the amount of LD to the amount of LI.
+        /// The Legendary Divination (LD) are counted as 1 Legendary Insight (LI).
+        /// </summary>
+        private void AddLdToLi(Profile profile) {
+            if (profile.IsEmpty) {
+                return;
+            }
+
+            var ld = profile.GetToken(Resources.LEGENDARY_DIVINATION);
+            if (ld.IsEmpty || ld.Amount <= 0) {
+                return;
+            }
+
+            var li = profile.GetToken(Resources.LEGENDARY_INSIGHT);
+            if (li == null || li.IsEmpty) {
+                var liRes = ProofLogix.Instance.Resources.GetItem(Resources.LEGENDARY_INSIGHT).Name;
+                li = new KpWebApi.V2.Models.Token {
+                    Id   = Resources.LEGENDARY_INSIGHT,
+                    Name =  string.IsNullOrEmpty(liRes) ? "Legendary Insight" : liRes,
+                };
+                profile.Killproofs.Add(li);
+            }
+
+            li.Amount += ld.Amount;
         }
     }
 }
