@@ -89,7 +89,7 @@ namespace Nekres.ProofLogix.Core.Services {
                 return profile;
             }
 
-            //AddUceToUfe(profile);
+            AddUceToUfe(profile);
             AddLdToLi(profile);
 
             profile.Clears = await _v1Client.GetClears(profile.Id);
@@ -99,7 +99,7 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             foreach (var link in profile.Linked) {
-                //AddUceToUfe(link);
+                AddUceToUfe(link);
                 AddLdToLi(link);
                 link.Clears = await _v1Client.GetClears(link.Id);
             }
