@@ -107,28 +107,6 @@ namespace Nekres.ProofLogix.Core.Services {
             return profile;
         }
 
-        private void UpdateTotals(Profile profile) {
-            if (profile.Linked == null || !profile.Linked.Any()) {
-                return;
-            }
-            int totalLi  = profile.GetToken(Resources.LEGENDARY_INSIGHT).Amount;
-            int totalUfe = profile.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE).Amount;
-            foreach (var link in profile.Linked) {
-                totalLi += link.GetToken(Resources.LEGENDARY_INSIGHT).Amount;
-                totalUfe += link.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE).Amount;
-            }
-            if (totalLi > 0 || totalUfe > 0) {
-                var li = profile.Totals.GetToken(Resources.LEGENDARY_INSIGHT);
-                if (!li.IsEmpty) {
-                    li.Amount = totalLi;
-                }
-                var uce = profile.Totals.GetToken(Resources.UNSTABLE_FRACTAL_ESSENCE);
-                if (!uce.IsEmpty) {
-                    uce.Amount = totalUfe;
-                }
-            }
-        }
-
         /// <summary>
         /// Adds the amount of UCE to the amount of UFE.
         /// The original Unstable Cosmic Essence (UCE) are counted as 5 Unstable Fractal Essence (UFE).
