@@ -70,7 +70,6 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
             profileContainer.Left    =  menuPanel.Right;
 
             foreach (var profile in _profile.Accounts) {
-
                 var entry = new MenuItem(AssetUtil.Truncate(profile.Name, menu.ContentRegion.Width - 14, GameService.Content.DefaultFont16)) {
                     Parent = menu,
                     BasicTooltipText = profile.Name,
@@ -78,10 +77,7 @@ namespace Nekres.ProofLogix.Core.UI.KpProfile {
                 };
 
                 entry.ItemSelected += (_,_) => {
-                    if (!_profile.BelongsTo(entry.Text, out var selected)) {
-                        return;
-                    }
-                    profileContainer.Show(new ProfileView(selected));
+                    profileContainer.Show(new ProfileView(profile));
                 };
 
             }

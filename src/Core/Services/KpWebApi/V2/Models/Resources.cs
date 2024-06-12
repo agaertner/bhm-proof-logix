@@ -13,12 +13,13 @@ namespace Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Resources {
 
-        public const int UNSTABLE_COSMIC_ESSENCE = 81743; // Unobtainable since September 15, 2020. Hardcoded to handle original_uce.
-        public const int LEGENDARY_DIVINATION    = 88485; // Unobtainable since July 19, 2022. Hardcoded to exclude them from anything but Raids.
-        public const int BONESKINNER_RITUAL_VIAL = 93781; // Misplaced in general tokens. Hardcoded to exclude them from anything but Strikes.
-        public const int LEGENDARY_INSIGHT       = 77302; // Sometimes we want them in general tokens, sometimes we want them in Raids and Strikes.
-        public const int BANANAS_IN_BULK         = 12773; // Hardcoded to move them to general tokens.
-        public const int BANANAS                 = 12251; // Hardcoded to move them to general tokens.
+        public const int UNSTABLE_COSMIC_ESSENCE  = 81743; // Unobtainable since September 15, 2020. Hardcoded to handle original_uce.
+        public const int UNSTABLE_FRACTAL_ESSENCE = 94020; // Unobtainable since September 15, 2020. Hardcoded to handle original_uce.
+        public const int LEGENDARY_DIVINATION     = 88485; // Unobtainable since July 19, 2022. Hardcoded to exclude them from anything but Raids.
+        public const int BONESKINNER_RITUAL_VIAL  = 93781; // Misplaced in general tokens. Hardcoded to exclude them from anything but Strikes.
+        public const int LEGENDARY_INSIGHT        = 77302; // Sometimes we want them in general tokens, sometimes we want them in Raids and Strikes.
+        public const int BANANAS_IN_BULK          = 12773; // Hardcoded to move them to general tokens.
+        public const int BANANAS                  = 12251; // Hardcoded to move them to general tokens.
 
         public static Resources Empty = new() {
             IsEmpty = true
