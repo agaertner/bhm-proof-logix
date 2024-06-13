@@ -89,7 +89,8 @@ namespace Nekres.ProofLogix.Core.Services {
                 return profile;
             }
 
-            AddUceToUfe(profile);
+            HandleOriginalUce(profile);
+            //AddUceToUfe(profile);
             AddLdToLi(profile);
 
             profile.Clears = await _v1Client.GetClears(profile.Id);
@@ -99,7 +100,8 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             foreach (var link in profile.Linked) {
-                AddUceToUfe(link);
+                HandleOriginalUce(link);
+                //AddUceToUfe(link);
                 AddLdToLi(link);
                 link.Clears = await _v1Client.GetClears(link.Id);
             }
@@ -107,24 +109,31 @@ namespace Nekres.ProofLogix.Core.Services {
             return profile;
         }
 
-        /// <summary>
-        /// Adds the amount of UCE to the amount of UFE.
-        /// The original Unstable Cosmic Essence (UCE) are counted as 5 Unstable Fractal Essence (UFE).
-        /// </summary>
-        private void AddUceToUfe(Profile profile) {
-            if (profile.IsEmpty || profile.OriginalUce == null) {
+        private void HandleOriginalUce(Profile profile) {
+            if (profile.IsEmpty || profile.OriginalUce == null || profile.OriginalUce.IsEmpty) {
                 return;
             }
 
-            // We sync the amount of UCE with the field original_uce. Basically fixing the bad 0 entries.
+            // Use original_uce if unused UCE is 0.
             var uce = profile.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
             if (uce == null || uce.IsEmpty) {
                 profile.Killproofs.Add(profile.OriginalUce);
                 uce = profile.OriginalUce;
             }
+            // For rare cases where unused UCE is greater than original_uce.
+            uce.Amount = Math.Max(uce.Amount, profile.OriginalUce.Amount);
+        }
 
-            uce.Amount = Math.Max(uce.Amount, profile.OriginalUce.Amount); // For rare cases where UCE is greater than original_uce.
+        /// <summary>
+        /// Adds the amount of UCE to the amount of UFE.
+        /// The original Unstable Cosmic Essence (UCE) are counted as 5 Unstable Fractal Essence (UFE).
+        /// </summary>
+        private void AddUceToUfe(Profile profile) {
+            if (profile.IsEmpty) {
+                return;
+            }
 
+            var uce = profile.GetToken(Resources.UNSTABLE_COSMIC_ESSENCE);
             if (uce.IsEmpty || uce.Amount <= 0) {
                 return;
             }
