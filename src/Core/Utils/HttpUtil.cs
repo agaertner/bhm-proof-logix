@@ -15,7 +15,8 @@ namespace Nekres.ProofLogix.Core {
                     success = false; 
                     args.ErrorContext.Handled = true;
                 },
-                MissingMemberHandling = MissingMemberHandling.Ignore
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
             };
             result = JsonConvert.DeserializeObject<T>(json, settings);
             return success;
