@@ -60,8 +60,10 @@ namespace Nekres.ProofLogix.Core.Services {
 
                 // API is down for maintenance. Chances are high body contains a message.
                 if (response.StatusCode == HttpStatusCode.ServiceUnavailable) {
-                    var body = response.Content.ReadAsStringAsync().Result;
-                    message = body.GetTextBetweenTags("p");
+                    var body      = response.Content.ReadAsStringAsync().Result;
+                    var header    = body.GetTextBetweenTags("h1").Trim();
+                    var paragraph = (body.GetTextBetweenTags("p").Split(new[]{'.'}, StringSplitOptions.RemoveEmptyEntries).Reverse().FirstOrDefault() ?? string.Empty).Trim();
+                    message = $"{header}. {paragraph}.";
                     return true;
                 }
 
