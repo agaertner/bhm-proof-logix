@@ -11,6 +11,7 @@ using Nekres.ProofLogix.Core.UI.KpProfile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Blish_HUD.Extended.Properties;
 
 namespace Nekres.ProofLogix.Core.UI.Home {
     public class HomeView : View {
@@ -123,7 +124,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
+                if (!ProofLogix.Instance.Gw2ApiManager.IsAuthorized(true, ProofLogix.Instance.Gw2WebApi.Requires)) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }
@@ -150,7 +151,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                if (!ProofLogix.Instance.Gw2WebApi.IsApiAvailable()) {
+                if (!ProofLogix.Instance.Gw2ApiManager.IsAuthorized(true, ProofLogix.Instance.Gw2WebApi.Requires)) {
                     GameService.Content.PlaySoundEffectByName("error");
                     return;
                 }

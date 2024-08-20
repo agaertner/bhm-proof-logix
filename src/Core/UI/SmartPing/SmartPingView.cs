@@ -110,7 +110,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
             var currentRepetitions   = 0;
 
             var busy = false;
-            sendBttn.LeftMouseButtonReleased += (_, _) => {
+            sendBttn.LeftMouseButtonReleased += async (_, _) => {
                 if (busy) {
                     return;
                 }
@@ -142,11 +142,11 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                                                                              ref lastTotalReachedTime))
                 };
 
-                ChatUtil.Send(chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
+                await ChatUtil.Send(chatLink.ToString(), ProofLogix.Instance.ChatMessageKey.Value);
                 busy = false;
             };
 
-            sendBttn.RightMouseButtonReleased += (_, _) => {
+            sendBttn.RightMouseButtonReleased += async (_, _) => {
                 if (busy) {
                     return;
                 }
@@ -178,7 +178,7 @@ namespace Nekres.ProofLogix.Core.UI.SmartPing {
                     message += $" » {ProofLogix.Instance.PartySync.LocalPlayer.KpProfile.Id}";
                 }
 
-                ChatUtil.Send(message, ProofLogix.Instance.ChatMessageKey.Value);
+                await ChatUtil.Send(message, ProofLogix.Instance.ChatMessageKey.Value);
                 lastTotalReachedTime = DateTime.UtcNow;
                 busy = false;
             };
