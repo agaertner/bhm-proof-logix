@@ -5,20 +5,18 @@ using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.KpProfile;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Timers;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
-
         private readonly Timer _bulkLoadTimer;
-
-        private const int BULKLOAD_INTERVAL = 1000;
-        private readonly SynchronizedCollection<TablePlayerEntry> _bulk;
+        private const    int BULKLOAD_INTERVAL = 1000;
+        private readonly ConcurrentDictionary<string, TablePlayerEntry> _bulk;
 
         public TablePresenter(TableView view, TableConfig model) : base(view, model) {
-            _bulk                  =  new SynchronizedCollection<TablePlayerEntry>();
+            _bulk                  =  new ConcurrentDictionary<string, TablePlayerEntry>(Environment.ProcessorCount * 2, this.Model.MaxPlayerCount);
             _bulkLoadTimer         =  new Timer(BULKLOAD_INTERVAL) { AutoReset = false };
             _bulkLoadTimer.Elapsed += OnBulkLoadTimerElapsed;
 
@@ -35,7 +33,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             // Bulk assign children to container.
             // Prepare sorted control collection.
-            var bulk = _bulk.ToList();
+            var bulk = _bulk.Values.ToList();
             bulk.Sort(Comparer);
             var list = new ControlCollection<Control>(bulk);
 
@@ -49,6 +47,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             table.GetPrivateField("_children").SetValue(table, list);
 
             table.Invalidate();
+
+            this.View.PlayerCountLbl.Text = $"{list.Count}";
         }
 
         private void ResetBulkLoadTimer() {
@@ -58,7 +58,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         public void CreatePlayerEntry(Player player) {
-            if (!player.HasKpProfile) {
+            if (this.Model.RequireProfile && !player.HasKpProfile) {
                 return;
             }
 
@@ -75,14 +75,18 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         || player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)
             };
             
-            _bulk.Add(entry);
+            _bulk[player.AccountName] = entry;
 
             entry.LeftMouseButtonReleased += (_, _) => {
+                if (entry.Player.KpProfile.NotFound) {
+                    ScreenNotification.ShowNotification("This player has no profile.");
+                    return;
+                }
                 ProfileView.Open(entry.Player.KpProfile);
             };
 
             entry.RightMouseButtonReleased += (_, _) => {
-                if (player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)) {
+                if (player.Equals(ProofLogix.Instance.PartySync.LocalPlayer) || player.KpProfile.NotFound) {
                     return;
                 }
                 if (entry.Remember) {
@@ -97,11 +101,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
-            if (this.Model.KeepLeavers) {
-                ResetBulkLoadTimer();
-                return;
-            }
-
             if (!TryGetPlayerEntry(e.Value, out var playerEntry)) {
                 return;
             }
@@ -112,7 +111,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             ResetBulkLoadTimer();
 
-            if (_bulk.Remove(playerEntry)) {
+            if (_bulk.TryRemove(playerEntry.Player.AccountName, out _)) {
                 playerEntry.Dispose();
             }
         }
@@ -122,8 +121,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         private bool TryGetPlayerEntry(Player player, out TablePlayerEntry playerEntry) {
-            playerEntry = _bulk.ToList().FirstOrDefault(ctrl => ctrl.Player.Equals(player));
-            return playerEntry != null;
+            return _bulk.TryGetValue(player.AccountName, out playerEntry);
         }
 
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
@@ -187,7 +185,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             _bulkLoadTimer.Dispose();
 
-            foreach (var ctrl in _bulk) {
+            foreach (var ctrl in _bulk.Values) {
                 ctrl?.Dispose();
             }
             base.Unload();

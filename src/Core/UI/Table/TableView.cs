@@ -14,7 +14,8 @@ using System.Linq;
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TableView : View<TablePresenter> {
 
-        public FlowPanel Table;
+        public FlowPanel Table          { get; private set; }
+        public Label     PlayerCountLbl { get; private set; }
 
         private AsyncTexture2D _cogWheelIcon;
         private AsyncTexture2D _cogWheelIconHover;
@@ -131,11 +132,31 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 Height = 32
             };
 
+            this.PlayerCountLbl = new Label {
+                Parent              = buildPanel,
+                Text                = string.Empty,
+                Top                 = buildPanel.ContentRegion.Height - 24,
+                Width               = buildPanel.ContentRegion.Width  - 24,
+                Height              = 24,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment   = VerticalAlignment.Middle,
+                BasicTooltipText    = "Playercount"
+            };
+
+            var playerIconTex = GameService.Content.DatAssetCache.GetTextureFromAssetId(733268);
+            var playerIconImg = new Image(playerIconTex) {
+                Parent = buildPanel,
+                Width  = 24,
+                Height = 24,
+                Top    = this.PlayerCountLbl.Top,
+                Left   = this.PlayerCountLbl.Right
+            };
+
             this.Table = new FlowPanel {
                 Parent         = buildPanel,
                 Top            = headerEntry.Bottom              + Control.ControlStandard.ControlOffset.Y,
                 Width          = headerEntry.Width               + SCROLLBAR_WIDTH,
-                Height         = buildPanel.ContentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y,
+                Height         = buildPanel.ContentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y - this.PlayerCountLbl.Height,
                 CanScroll      = true,
                 ControlPadding = new Vector2(0,Panel.BOTTOM_PADDING),
                 FlowDirection  = ControlFlowDirection.SingleTopToBottom
@@ -147,7 +168,11 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             };
 
             buildPanel.ContentResized += (_, e) => {
-                this.Table.Height = e.CurrentRegion.Height - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y;
+                this.Table.Height         = e.CurrentRegion.Height          - search.Height - headerEntry.Height - Panel.TOP_PADDING - Control.ControlStandard.ControlOffset.Y - this.PlayerCountLbl.Height;
+                this.PlayerCountLbl.Top   = buildPanel.ContentRegion.Height - 24;
+                this.PlayerCountLbl.Width = buildPanel.ContentRegion.Width  - 24;
+                playerIconImg.Top         = this.PlayerCountLbl.Top;
+                playerIconImg.Left        = this.PlayerCountLbl.Right;
             };
 
             headerEntry.ColumnClick += (_, e) => {
@@ -188,6 +213,17 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             keepLeaversEntry.CheckedChanged += (_, e) => {
                 this.Presenter.Model.KeepLeavers = e.Checked;
+            };
+
+            var requireProfileEntry = new ContextMenuStripItem("Require Profile") {
+                Parent = menu,
+                CanCheck = true,
+                Checked = this.Presenter.Model.RequireProfile,
+                BasicTooltipText = "Only players with a profile are added when they join your party."
+            };
+
+            requireProfileEntry.CheckedChanged += (_, e) => {
+                this.Presenter.Model.RequireProfile = e.Checked;
             };
 
             var colorGradingModeCategory = new ContextMenuStripItem("Color Grading Mode") {
