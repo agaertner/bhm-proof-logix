@@ -8,7 +8,9 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
         public static TableConfig Default => new() {
             _alwaysSortStatus = true,
             _colorGradingMode = PartySyncService.ColorGradingMode.MedianComparison,
-            _profileIds = new ObservableCollection<string>(),
+            _maxPlayerCount   = 100,
+            _requireProfile   = true,
+            _profileIds       = new ObservableCollection<string>(),
             _tokenIds = new ObservableCollection<int> {
                 77302,
                 94020,
@@ -77,6 +79,26 @@ namespace Nekres.ProofLogix.Core.UI.Configs {
             get => _colorGradingMode;
             set {
                 _colorGradingMode = value;
+                SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        private int _maxPlayerCount = 100;
+        [JsonProperty("max_player_count")]
+        public int MaxPlayerCount {
+            get => _maxPlayerCount;
+            set {
+                _maxPlayerCount = value;
+                SaveConfig(ProofLogix.Instance.TableConfig);
+            }
+        }
+
+        private bool _requireProfile = true;
+        [JsonProperty("require_profile")]
+        public bool RequireProfile {
+            get => _requireProfile;
+            set {
+                _requireProfile = value;
                 SaveConfig(ProofLogix.Instance.TableConfig);
             }
         }

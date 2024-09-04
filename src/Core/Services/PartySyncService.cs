@@ -1,4 +1,4 @@
-﻿using Blish_HUD;
+using Blish_HUD;
 using Blish_HUD.ArcDps.Common;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
@@ -235,6 +235,10 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnPlayerLeft(CommonFields.Player player) {
+
+            if (ProofLogix.Instance.TableConfig.Value.KeepLeavers) {
+                return;
+            }
 
             if (player.Self) {
                 return; // Never remove local player.
