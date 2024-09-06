@@ -1,6 +1,7 @@
 ﻿using Blish_HUD;
 using Blish_HUD.Controls;
 using Blish_HUD.Graphics.UI;
+using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
 using Nekres.ProofLogix.Core.UI.Configs;
 using Nekres.ProofLogix.Core.UI.KpProfile;
@@ -34,8 +35,12 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             // Bulk assign children to container.
             // Prepare sorted control collection.
             var bulk = _bulk.Values.ToList();
-            bulk.Sort(Comparer);
-            var list = new ControlCollection<Control>(bulk);
+
+            var toDisplay = bulk.Where(x => x.Remember || x.Player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)).ToList();
+            toDisplay.AddRange(bulk.Except(toDisplay).OrderByDescending(x => x.Player.Created).Take(Math.Abs(this.Model.MaxPlayerCount - 1)));
+            toDisplay.Sort(Comparer);
+
+            var list = new ControlCollection<Control>(toDisplay);
 
             // Assign parent on each child since AddChild (which would assign it) is skipped below.
             foreach (var item in list) {
@@ -48,7 +53,15 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             table.Invalidate();
 
-            this.View.PlayerCountLbl.Text = $"{list.Count}";
+            this.View.PlayerCountLbl.Text = $"{toDisplay.Count}/{this.Model.MaxPlayerCount}";
+
+            if (toDisplay.Count > this.Model.MaxPlayerCount) {
+                this.View.PlayerCountLbl.TextColor = new(255, 57, 57);
+            } else if (toDisplay.Count == this.Model.MaxPlayerCount) {
+                this.View.PlayerCountLbl.TextColor = new(128, 255, 128);
+            } else {
+                this.View.PlayerCountLbl.TextColor = Color.White;
+            }
         }
 
         private void ResetBulkLoadTimer() {

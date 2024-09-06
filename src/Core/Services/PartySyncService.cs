@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
 
@@ -23,6 +24,8 @@ namespace Nekres.ProofLogix.Core.Services {
         public IReadOnlyList<Player> PlayerList  => _members.Values.ToList();
 
         private readonly ConcurrentDictionary<string, Player> _members;
+
+        private readonly Timer _overcapCleanUpTimer;
 
         private readonly Color _redShift = new(255, 57, 57);
 
@@ -43,7 +46,8 @@ namespace Nekres.ProofLogix.Core.Services {
         public PartySyncService() {
             this.LocalPlayer = new MumblePlayer();
 
-            _members = new ConcurrentDictionary<string, Player>();
+            _members           = new ConcurrentDictionary<string, Player>();
+            _overcapCleanUpTimer = new Timer(HandleOvercap, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
 
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
 
@@ -110,9 +114,22 @@ namespace Nekres.ProofLogix.Core.Services {
         /// </summary>
         /// <param name="accountName">Account to remove.</param>
         public void RemovePlayer(string accountName) {
+            if (string.IsNullOrEmpty(accountName)) {
+                return;
+            }
+
             var key = accountName.ToLowerInvariant();
 
-            if (string.IsNullOrEmpty(key) || !_members.TryRemove(key, out var member)) {
+            Player member;
+
+            if (ProofLogix.Instance.TableConfig.Value.KeepLeavers) {
+                if (_members.TryGetValue(key, out member)) {
+                    member.Status = Player.OnlineStatus.Away;
+                }
+                return;
+            }
+
+            if (!_members.TryRemove(key, out member)) {
                 return;
             }
 
@@ -128,6 +145,7 @@ namespace Nekres.ProofLogix.Core.Services {
             GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
             GameService.ArcDps.Common.PlayerAdded             -= OnPlayerJoin;
             GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerLeft;
+            _overcapCleanUpTimer?.Dispose();
         }
 
         public void AddKpProfile(Profile kpProfile) {
@@ -201,13 +219,10 @@ namespace Nekres.ProofLogix.Core.Services {
             }
 
             var member = _members.AddOrUpdate(key.ToLowerInvariant(), _ => {
-
                 var member = new Player(arcDpsPlayer);
                 PlayerAdded?.Invoke(this, new ValueEventArgs<Player>(member));
                 return member;
-
             }, (_, member) => {
-
                 member.AttachAgent(arcDpsPlayer); // Overwrite player agent.
                 PlayerChanged?.Invoke(this, new ValueEventArgs<Player>(member));
                 return member;
@@ -235,17 +250,26 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         private void OnPlayerLeft(CommonFields.Player player) {
-
-            if (ProofLogix.Instance.TableConfig.Value.KeepLeavers) {
-                return;
-            }
-
             if (player.Self) {
                 return; // Never remove local player.
             }
-
             RemovePlayer(player.AccountName);
         }
         #endregion
+
+        // Handle overcap in a separate thread, periodically checking if we exceed the player limit
+        private void HandleOvercap(object state) {
+            var count          = _members.Count;
+            var maxPlayerCount = Math.Abs(ProofLogix.Instance.TableConfig.Value.MaxPlayerCount - 1);
+            if (count > maxPlayerCount) {
+                var oldMembers = _members
+                                     .Where(kv => kv.Value.Status < Player.OnlineStatus.Online)
+                                     .OrderBy(kv => kv.Value.Created)
+                                     .Select(kv => kv.Key).Take(Math.Abs(count - maxPlayerCount));
+                foreach (var member in oldMembers) {
+                    _members.TryRemove(member, out _);
+                }
+            }
+        }
     }
 }
