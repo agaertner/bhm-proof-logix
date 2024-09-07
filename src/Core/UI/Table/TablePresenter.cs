@@ -109,9 +109,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
         private void ResetBulkLoadTimer() {
             if (_bulkLoadTimer != null) {
-                _bulkLoadTimer.Stop();
-                _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
-                _bulkLoadTimer.Start();
+                try {
+                    _bulkLoadTimer.Stop();
+                    _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
+                    _bulkLoadTimer.Start();
+                } catch (ObjectDisposedException) {
+                    /* NOOP */
+                }
             }
         }
 
