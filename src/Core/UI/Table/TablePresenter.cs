@@ -30,8 +30,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             _bulkLoadTimer         =  new Timer(BULKLOAD_INTERVAL) { AutoReset = false };
             _bulkLoadTimer.Elapsed += OnBulkLoadTimerElapsed;
 
-            ProofLogix.Instance.PartySync.PlayerAdded += OnPartyChanged;
-            //ProofLogix.Instance.PartySync.PlayerChanged += OnPartyChanged;
+            ProofLogix.Instance.PartySync.PlayerAdded   += OnPartyChanged;
             ProofLogix.Instance.PartySync.PlayerRemoved += OnPartyChanged;
 
             ResetBulkLoadTimer();
@@ -105,7 +104,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
             table.VerticalScrollOffset = scrollOffsetY;
 
-            Interlocked.Decrement(ref _lockFlag);
+            Interlocked.Exchange(ref _lockFlag, 0);
         }
 
         private void ResetBulkLoadTimer() {
@@ -215,8 +214,8 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             OnCleanUpTimerElapsed(null, null);
             _cleanUpTimer.Dispose();
             ProofLogix.Instance.PartySync.PlayerAdded   -= OnPartyChanged;
-            ProofLogix.Instance.PartySync.PlayerChanged -= OnPartyChanged;
             ProofLogix.Instance.PartySync.PlayerRemoved -= OnPartyChanged;
+            Interlocked.Exchange(ref _lockFlag, 0);
             base.Unload();
         }
 
