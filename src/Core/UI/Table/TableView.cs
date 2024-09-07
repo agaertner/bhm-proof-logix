@@ -181,12 +181,6 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 this.Presenter.SortEntries();
             };
 
-            this.Presenter.CreatePlayerEntry(ProofLogix.Instance.PartySync.LocalPlayer);
-            foreach (var player in ProofLogix.Instance.PartySync.PlayerList) {
-                this.Presenter.CreatePlayerEntry(player);
-            }
-            this.Presenter.SortEntries();
-
             var menu = new ContextMenuStrip {
                 Parent = buildPanel,
                 ClipsBounds = false
