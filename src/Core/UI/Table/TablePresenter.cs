@@ -8,33 +8,73 @@ using Nekres.ProofLogix.Core.UI.KpProfile;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace Nekres.ProofLogix.Core.UI.Table {
     public class TablePresenter : Presenter<TableView, TableConfig> {
-        private readonly Timer _bulkLoadTimer;
-        private const    int BULKLOAD_INTERVAL = 1000;
-        private readonly ConcurrentDictionary<string, TablePlayerEntry> _bulk;
+        private Timer _bulkLoadTimer;
+        private const int BULKLOAD_INTERVAL = 1000;
+
+        private          ConcurrentQueue<IDisposable> _disposables;
+        private readonly Timer                        _cleanUpTimer;
+
+        private static int _lockFlag = 0;
 
         public TablePresenter(TableView view, TableConfig model) : base(view, model) {
-            _bulk                  =  new ConcurrentDictionary<string, TablePlayerEntry>(Environment.ProcessorCount * 2, this.Model.MaxPlayerCount);
+            _disposables          =  new ConcurrentQueue<IDisposable>();
+            _cleanUpTimer         =  new Timer(BULKLOAD_INTERVAL) { AutoReset = false };
+            _cleanUpTimer.Elapsed += OnCleanUpTimerElapsed;
+
             _bulkLoadTimer         =  new Timer(BULKLOAD_INTERVAL) { AutoReset = false };
             _bulkLoadTimer.Elapsed += OnBulkLoadTimerElapsed;
 
-            ProofLogix.Instance.PartySync.PlayerAdded   += PlayerAddedOrChanged;
-            ProofLogix.Instance.PartySync.PlayerChanged += PlayerAddedOrChanged;
-            ProofLogix.Instance.PartySync.PlayerRemoved += PlayerRemoved;
+            ProofLogix.Instance.PartySync.PlayerAdded += OnPartyChanged;
+            //ProofLogix.Instance.PartySync.PlayerChanged += OnPartyChanged;
+            ProofLogix.Instance.PartySync.PlayerRemoved += OnPartyChanged;
+
+            ResetBulkLoadTimer();
+        }
+
+        private void OnPartyChanged(object sender, ValueEventArgs<Player> e) {
+            ResetBulkLoadTimer();
+        }
+
+        private void OnCleanUpTimerElapsed(object sender, ElapsedEventArgs e) {
+            _cleanUpTimer.Stop();
+            while (_disposables.TryDequeue(out var disposable)) {
+                disposable?.Dispose();
+            }
+            _cleanUpTimer.Interval = BULKLOAD_INTERVAL;
+            _cleanUpTimer.Start();
         }
 
         private void OnBulkLoadTimerElapsed(object sender, ElapsedEventArgs e) {
+            if (Interlocked.CompareExchange(ref _lockFlag, 1, 0) != 0) {
+                return;
+            }
+
             var table = this.View.Table;
+
             if (table == null) {
                 return;
             }
 
+            using var ctx = table.SuspendLayoutContext();
+
+            var scrollOffsetY = table.VerticalScrollOffset;
+
+            foreach (var oldChild in table.Children.ToList()) {
+                _disposables.Enqueue(oldChild);
+            }
+
             // Bulk assign children to container.
             // Prepare sorted control collection.
-            var bulk = _bulk.Values.ToList();
+            var bulk = ProofLogix.Instance.PartySync.PlayerList.Prepend(ProofLogix.Instance.PartySync.LocalPlayer)
+                                 .Select(CreatePlayerEntry)
+                                 .Where(x => x != null)
+                                 .ToList();
 
             var toDisplay = bulk.Where(x => x.Remember || x.Player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)).ToList();
             toDisplay.AddRange(bulk.Except(toDisplay).OrderByDescending(x => x.Player.Created).Take(Math.Abs(this.Model.MaxPlayerCount - 1)));
@@ -47,7 +87,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 // Skip the public setter because it would add to the parent's children individually.
                 item.GetPrivateField("_parent").SetValue(item, table);
             }
-            
+
             // Overwrite the old list of children as a whole.
             table.GetPrivateField("_children").SetValue(table, list);
 
@@ -62,25 +102,24 @@ namespace Nekres.ProofLogix.Core.UI.Table {
             } else {
                 this.View.PlayerCountLbl.TextColor = Color.White;
             }
+
+            table.VerticalScrollOffset = scrollOffsetY;
+
+            Interlocked.Decrement(ref _lockFlag);
         }
 
         private void ResetBulkLoadTimer() {
-            _bulkLoadTimer.Stop();
-            _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
-            _bulkLoadTimer.Start();
+            if (_bulkLoadTimer != null) {
+                _bulkLoadTimer.Stop();
+                _bulkLoadTimer.Interval = BULKLOAD_INTERVAL;
+                _bulkLoadTimer.Start();
+            }
         }
 
-        public void CreatePlayerEntry(Player player) {
+        public TablePlayerEntry CreatePlayerEntry(Player player) {
             if (this.Model.RequireProfile && !player.HasKpProfile) {
-                return;
+                return null;
             }
-
-            if (TryGetPlayerEntry(player, out var playerEntry)) {
-                playerEntry.Player = player; // Reassign just in case it's a new player.
-                return;
-            }
-
-            ResetBulkLoadTimer();
 
             var entry = new TablePlayerEntry(player) {
                 Height = 32,
@@ -88,13 +127,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                         || player.Equals(ProofLogix.Instance.PartySync.LocalPlayer)
             };
             
-            _bulk[player.AccountName] = entry;
-
             entry.LeftMouseButtonReleased += (_, _) => {
                 if (entry.Player.KpProfile.NotFound) {
-                    ScreenNotification.ShowNotification("This player has no profile.");
+                    GameService.Content.PlaySoundEffectByName("error");
+                    ScreenNotification.ShowNotification("This player has no profile.", ScreenNotification.NotificationType.Error);
                     return;
                 }
+                GameService.Content.PlaySoundEffectByName("button-click");
                 ProfileView.Open(entry.Player.KpProfile);
             };
 
@@ -111,30 +150,7 @@ namespace Nekres.ProofLogix.Core.UI.Table {
                 }
                 entry.Remember = !entry.Remember;
             };
-        }
-
-        private void PlayerRemoved(object sender, ValueEventArgs<Player> e) {
-            if (!TryGetPlayerEntry(e.Value, out var playerEntry)) {
-                return;
-            }
-
-            if (playerEntry.Remember) {
-                return; // Don't remove remembered entries.
-            }
-
-            ResetBulkLoadTimer();
-
-            if (_bulk.TryRemove(playerEntry.Player.AccountName, out _)) {
-                playerEntry.Dispose();
-            }
-        }
-
-        private void PlayerAddedOrChanged(object sender, ValueEventArgs<Player> e) {
-            CreatePlayerEntry(e.Value);
-        }
-
-        private bool TryGetPlayerEntry(Player player, out TablePlayerEntry playerEntry) {
-            return _bulk.TryGetValue(player.AccountName, out playerEntry);
+            return entry;
         }
 
         private int Comparer(TablePlayerEntry x, TablePlayerEntry y) {
@@ -143,19 +159,21 @@ namespace Nekres.ProofLogix.Core.UI.Table {
 
                 // Sort by online status
                 if (status != 0) {
-                    if (x.Player.Status == Player.OnlineStatus.Unknown) {
+                    if (x.Player.Status < y.Player.Status) {
                         return 1;
                     }
-                    if (y.Player.Status == Player.OnlineStatus.Unknown) {
+                    if (x.Player.Status > y.Player.Status) {
                         return -1;
-                    }
-                    if (x.Player.Status == Player.OnlineStatus.Online && y.Player.Status == Player.OnlineStatus.Away) {
-                        return -1;
-                    }
-                    if (x.Player.Status == Player.OnlineStatus.Away && y.Player.Status == Player.OnlineStatus.Online) {
-                        return 1;
                     }
                 }
+            }
+
+            if (!x.Player.HasKpProfile) {
+                return 1;
+            }
+
+            if (!y.Player.HasKpProfile) {
+                return -1;
             }
 
             // Sort by selected column
@@ -192,15 +210,13 @@ namespace Nekres.ProofLogix.Core.UI.Table {
         }
 
         protected override void Unload() {
-            ProofLogix.Instance.PartySync.PlayerAdded   -= PlayerAddedOrChanged;
-            ProofLogix.Instance.PartySync.PlayerChanged -= PlayerAddedOrChanged;
-            ProofLogix.Instance.PartySync.PlayerRemoved -= PlayerRemoved;
-
             _bulkLoadTimer.Dispose();
-
-            foreach (var ctrl in _bulk.Values) {
-                ctrl?.Dispose();
-            }
+            _bulkLoadTimer = null;
+            OnCleanUpTimerElapsed(null, null);
+            _cleanUpTimer.Dispose();
+            ProofLogix.Instance.PartySync.PlayerAdded   -= OnPartyChanged;
+            ProofLogix.Instance.PartySync.PlayerChanged -= OnPartyChanged;
+            ProofLogix.Instance.PartySync.PlayerRemoved -= OnPartyChanged;
             base.Unload();
         }
 
