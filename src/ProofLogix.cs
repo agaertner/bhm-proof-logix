@@ -1,4 +1,4 @@
-﻿using Blish_HUD;
+using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
@@ -136,7 +136,7 @@ namespace Nekres.ProofLogix {
                 Height             = 500,
                 Id                 = $"{nameof(ProofLogix)}_Table_045b4a5441ac40ea93d98ae2021a8f0c",
                 Title              = "Party Table",
-                Subtitle           = GetKeyCombinationString(_tableKey.Value),
+                Subtitle           = $"[{_tableKey.Value.GetBindingDisplayText()}]",
                 CanResize          = true,
                 SavesSize          = true,
                 SavesPosition      = true,
@@ -153,7 +153,7 @@ namespace Nekres.ProofLogix {
                 Height             = 150,
                 Id                 = $"{nameof(ProofLogix)}_SmartPing_1f4fa9243b014915bfb7af4be545cb7b",
                 Title              = "Smart Ping",
-                Subtitle           = GetKeyCombinationString(_smartPingKey.Value),
+                Subtitle           = $"[{_smartPingKey.Value.GetBindingDisplayText()}]",
                 SavesPosition      = true,
                 CanCloseWithEscape = false,
                 Visible            = false,
@@ -175,7 +175,7 @@ namespace Nekres.ProofLogix {
 
         private void OnSmartPingKeyBindingChanged(object sender, EventArgs e) {
             if (_smartPing != null) {
-                _smartPing.Subtitle = GetKeyCombinationString(_smartPingKey.Value);
+                _smartPing.Subtitle = $"[{_smartPingKey.Value.GetBindingDisplayText()}]"; 
             }
         }
 
@@ -185,29 +185,12 @@ namespace Nekres.ProofLogix {
 
         private void OnTableKeyBindingChanged(object sender, EventArgs e) {
             if (_table != null) {
-                _table.Subtitle = GetKeyCombinationString(_tableKey.Value);
+                _table.Subtitle = $"[{_tableKey.Value.GetBindingDisplayText()}]";
             }
         }
 
         private void OnTableKeyActivated(object sender, EventArgs e) {
             ToggleTable();
-        }
-
-        private string GetKeyCombinationString(KeyBinding keyBinding) {
-            if (keyBinding.ModifierKeys == ModifierKeys.None) {
-                return keyBinding.PrimaryKey == Keys.None ? string.Empty : $"[{keyBinding.PrimaryKey}]";
-            }
-            string modifierString = string.Empty;
-            if ((keyBinding.ModifierKeys & ModifierKeys.Ctrl) != 0) {
-                modifierString += "Ctrl + ";
-            }
-            if ((keyBinding.ModifierKeys & ModifierKeys.Alt) != 0) {
-                modifierString += "Alt + ";
-            }
-            if ((keyBinding.ModifierKeys & ModifierKeys.Shift) != 0) {
-                modifierString += "Shift + ";
-            }
-            return $"[{modifierString + keyBinding.PrimaryKey}]";
         }
 
         public void ToggleRegisterWindow() {
