@@ -6,7 +6,7 @@
   "manifest_version": 1,
   "description": "Check the raid related progress of yourself and others.\n\nSupports\n• Killproof.me\n• ArcDPS Bridge (ArcDPS Blish HUD Integration)",
   "dependencies": {
-    "bh.blishhud": ">=1.0.0"
+    "bh.blishhud": ">=1.2.0"
   },
   "enabled_without_gw2": false,
   "url": "https://github.com/agaertner/bhm-proof-logix",
