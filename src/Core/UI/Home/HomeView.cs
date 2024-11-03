@@ -11,7 +11,6 @@ using Nekres.ProofLogix.Core.UI.KpProfile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Blish_HUD.Extended.Properties;
 
 namespace Nekres.ProofLogix.Core.UI.Home {
     public class HomeView : View {
@@ -254,7 +253,7 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     return;
                 }
 
-                var slotsCategory = new FlowPanelWithIcon(icon) {
+                var slotsCategory = new FlowPanel {
                     Parent              = parent,
                     Width               = parent.ContentRegion.Width - 24,
                     HeightSizingMode    = SizingMode.AutoSize,
@@ -262,7 +261,8 @@ namespace Nekres.ProofLogix.Core.UI.Home {
                     CanCollapse         = true,
                     CanScroll           = true,
                     OuterControlPadding = new Vector2(5, 5),
-                    ControlPadding      = new Vector2(5, 5)
+                    ControlPadding      = new Vector2(5, 5),
+                    Icon = icon
                 };
 
                 parent.ContentResized += (_, e) => {
