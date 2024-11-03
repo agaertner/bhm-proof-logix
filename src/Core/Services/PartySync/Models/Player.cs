@@ -2,7 +2,7 @@
 using Blish_HUD.Content;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using System;
-
+using ArcPlayer = Blish_HUD.GameServices.ArcDps.V2.CommonFields.Player;
 namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
     /// <summary>
     /// Represents a player driven by <see href="www.killproof.me"/> profile<br/>
@@ -33,14 +33,14 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
         public string         Class => GetClass();
         public AsyncTexture2D Icon => GetIcon();
 
-        private CommonFields.Player _arcDpsPlayer;
+        private ArcPlayer _arcDpsPlayer;
 
         public Player() {
             this.Created   = DateTime.UtcNow;
             this.KpProfile = Profile.Empty;
         }
 
-        public Player(CommonFields.Player agent) : this() {
+        public Player(ArcPlayer agent) : this() {
             _arcDpsPlayer = agent;
         }
 
@@ -53,7 +53,7 @@ namespace Nekres.ProofLogix.Core.Services.PartySync.Models {
                 || this.HasKpProfile && this.KpProfile.BelongsTo(other.AccountName, out _);
         }
 
-        public void AttachAgent(CommonFields.Player arcDpsPlayer) {
+        public void AttachAgent(ArcPlayer arcDpsPlayer) {
             _arcDpsPlayer = arcDpsPlayer;
         }
 

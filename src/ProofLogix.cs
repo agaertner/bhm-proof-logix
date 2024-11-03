@@ -1,4 +1,4 @@
-using Blish_HUD;
+﻿using Blish_HUD;
 using Blish_HUD.Content;
 using Blish_HUD.Controls;
 using Blish_HUD.Input;
@@ -92,7 +92,7 @@ namespace Nekres.ProofLogix {
         }
 
         protected override void OnModuleLoaded(EventArgs e) {
-            GameService.ArcDps.Common.Activate();
+            GameService.ArcDpsV2.Common.Activate();
 
             Emblem    = ContentsManager.GetTexture("emblem.png");
             _icon      = ContentsManager.GetTexture("icon.png");

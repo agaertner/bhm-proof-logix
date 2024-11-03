@@ -1,5 +1,4 @@
 using Blish_HUD;
-using Blish_HUD.ArcDps.Common;
 using Microsoft.Xna.Framework;
 using Nekres.ProofLogix.Core.Services.KpWebApi.V2.Models;
 using Nekres.ProofLogix.Core.Services.PartySync.Models;
@@ -10,8 +9,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ArcPlayer = Blish_HUD.GameServices.ArcDps.V2.CommonFields.Player;
 using Player = Nekres.ProofLogix.Core.Services.PartySync.Models.Player;
-
 namespace Nekres.ProofLogix.Core.Services {
     public class PartySyncService : IDisposable {
 
@@ -51,8 +50,8 @@ namespace Nekres.ProofLogix.Core.Services {
 
             GameService.Gw2Mumble.PlayerCharacter.NameChanged += OnPlayerCharacterNameChanged;
 
-            GameService.ArcDps.Common.PlayerAdded   += OnPlayerJoin;
-            GameService.ArcDps.Common.PlayerRemoved += OnPlayerLeft;
+            GameService.ArcDpsV2.Common.PlayerAdded += OnPlayerJoin;
+            GameService.ArcDpsV2.Common.PlayerRemoved += OnPlayerLeft;
 
             GameService.Overlay.UserLocaleChanged += OnUserLocaleChanged;
         }
@@ -99,7 +98,7 @@ namespace Nekres.ProofLogix.Core.Services {
             await GetLocalPlayerProfile();
 
             // Squad will be empty until map change if ArcDps just got activated.
-            foreach (var player in GameService.ArcDps.Common.PlayersInSquad.Values) {
+            foreach (var player in GameService.ArcDpsV2.Common.PlayersInSquad.Values) {
                 AddArcDpsAgent(player);
             }
 
@@ -143,8 +142,8 @@ namespace Nekres.ProofLogix.Core.Services {
         public void Dispose() {
             GameService.Gw2Mumble.PlayerCharacter.NameChanged -= OnPlayerCharacterNameChanged;
             GameService.Overlay.UserLocaleChanged             -= OnUserLocaleChanged;
-            GameService.ArcDps.Common.PlayerAdded             -= OnPlayerJoin;
-            GameService.ArcDps.Common.PlayerRemoved           -= OnPlayerLeft;
+            GameService.ArcDpsV2.Common.PlayerAdded           -= OnPlayerJoin;
+            GameService.ArcDpsV2.Common.PlayerRemoved         -= OnPlayerLeft;
             _overcapCleanUpTimer?.Dispose();
         }
 
@@ -201,7 +200,7 @@ namespace Nekres.ProofLogix.Core.Services {
             this.LocalPlayer.AttachProfile(profile);
         }
 
-        private void AddArcDpsAgent(CommonFields.Player arcDpsPlayer) {
+        private void AddArcDpsAgent(ArcPlayer arcDpsPlayer) {
             var key = arcDpsPlayer.AccountName;
 
             if (string.IsNullOrEmpty(key)) {
@@ -244,12 +243,12 @@ namespace Nekres.ProofLogix.Core.Services {
         }
 
         #region ArcDps Player Events
-        private async void OnPlayerJoin(CommonFields.Player player) {
+        private async void OnPlayerJoin(ArcPlayer player) {
             AddArcDpsAgent(player);
             AddKpProfile(await ProofLogix.Instance.KpWebApi.GetProfile(player.AccountName));
         }
 
-        private void OnPlayerLeft(CommonFields.Player player) {
+        private void OnPlayerLeft(ArcPlayer player) {
             if (player.Self) {
                 return; // Never remove local player.
             }
